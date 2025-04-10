@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('variant_values', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('variant_id');
-            $table->uuid('option_id');
-            $table->uuid('option_value_id');
+            $table->id()->primary();
+            $table->unsignedBigInteger('variant_id');
+            $table->unsignedBigInteger('option_id');
+            $table->unsignedBigInteger('option_value_id');
             $table->timestamps();
 
             $table->foreign('variant_id')->references('id')->on('variants')->cascadeOnDelete()->cascadeOnUpdate();

@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id()->primary();
             $table->string('name');
-            $table->uuid('customer_id');
-            $table->uuid('brand_id');
+            $table->unsignedBigInteger('customer_id');
+            $table->unsignedBigInteger('brand_id');
             $table->text('note')->nullable();
             $table->enum('status', ['pending', 'confirmed', 'processing', 'completed', 'cancelled', 'archived'])->default('pending');
             $table->enum('delivery_status', ['pending', 'packing', 'shipped', 'transit', 'delivered'])->default('pending');

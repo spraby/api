@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('brand_image', function (Blueprint $table) {
-            $table->uuid('brand_id');
-            $table->uuid('image_id');
+            $table->unsignedBigInteger('brand_id');
+            $table->unsignedBigInteger('image_id');
             $table->primary(['brand_id', 'image_id']);
 
             $table->foreign('brand_id')->references('id')->on('brands')->cascadeOnDelete();
@@ -21,8 +21,8 @@ return new class extends Migration
         });
 
         Schema::create('brand_category', function (Blueprint $table) {
-            $table->uuid('brand_id');
-            $table->uuid('category_id');
+            $table->unsignedBigInteger('brand_id');
+            $table->unsignedBigInteger('category_id');
             $table->primary(['brand_id', 'category_id']);
 
             $table->foreign('brand_id')->references('id')->on('brands')->cascadeOnDelete();
@@ -30,8 +30,8 @@ return new class extends Migration
         });
 
         Schema::create('category_collection', function (Blueprint $table) {
-            $table->uuid('category_id');
-            $table->uuid('collection_id');
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('collection_id');
             $table->primary(['category_id', 'collection_id']);
 
             $table->foreign('category_id')->references('id')->on('categories')->cascadeOnDelete();
@@ -39,8 +39,8 @@ return new class extends Migration
         });
 
         Schema::create('category_option', function (Blueprint $table) {
-            $table->uuid('category_id');
-            $table->uuid('option_id');
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('option_id');
             $table->primary(['category_id', 'option_id']);
 
             $table->foreign('category_id')->references('id')->on('categories')->cascadeOnDelete();

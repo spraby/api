@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('option_values', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('option_id');
+            $table->id()->primary();
+            $table->unsignedBigInteger('option_id');
             $table->string('value');
             $table->timestamps();
 

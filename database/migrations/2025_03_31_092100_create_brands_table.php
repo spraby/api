@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('brands', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('user_id')->nullable();
+            $table->id()->primary();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->string('name');
             $table->text('description')->nullable();
             $table->timestamps();

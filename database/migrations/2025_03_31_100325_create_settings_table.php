@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('settings', function (Blueprint $table) {
-            $table->uuid('id')->unique();
+            $table->id()->primary();
             $table->jsonb('data')->default(DB::raw("'[]'::jsonb"));
             $table->timestamps();
         });
