@@ -14,7 +14,17 @@ RUN apt-get update && apt-get install -y \
     nano \
     libzip-dev \
     libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip
+    libicu-dev \
+    && docker-php-ext-install \
+        pdo \
+        pdo_pgsql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

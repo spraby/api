@@ -86,6 +86,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Language Path
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the path where the language files are stored.
+    | By default, Laravel uses the resources/lang directory. However,
+    | you can change this to any path you prefer.
+    |
+    */
+
+    'lang_path' => base_path('lang'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

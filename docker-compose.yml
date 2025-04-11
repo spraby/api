@@ -8,6 +8,9 @@ services:
       - ./:/var/www/html
     depends_on:
       - postgres
+    environment:
+        - WWWUSER=1000
+        - WWWGROUP=1000
 
   nginx:
     image: nginx:stable
