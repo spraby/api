@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Brand;
+use App\Models\Category;
 use App\Models\User;
 
 class BrandPolicy

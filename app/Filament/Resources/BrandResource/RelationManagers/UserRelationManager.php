@@ -79,7 +79,17 @@ class UserRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\DetachAction::make()
-                    ->visible(fn ($record) => $record->user_id !== null),
+                    ->visible(fn ($record) => $record?->id !== null)
+                    ->action(function (array $data, RelationManager $livewire) {
+                        $brand = $livewire->getOwnerRecord();
+                        $brand->user()->dissociate();
+                        $brand->save();
+
+                        Notification::make()
+                            ->title('User dittached successfully')
+                            ->success()
+                            ->send();
+                    })
             ])
             ->bulkActions([]);
     }

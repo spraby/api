@@ -3,7 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BrandResource\Pages;
-use App\Filament\Resources\BrandResource\RelationManagers\UserRelationManager;
+use App\Filament\Resources\BrandResource\RelationManagers\{
+    UserRelationManager,
+    ProductsRelationManager,
+    CategoriesRelationManager,
+    OrdersRelationManager,
+    ImagesRelationManager,
+    SettingsRelationManager
+};
 use App\Models\Brand;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -60,22 +67,6 @@ class BrandResource extends Resource
                         'hr'
                     ])
                     ->columnSpanFull(),
-
-                Forms\Components\Section::make(__('filament-resources.resources.brand.fields.settings.label'))
-                    ->schema([
-                        Forms\Components\TextInput::make('settings.currency')
-                            ->label(__('filament-resources.resources.brand.fields.settings.currency'))
-                            ->maxLength(10),
-                        Forms\Components\TextInput::make('settings.contact_email')
-                            ->label(__('filament-resources.resources.brand.fields.settings.contact_email'))
-                            ->email()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('settings.contact_phone')
-                            ->label(__('filament-resources.resources.brand.fields.settings.contact_phone'))
-                            ->tel()
-                            ->maxLength(20),
-                    ])
-                    ->columns(2),
             ]);
     }
 
@@ -83,14 +74,22 @@ class BrandResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('handle')
-                    ->label(__('filament-resources.resources.brand.fields.handle'))
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->label(__('filament-resources.resources.brand.fields.name'))
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('description')
+                    ->label(__('filament-resources.resources.brand.fields.description'))
+                    ->limit(50)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('title')
-                    ->label(__('filament-resources.resources.brand.fields.title')),
+                Tables\Columns\TextColumn::make('products_count')
+                    ->label(__('filament-resources.resources.brand.fields.products_count'))
+                    ->counts('products')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('orders_count')
+                    ->label(__('filament-resources.resources.brand.fields.orders_count'))
+                    ->counts('orders')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('filament-resources.resources.brand.fields.created_at'))
                     ->dateTime()
@@ -103,6 +102,15 @@ class BrandResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\Filter::make('has_description')
+                    ->label(__('filament-resources.resources.brand.filters.has_description'))
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('description')),
+                Tables\Filters\Filter::make('has_products')
+                    ->label(__('filament-resources.resources.brand.filters.has_products'))
+                    ->query(fn (Builder $query): Builder => $query->has('products')),
+                Tables\Filters\Filter::make('has_orders')
+                    ->label(__('filament-resources.resources.brand.filters.has_orders'))
+                    ->query(fn (Builder $query): Builder => $query->has('orders')),
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('created_from'),
@@ -134,6 +142,11 @@ class BrandResource extends Resource
     {
         return [
             UserRelationManager::class,
+            ProductsRelationManager::class,
+            CategoriesRelationManager::class,
+            OrdersRelationManager::class,
+            ImagesRelationManager::class,
+            SettingsRelationManager::class,
         ];
     }
 

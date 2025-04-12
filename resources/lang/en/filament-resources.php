@@ -11,8 +11,8 @@ return [
                 'name' => 'Name',
                 'title' => 'Title',
                 'description' => 'Description',
-                'created_at' => 'Created At',
-                'updated_at' => 'Updated At',
+                'created_at' => 'Created at',
+                'updated_at' => 'Updated at',
             ],
             'headings' => [
                 'details' => 'Details',
@@ -46,8 +46,8 @@ return [
                 'name' => 'Name',
                 'title' => 'Title',
                 'description' => 'Description',
-                'created_at' => 'Created At',
-                'updated_at' => 'Updated At',
+                'created_at' => 'Created at',
+                'updated_at' => 'Updated at',
             ],
             'relations' => [
                 'categories' => [
@@ -64,8 +64,8 @@ return [
                 'name' => 'Name',
                 'title' => 'Title',
                 'description' => 'Description',
-                'created_at' => 'Created At',
-                'updated_at' => 'Updated At',
+                'created_at' => 'Created at',
+                'updated_at' => 'Updated at',
             ],
             'relations' => [
                 'values' => [
@@ -85,8 +85,8 @@ return [
             'fields' => [
                 'option_id' => 'Option',
                 'value' => 'Value',
-                'created_at' => 'Created At',
-                'updated_at' => 'Updated At',
+                'created_at' => 'Created at',
+                'updated_at' => 'Updated at',
             ],
         ],
         'brand' => [
@@ -104,14 +104,100 @@ return [
                     'contact_email' => 'Contact Email',
                     'contact_phone' => 'Contact Phone',
                 ],
-                'created_at' => 'Created At',
-                'updated_at' => 'Updated At',
+                'created_at' => 'Created at',
+                'updated_at' => 'Updated at',
+                'products_count' => 'Products count',
+                'orders_count' => 'Orders count',
             ],
             'relations' => [
                 'users' => [
                     'label' => 'User',
                     'plural_label' => 'Users',
                 ],
+                'products' => [
+                    'label' => 'Product',
+                    'plural_label' => 'Products',
+                    'fields' => [
+                        'name' => 'Name',
+                        'price' => 'Price',
+                        'description' => 'Description',
+                        'variants_count' => 'Variants count',
+                    ],
+                    'filters' => [
+                        'has_variants' => 'With variants',
+                        'has_images' => 'With images',
+                    ],
+                ],
+                'categories' => [
+                    'label' => 'Category',
+                    'plural_label' => 'Categories',
+                    'fields' => [
+                        'name' => 'Name',
+                        'description' => 'Description',
+                        'parent_id' => 'Parent category',
+                    ],
+                ],
+                'orders' => [
+                    'label' => 'Order',
+                    'plural_label' => 'Orders',
+                    'fields' => [
+                        'number' => 'Number',
+                        'total' => 'Total',
+                        'status' => 'Status',
+                        'customer' => 'Customer',
+                        'items_count' => 'Items count',
+                    ],
+                    'statuses' => [
+                        'pending' => 'Pending',
+                        'processing' => 'Processing',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
+                    ],
+                    'filters' => [
+                        'has_shipping' => 'With shipping',
+                    ],
+                ],
+                'images' => [
+                    'label' => 'Image',
+                    'plural_label' => 'Images',
+                    'fields' => [
+                        'path' => 'Image',
+                        'alt' => 'Alt text',
+                        'type' => 'Type',
+                    ],
+                    'types' => [
+                        'logo' => 'Logo',
+                        'banner' => 'Banner',
+                        'gallery' => 'Gallery',
+                    ],
+                ],
+                'settings' => [
+                    'label' => 'Setting',
+                    'plural_label' => 'Settings',
+                    'fields' => [
+                        'type' => 'Type',
+                        'data' => 'Data',
+                        'key' => 'Key',
+                        'value' => 'Value',
+                    ],
+                    'types' => [
+                        'delivery' => 'Delivery',
+                        'refund' => 'Refund',
+                        'phones' => 'Phones',
+                        'emails' => 'Emails',
+                        'socials' => 'Social media',
+                        'addresses' => 'Addresses',
+                    ],
+                    'actions' => [
+                        'add' => 'Add setting',
+                    ],
+                    'items' => 'items',
+                ],
+            ],
+            'filters' => [
+                'has_description' => 'With description',
+                'has_products' => 'With products',
+                'has_orders' => 'With orders',
             ],
         ],
         'user' => [
@@ -119,18 +205,99 @@ return [
             'plural_label' => 'Users',
             'navigation_label' => 'Users',
             'fields' => [
-                'first_name' => 'First Name',
-                'last_name' => 'Last Name',
+                'first_name' => 'First name',
+                'last_name' => 'Last name',
                 'email' => 'Email',
                 'password' => 'Password',
                 'role' => 'Role',
-                'created_at' => 'Created At',
-                'updated_at' => 'Updated At',
+                'created_at' => 'Created at',
+                'updated_at' => 'Updated at',
             ],
             'relations' => [
                 'brands' => [
                     'label' => 'Brand',
                     'plural_label' => 'Brands',
+                ],
+            ],
+        ],
+        'product' => [
+            'label' => 'Product',
+            'plural_label' => 'Products',
+            'navigation_label' => 'Products',
+            'sections' => [
+                'general' => 'General information',
+                'pricing' => 'Pricing',
+                'status' => 'Status',
+                'associations' => 'Associations',
+            ],
+            'fields' => [
+                'title' => 'Title',
+                'description' => 'Description',
+                'price' => 'Price',
+                'final_price' => 'Final price',
+                'enabled' => 'Enabled',
+                'brand_id' => 'Brand',
+                'category_id' => 'Category',
+                'variants_count' => 'Variants count',
+                'created_at' => 'Created at',
+                'updated_at' => 'Updated at',
+            ],
+            'filters' => [
+                'has_variants' => 'With variants',
+                'has_images' => 'With images',
+                'has_orders' => 'With orders',
+            ],
+            'relations' => [
+                'variants' => [
+                    'label' => 'Variant',
+                    'plural_label' => 'Variants',
+                    'sections' => [
+                        'options' => 'Options',
+                    ],
+                    'fields' => [
+                        'title' => 'Title',
+                        'price' => 'Price',
+                        'final_price' => 'Final price',
+                        'image_id' => 'Image',
+                        'values' => 'Values',
+                        'values_count' => 'Values count',
+                        'option_id' => 'Option',
+                        'option_value_id' => 'Value',
+                    ],
+                    'filters' => [
+                        'has_image' => 'With image',
+                        'has_values' => 'With values',
+                    ],
+                ],
+                'images' => [
+                    'label' => 'Product image',
+                    'plural_label' => 'Product images',
+                    'fields' => [
+                        'image_id' => 'Image',
+                        'name' => 'Name',
+                        'src' => 'File',
+                        'alt' => 'Alt text',
+                        'preview' => 'Preview',
+                        'position' => 'Position',
+                        'variants_count' => 'Variants count',
+                    ],
+                    'filters' => [
+                        'has_variants' => 'With variants',
+                    ],
+                ],
+                'order_items' => [
+                    'label' => 'Order item',
+                    'plural_label' => 'Order items',
+                    'fields' => [
+                        'order_id' => 'Order',
+                        'variant_id' => 'Variant',
+                        'quantity' => 'Quantity',
+                        'price' => 'Price',
+                        'total' => 'Total',
+                    ],
+                    'filters' => [
+                        'has_variant' => 'With variant',
+                    ],
                 ],
             ],
         ],
