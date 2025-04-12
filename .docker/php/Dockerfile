@@ -32,5 +32,8 @@ WORKDIR /var/www/html
 
 COPY .docker/php/init.sh /usr/local/bin/init.sh
 RUN chmod +x /usr/local/bin/init.sh
+RUN chown -R www-data:www-data /var/www/html
+
+USER www-data
 
 CMD ["/usr/local/bin/init.sh"]

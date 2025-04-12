@@ -39,22 +39,26 @@ class BrandResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('handle')
-                    ->label(__('filament-resources.resources.brand.fields.handle'))
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255),
                 Forms\Components\TextInput::make('name')
                     ->label(__('filament-resources.resources.brand.fields.name'))
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('title')
-                    ->label(__('filament-resources.resources.brand.fields.title'))
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('description')
+                Forms\Components\RichEditor::make('description')
                     ->label(__('filament-resources.resources.brand.fields.description'))
                     ->maxLength(65535)
+                    ->toolbarButtons([
+                        'bold',
+                        'italic',
+                        'underline',
+                        'strike',
+                        'h2',
+                        'h3',
+                        'bulletList',
+                        'orderedList',
+                        'undo',
+                        'redo',
+                        'hr'
+                    ])
                     ->columnSpanFull(),
 
                 Forms\Components\Section::make(__('filament-resources.resources.brand.fields.settings.label'))

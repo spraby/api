@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property string $id
@@ -28,6 +29,7 @@ use Carbon\Carbon;
 class User extends Authenticatable
 {
     use HasFactory;
+    use HasRoles;
 
     protected $fillable = [
         'first_name',
