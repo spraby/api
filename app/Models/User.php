@@ -23,6 +23,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read Collection<Brand> $brands
  *
  * @method static Builder|static query()
+ * @method void assignRole(string|array $roles)
+ * @method bool hasRole(string $role)
  *
  * @mixin Builder
  */
