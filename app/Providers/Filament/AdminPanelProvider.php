@@ -64,7 +64,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                'can:access-admin-panel'
+//                'can:access-admin-panel'
             ]);
     }
 }

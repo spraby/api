@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Image;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -28,7 +30,24 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->addPermissions();
+
+        $d = Storage::disk('s3')->put('test.txt', 'Hello, S3!');
+        dd($d);
+$image = Image::find(2);
+dd(Storage::disk('public')->url($image->src));
+        dd();
+
+        $user = User::create([
+            'first_name' => 'admin',
+            'last_name' => 'Admin',
+            'email' => 'admin@gmail.com',
+            'password' => bcrypt('12qw34er'), // используй надёжный пароль
+        ]);
+
+        $role = Role::firstOrCreate(['name' => 'admin']);
+        $user->assignRole('admin');
+
+//        $this->addPermissions();
     }
 
     public function addPermissions(){
