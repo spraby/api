@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property string $id
@@ -19,6 +20,7 @@ use Carbon\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
+ * @property string $url
  * @property-read Collection<ProductImage> $productImages
  * @property-read Collection<Brand> $brands
  *
@@ -42,13 +44,42 @@ class Image extends Model
         'updated_at' => 'datetime',
     ];
 
-    public function productImages(): HasMany
+    /**
+     * @return string
+     */
+    public function getUrlAttribute(): string
     {
-        return $this->hasMany(ProductImage::class);
+        return Storage::disk('s3')->url($this->src);
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'product_images')
+            ->withPivot(['id', 'position'])
+            ->withTimestamps()
+            ->as('pivot');
     }
 
     public function brands(): BelongsToMany
     {
         return $this->belongsToMany(Brand::class);
+    }
+
+    /**
+     * @return void
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Image $image) {
+            /**
+             * @var User $user
+             * @var Brand $brand
+             * @var Image $image
+             */
+            $user = auth()->user();
+            if (!$user) return;
+            $brand = $user->brands->first();
+            if ($brand) $image->brands()->syncWithoutDetaching($brand->id);
+        });
     }
 }

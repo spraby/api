@@ -61,4 +61,12 @@ class User extends Authenticatable
     {
         return $this->first_name;
     }
+
+    /**
+     * @return Brand|null
+     */
+    public function getBrand(): ?Brand
+    {
+        return $this->brands()->first();
+    }
 }

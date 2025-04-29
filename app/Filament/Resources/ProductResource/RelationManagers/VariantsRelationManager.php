@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -31,15 +32,34 @@ class VariantsRelationManager extends RelationManager
                     ->numeric()
                     ->prefix('$'),
                 Forms\Components\Select::make('image_id')
-                    ->label(__('filament-resources.resources.product.relations.variants.fields.image_id'))
-                    ->relationship('image', 'id')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "Image #{$record->id}")
-                    ->searchable(),
+                    ->label('Image')
+                    ->preload()
+                    ->options(function (RelationManager $livewire) {
+                        /**
+                         * @var Product $product
+                         */
+                        $product = $livewire->ownerRecord;
+
+                        return $product->images->mapWithKeys(function ($img) {
+                            return [
+                                $img->pivot_id => <<<HTML
+                                    <div class="flex items-center gap-2">
+                                        <img src="{$img->url}" class="h-16 w-16 rounded object-cover" alt="">
+                                        <span>{$img->name}</span>
+                                    </div>
+                                HTML,
+                            ];
+                        });
+                    })
+                    ->searchable()
+                    ->allowHtml()
+                    ->nullable(),
                 Forms\Components\Section::make(__('filament-resources.resources.product.relations.variants.sections.options'))
                     ->schema([
                         Forms\Components\Repeater::make('values')
                             ->label(__('filament-resources.resources.product.relations.variants.fields.values'))
                             ->relationship()
+                            ->reorderable('product_images.position')
                             ->schema([
                                 Forms\Components\Select::make('option_id')
                                     ->label(__('filament-resources.resources.product.relations.variants.fields.option_id'))
@@ -73,6 +93,10 @@ class VariantsRelationManager extends RelationManager
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image.src')
+                    ->disk('s3')
+                    ->label('Preview')
+                    ->height(120),
                 Tables\Columns\TextColumn::make('title')
                     ->label(__('filament-resources.resources.product.relations.variants.fields.title'))
                     ->searchable(),
@@ -93,14 +117,6 @@ class VariantsRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                Tables\Filters\Filter::make('has_image')
-                    ->label(__('filament-resources.resources.product.relations.variants.filters.has_image'))
-                    ->query(fn (Builder $query): Builder => $query->whereNotNull('image_id')),
-                Tables\Filters\Filter::make('has_values')
-                    ->label(__('filament-resources.resources.product.relations.variants.filters.has_values'))
-                    ->query(fn (Builder $query): Builder => $query->has('values')),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),

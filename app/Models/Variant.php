@@ -32,13 +32,7 @@ class Variant extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'product_id',
-        'image_id',
-        'title',
-        'price',
-        'final_price',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'price' => 'decimal:2',
@@ -54,7 +48,7 @@ class Variant extends Model
 
     public function image(): BelongsTo
     {
-        return $this->belongsTo(ProductImage::class);
+        return $this->belongsTo(ProductImage::class, 'image_id');
     }
 
     public function values(): HasMany

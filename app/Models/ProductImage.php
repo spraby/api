@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, Pivot};
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
@@ -26,7 +25,7 @@ use Carbon\Carbon;
  *
  * @mixin Builder
  */
-class ProductImage extends Model
+class ProductImage extends Pivot
 {
     use HasFactory;
 

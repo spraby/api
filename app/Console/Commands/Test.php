@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Image;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -30,6 +31,13 @@ class Test extends Command
      */
     public function handle()
     {
+
+        /**
+         * @var Product $product
+         */
+        $product = Product::find(11);
+
+        dd($product->images->first());
 
         $d = Storage::disk('s3')->put('test.txt', 'Hello, S3!');
         dd($d);

@@ -5,12 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class ProductResource extends Resource
 {
@@ -35,6 +37,24 @@ class ProductResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('filament-resources.resources.product.navigation_label');
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /**
+         * @var User $user
+         */
+        $user = Auth::user();
+
+        if ($user?->hasRole('admin')) return $query;
+
+        $brand = $user->getBrand();
+
+        return $query->when($brand, function (Builder $r) use ($brand) {
+            $r->whereHas('brand', fn($q) => $q->where('brand_id', $brand->id));
+        });
     }
 
     public static function form(Form $form): Form
@@ -87,10 +107,16 @@ class ProductResource extends Resource
                                     ->relationship('brand', 'name')
                                     ->required()
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->visible(fn() => Auth::user()?->hasRole('admin')),
                                 Forms\Components\Select::make('category_id')
                                     ->label(__('filament-resources.resources.product.fields.category_id'))
-                                    ->relationship('category', 'name')
+                                    ->relationship('category', 'name', function (Builder $query, callable $get) {
+                                        $user = Auth::user();
+                                        $brandId = $get('brand_id') ?? $user->brands->first()?->id;
+
+                                        $query->whereHas('brands', fn($q) => $q->where('brands.id', $brandId));
+                                    })
                                     ->searchable()
                                     ->preload(),
                             ]),
@@ -158,13 +184,13 @@ class ProductResource extends Resource
                     ->label(__('filament-resources.resources.product.fields.enabled')),
                 Tables\Filters\Filter::make('has_variants')
                     ->label(__('filament-resources.resources.product.filters.has_variants'))
-                    ->query(fn (Builder $query): Builder => $query->has('variants')),
+                    ->query(fn(Builder $query): Builder => $query->has('variants')),
                 Tables\Filters\Filter::make('has_images')
                     ->label(__('filament-resources.resources.product.filters.has_images'))
-                    ->query(fn (Builder $query): Builder => $query->has('images')),
+                    ->query(fn(Builder $query): Builder => $query->has('images')),
                 Tables\Filters\Filter::make('has_orders')
                     ->label(__('filament-resources.resources.product.filters.has_orders'))
-                    ->query(fn (Builder $query): Builder => $query->has('orderItems')),
+                    ->query(fn(Builder $query): Builder => $query->has('orderItems')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -179,9 +205,9 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RelationManagers\ProductImagesRelationManager::class,
             RelationManagers\VariantsRelationManager::class,
-            RelationManagers\ImagesRelationManager::class,
-            RelationManagers\OrderItemsRelationManager::class,
+//            RelationManagers\OrderItemsRelationManager::class,
         ];
     }
 

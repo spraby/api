@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany};
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
@@ -68,13 +68,35 @@ class Product extends Model
         return $this->hasMany(Variant::class);
     }
 
-    public function images(): HasMany
+    public function images(): BelongsToMany
     {
-        return $this->hasMany(ProductImage::class);
+        return $this->belongsToMany(Image::class, 'product_images')
+            ->withPivot(['id', 'position'])
+            ->using(ProductImage::class)
+            ->as('images')
+            ->orderBy('product_images.position');
     }
 
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+
+    /**
+     * @return void
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $model): void {
+            /**
+             * @var User $user
+             * @var Brand $brand
+             */
+            $user = auth()->user();
+            if (!$user) return;
+            $brand = $user->brands()->first();
+            if ($brand) $model->brand_id = $brand->id;
+        });
     }
 }
