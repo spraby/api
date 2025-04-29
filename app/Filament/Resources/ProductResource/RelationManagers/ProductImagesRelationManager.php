@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
-use App\Filament\Components\ImagePicker;
+use App\Filament\Components\ImageSelector;
+use App\Models\Image;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -82,21 +83,31 @@ class ProductImagesRelationManager extends RelationManager
                         $product = $livewire->getOwnerRecord();
                         $images = $product->brand->images()->whereDoesntHave('products', function (Builder $query) use ($product){
                             $query->where('products.id', $product->id);
-                        })->get();
+                        })->get()->map(function (Image $image) {
+                            return [
+                                'id' => $image->id,
+                                'url' => $image->url,
+                                'alt' => $image->alt,
+                            ];
+                        })->toArray();
 
                         return [
-                            ImagePicker::make('image')->images($images)
+                            ImageSelector::make('gallery')
+                                ->label('Select images')
+                                ->images($images)
+                                ->multiple(true)
                         ];
                     })
                     ->action(function (
                         ProductImagesRelationManager $livewire,
                         array $data,
                     ): void {
+                        $ids = $data['gallery'];
                         /**
                          * @var Product $product
                          */
                         $product = $livewire->getOwnerRecord();
-                        $product->images()->syncWithoutDetaching($data['image']);
+                        $product->images()->syncWithoutDetaching($ids);
                     })
             ])
             ->actions([
