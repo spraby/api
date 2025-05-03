@@ -24,7 +24,7 @@ class UserRelationManager extends RelationManager
             return $form->schema([
                 Forms\Components\Placeholder::make('user_info')
                     ->label('User')
-                    ->content(fn () => $record->user?->name . ' (#' . $record->user_id . ')')
+                    ->content(fn() => $record->user?->name . ' (#' . $record->user_id . ')')
                     ->columnSpanFull(),
             ]);
         }
@@ -36,7 +36,7 @@ class UserRelationManager extends RelationManager
                     User::doesntHave('brands')->pluck('name', 'id')
                 )
                 ->required()
-                ->getOptionLabelFromRecordUsing(fn (User $record) => "{$record->name} (#{$record->id})"),
+                ->getOptionLabelFromRecordUsing(fn(User $record) => "{$record->name} (#{$record->id})"),
         ]);
     }
 
@@ -48,7 +48,7 @@ class UserRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('id'),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
-                    ->url(fn ($record) => UserResource::getUrl('edit', ['record' => $record]))
+                    ->url(fn($record) => UserResource::getUrl('edit', ['record' => $record]))
                     ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('email'),
             ])
@@ -56,13 +56,15 @@ class UserRelationManager extends RelationManager
                 Action::make('attachUser')
                     ->label('Attach User')
                     ->icon('heroicon-o-user-plus')
-                    ->visible(fn () => $this->getOwnerRecord()->user_id === null)
+                    ->visible(fn() => $this->getOwnerRecord()->user_id === null)
                     ->form([
                         Forms\Components\Select::make('user_id')
                             ->label('Choose user')
-                            ->options(
-                                User::doesntHave('brands')->pluck('email', 'id')
-                            )
+                            ->searchable()
+                            ->options(function () {
+                                dd(User::manager()->with('brands')->get()->toArray());
+                                return User::manager()->doesntHave('brands')->pluck('email', 'id');
+                            })
                             ->required(),
                     ])
                     ->action(function (array $data, RelationManager $livewire) {
@@ -75,11 +77,11 @@ class UserRelationManager extends RelationManager
                             ->success()
                             ->send();
                     })
-                    ->after(fn (RelationManager $livewire) => $livewire->dispatch('refresh')),
+                    ->after(fn(RelationManager $livewire) => $livewire->dispatch('refresh')),
             ])
             ->actions([
                 Tables\Actions\DetachAction::make()
-                    ->visible(fn ($record) => $record?->id !== null)
+                    ->visible(fn($record) => $record?->id !== null)
                     ->action(function (array $data, RelationManager $livewire) {
                         $brand = $livewire->getOwnerRecord();
                         $brand->user()->dissociate();

@@ -28,18 +28,7 @@ class UserFactory extends Factory
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
             'email' => $this->faker->unique()->safeEmail(),
-            'role' => 'manager',
             'password' => bcrypt('12qw34er')
         ];
-    }
-
-    public function admin(): Factory
-    {
-        return $this->state(fn () => ['role' => 'admin']);
-    }
-
-    public function customer(): Factory
-    {
-        return $this->state(fn () => ['role' => 'customer']);
     }
 }

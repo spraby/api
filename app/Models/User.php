@@ -22,6 +22,9 @@ use Spatie\Permission\Traits\HasRoles;
  *
  * @property-read Collection<Brand> $brands
  *
+ * @method static Builder|static email(string $email)
+ * @method static Builder|static admin()
+ * @method static Builder|static manager()
  * @method static Builder|static query()
  * @method void assignRole(string|array $roles)
  * @method bool hasRole(string $role)
@@ -52,11 +55,22 @@ class User extends Authenticatable
         'role' => 'string',
     ];
 
+    public const ROLES = [
+        'ADMIN' => 'admin',
+        'MANAGER' => 'manager',
+    ];
+
+    /**
+     * @return HasMany
+     */
     public function brands(): HasMany
     {
         return $this->hasMany(Brand::class);
     }
 
+    /**
+     * @return string|null
+     */
     public function getNameAttribute(): ?string
     {
         return $this->first_name;
@@ -68,5 +82,39 @@ class User extends Authenticatable
     public function getBrand(): ?Brand
     {
         return $this->brands()->first();
+    }
+
+    /**
+     * @param Builder $query
+     * @param string $email
+     * @return void
+     */
+    public function scopeEmail(Builder $query, string $email): void
+    {
+        $query->where('users.email', $email);
+    }
+
+    /**
+     * @param Builder $query
+     * @return void
+     */
+    public function scopeAdmin(Builder $query)
+    {
+        $query->select('users.*')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', self::ROLES['ADMIN']);
+    }
+
+    /**
+     * @param Builder $query
+     * @return void
+     */
+    public function scopeManager(Builder $query)
+    {
+        $query->select('users.*')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', self::ROLES['MANAGER']);;
     }
 }

@@ -20,22 +20,27 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    
+
     protected static ?string $navigationGroup = 'Users';
-    
+
     public static function getModelLabel(): string
     {
         return __('filament-resources.resources.user.label');
     }
-    
+
     public static function getPluralModelLabel(): string
     {
         return __('filament-resources.resources.user.plural_label');
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return __('filament-resources.resources.user.navigation_label');
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('id', '!=', auth()->id());
     }
 
     public static function form(Form $form): Form
@@ -62,24 +67,24 @@ class UserResource extends Resource
                 ->label(__('filament-resources.resources.user.fields.password'))
                 ->password()
                 ->maxLength(255)
-                ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
-                ->dehydrated(fn ($state) => filled($state))
-                ->required(fn (string $context) => $context === 'create'),
+                ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
+                ->dehydrated(fn($state) => filled($state))
+                ->required(fn(string $context) => $context === 'create'),
 
-            Select::make('role')
+            Select::make('roles.name')
                 ->label(__('filament-resources.resources.user.fields.role'))
                 ->options([
                     'admin' => 'Admin',
                     'manager' => 'Manager',
-                    'user' => 'User',
                 ])
+                ->default('manager')
                 ->required(),
 
             DateTimePicker::make('created_at')
                 ->label(__('filament-resources.resources.user.fields.created_at'))
                 ->disabled()
                 ->dehydrated(false)
-                ->visible(fn (string $context): bool => $context === 'edit'),
+                ->visible(fn(string $context): bool => $context === 'edit'),
         ]);
     }
 
@@ -131,11 +136,11 @@ class UserResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ]);
