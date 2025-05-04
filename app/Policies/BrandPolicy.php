@@ -2,8 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\Brand;
-use App\Models\Category;
 use App\Models\User;
 
 class BrandPolicy
@@ -13,15 +11,15 @@ class BrandPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('read_brand') || $user->can('write_brand');
+        return $user->can(User::PERMISSIONS['READ_BRANDS']) || $user->can(User::PERMISSIONS['WRITE_BRANDS']);
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Brand $brand): bool
+    public function view(User $user): bool
     {
-        return $user->can('read_brand') || $user->can('write_brand');
+        return $user->can(User::PERMISSIONS['READ_BRANDS']) || $user->can(User::PERMISSIONS['WRITE_BRANDS']);
     }
 
     /**
@@ -29,38 +27,38 @@ class BrandPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('write_brand');
+        return $user->can(User::PERMISSIONS['WRITE_BRANDS']);
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Brand $brand): bool
+    public function update(User $user): bool
     {
-        return $user->can('write_brand');
+        return $user->can(User::PERMISSIONS['WRITE_BRANDS']);
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Brand $brand): bool
+    public function delete(User $user): bool
     {
-        return $user->can('write_brand');
+        return $user->can(User::PERMISSIONS['WRITE_BRANDS']);
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Brand $brand): bool
+    public function restore(User $user): bool
     {
-        return $user->can('read_brand') || $user->can('write_brand');
+        return $user->can(User::PERMISSIONS['READ_BRANDS']) || $user->can(User::PERMISSIONS['WRITE_BRANDS']);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Brand $brand): bool
+    public function forceDelete(User $user): bool
     {
-        return $user->can('write_brand');
+        return $user->can(User::PERMISSIONS['WRITE_BRANDS']);
     }
 }

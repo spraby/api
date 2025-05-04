@@ -14,7 +14,7 @@ class SeedUsers extends Command
      *
      * @var string
      */
-    protected $signature = 'seed:users';
+    protected $signature = 'seed:users {--force}';
 
     /**
      * The console command description.
@@ -22,29 +22,6 @@ class SeedUsers extends Command
      * @var string
      */
     protected $description = 'Command for generate default values';
-
-    const PERMISSIONS = [
-        'READ_PRODUCTS' => 'read_products',
-        'WRITE_PRODUCTS' => 'write_products',
-        'READ_CATEGORY' => 'read_category',
-        'WRITE_CATEGORY' => 'write_category',
-        'READ_BRAND' => 'write_brand',
-        'WRITE_BRAND' => 'write_brand',
-    ];
-
-    const MANAGER_PERMISSIONS = [
-        self::PERMISSIONS['READ_PRODUCTS'],
-        self::PERMISSIONS['WRITE_PRODUCTS'],
-        self::PERMISSIONS['READ_CATEGORY'],
-        self::PERMISSIONS['WRITE_CATEGORY'],
-    ];
-
-    const ADMIN_PERMISSIONS = [
-        self::PERMISSIONS['READ_CATEGORY'],
-        self::PERMISSIONS['WRITE_CATEGORY'],
-        self::PERMISSIONS['READ_BRAND'],
-        self::PERMISSIONS['READ_CATEGORY'],
-    ];
 
     const PASS = '12qw34er';
     const ADMIN_EMAIL = 'admin@gmail.com';
@@ -54,7 +31,8 @@ class SeedUsers extends Command
      */
     public function handle(): void
     {
-        $this->generateAdminsAndManagers(true);
+        $force = !!$this->option('force');
+        $this->generateAdminsAndManagers($force);
     }
 
     /**
@@ -71,7 +49,7 @@ class SeedUsers extends Command
      */
     private function generatePermissions(): void
     {
-        foreach (self::PERMISSIONS as $PERMISSION) Permission::findOrCreate($PERMISSION);
+        foreach (User::PERMISSIONS as $PERMISSION) Permission::findOrCreate($PERMISSION);
     }
 
     /**
@@ -85,8 +63,8 @@ class SeedUsers extends Command
         $roles = Role::get();
 
         foreach ($roles as $role) {
-            if ($role->name === User::ROLES['ADMIN']) $role->syncPermissions(self::ADMIN_PERMISSIONS);
-            if ($role->name === User::ROLES['MANAGER']) $role->syncPermissions(self::MANAGER_PERMISSIONS);
+            if ($role->name === User::ROLES['ADMIN']) $role->syncPermissions(User::ADMIN_PERMISSIONS);
+            if ($role->name === User::ROLES['MANAGER']) $role->syncPermissions(User::MANAGER_PERMISSIONS);
         }
     }
 

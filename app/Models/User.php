@@ -61,6 +61,70 @@ class User extends Authenticatable
     ];
 
     /**
+     * @var array
+     */
+    public const PERMISSIONS = [
+        'READ_PRODUCTS' => 'read_products',
+        'WRITE_PRODUCTS' => 'write_products',
+        'READ_PRODUCT_VARIANTS' => 'read_product_variants',
+        'WRITE_PRODUCT_VARIANTS' => 'write_product_variants',
+        'READ_CATEGORIES' => 'read_categories',
+        'WRITE_CATEGORIES' => 'write_categories',
+        'READ_COLLECTIONS' => 'read_collections',
+        'WRITE_COLLECTIONS' => 'write_collections',
+        'READ_BRANDS' => 'read_brands',
+        'WRITE_BRANDS' => 'write_brands',
+        'READ_USERS' => 'read_users',
+        'WRITE_USERS' => 'write_users',
+        'READ_OPTIONS' => 'read_options',
+        'WRITE_OPTIONS' => 'write_options',
+        'READ_OPTION_VALUES' => 'read_option_values',
+        'WRITE_OPTION_VALUES' => 'write_option_values',
+        'READ_IMAGES' => 'read_images',
+        'WRITE_IMAGES' => 'write_images',
+    ];
+
+    /**
+     * @var array
+     */
+    public const MANAGER_PERMISSIONS = [
+        self::PERMISSIONS['READ_PRODUCTS'],
+        self::PERMISSIONS['WRITE_PRODUCTS'],
+        self::PERMISSIONS['READ_PRODUCT_VARIANTS'],
+        self::PERMISSIONS['WRITE_PRODUCT_VARIANTS'],
+        self::PERMISSIONS['READ_CATEGORIES'],
+        self::PERMISSIONS['READ_COLLECTIONS'],
+        self::PERMISSIONS['READ_OPTIONS'],
+        self::PERMISSIONS['READ_OPTION_VALUES'],
+        self::PERMISSIONS['READ_IMAGES'],
+        self::PERMISSIONS['WRITE_IMAGES'],
+    ];
+
+    /**
+     * @var array
+     */
+    public const ADMIN_PERMISSIONS = [
+        self::PERMISSIONS['READ_PRODUCTS'],
+        self::PERMISSIONS['WRITE_PRODUCTS'],
+        self::PERMISSIONS['READ_PRODUCT_VARIANTS'],
+        self::PERMISSIONS['WRITE_PRODUCT_VARIANTS'],
+        self::PERMISSIONS['READ_CATEGORIES'],
+        self::PERMISSIONS['WRITE_CATEGORIES'],
+        self::PERMISSIONS['READ_COLLECTIONS'],
+        self::PERMISSIONS['WRITE_COLLECTIONS'],
+        self::PERMISSIONS['READ_BRANDS'],
+        self::PERMISSIONS['WRITE_BRANDS'],
+        self::PERMISSIONS['WRITE_USERS'],
+        self::PERMISSIONS['READ_USERS'],
+        self::PERMISSIONS['WRITE_OPTIONS'],
+        self::PERMISSIONS['READ_OPTIONS'],
+        self::PERMISSIONS['WRITE_OPTION_VALUES'],
+        self::PERMISSIONS['READ_OPTION_VALUES'],
+        self::PERMISSIONS['READ_IMAGES'],
+        self::PERMISSIONS['WRITE_IMAGES'],
+    ];
+
+    /**
      * @return HasMany
      */
     public function brands(): HasMany

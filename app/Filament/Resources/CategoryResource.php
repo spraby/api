@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,22 +19,34 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    
+
     protected static ?string $navigationGroup = 'Shop';
-    
+
     public static function getModelLabel(): string
     {
         return __('filament-resources.resources.category.label');
     }
-    
+
     public static function getPluralModelLabel(): string
     {
         return __('filament-resources.resources.category.plural_label');
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return __('filament-resources.resources.category.navigation_label');
+    }
+
+    /**
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        /**
+         * @var User $user
+         */
+        $user = auth()->user();
+        return $user && $user->hasRole(User::ROLES['ADMIN']);
     }
 
     public static function form(Form $form): Form

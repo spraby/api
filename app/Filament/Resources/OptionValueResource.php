@@ -6,6 +6,7 @@ use App\Filament\Resources\OptionValueResource\Pages;
 use App\Filament\Resources\OptionValueResource\RelationManagers;
 use App\Models\OptionValue;
 use App\Models\Option;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -19,24 +20,35 @@ class OptionValueResource extends Resource
     protected static ?string $model = OptionValue::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
-    
+
     protected static ?string $navigationGroup = 'Shop';
-    
+
     public static function getModelLabel(): string
     {
         return __('filament-resources.resources.option-value.label');
     }
-    
+
     public static function getPluralModelLabel(): string
     {
         return __('filament-resources.resources.option-value.plural_label');
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return __('filament-resources.resources.option-value.navigation_label');
     }
 
+    /**
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        /**
+         * @var User $user
+         */
+        $user = auth()->user();
+        return $user && $user->hasRole(User::ROLES['ADMIN']);
+    }
     public static function form(Form $form): Form
     {
         return $form

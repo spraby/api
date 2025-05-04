@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CollectionResource\Pages;
 use App\Filament\Resources\CollectionResource\RelationManagers;
 use App\Models\Collection;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,24 +19,35 @@ class CollectionResource extends Resource
     protected static ?string $model = Collection::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
-    
+
     protected static ?string $navigationGroup = 'Shop';
-    
+
     public static function getModelLabel(): string
     {
         return __('filament-resources.resources.collection.label');
     }
-    
+
     public static function getPluralModelLabel(): string
     {
         return __('filament-resources.resources.collection.plural_label');
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return __('filament-resources.resources.collection.navigation_label');
     }
 
+    /**
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        /**
+         * @var User $user
+         */
+        $user = auth()->user();
+        return $user && $user->hasRole(User::ROLES['ADMIN']);
+    }
     public static function form(Form $form): Form
     {
         return $form
