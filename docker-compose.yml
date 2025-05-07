@@ -1,12 +1,12 @@
 services:
-  node:
-    image: node:18
-    container_name: spraby-api-node
-    working_dir: /var/www/html
-    volumes:
-        - ./:/var/www/html
-        - node_modules:/var/www/html/node_modules
-    command: sh -c "npm install && npm run dev"
+#  node:
+#    image: node:18
+#    container_name: spraby-api-node
+#    working_dir: /var/www/html
+#    volumes:
+#        - ./:/var/www/html
+#        - node_modules:/var/www/html/node_modules
+#    command: sh -c "npm install && npm run dev"
 
   app:
     environment:
