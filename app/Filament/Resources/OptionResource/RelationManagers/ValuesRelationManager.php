@@ -29,16 +29,17 @@ class ValuesRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('value')
+            ->reorderable('position')
             ->columns([
                 Tables\Columns\TextColumn::make('value')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('position')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),

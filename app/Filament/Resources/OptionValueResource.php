@@ -43,12 +43,14 @@ class OptionValueResource extends Resource
      */
     public static function canAccess(): bool
     {
-        /**
-         * @var User $user
-         */
-        $user = auth()->user();
-        return $user && $user->hasRole(User::ROLES['ADMIN']);
+//        /**
+//         * @var User $user
+//         */
+//        $user = auth()->user();
+//        return $user && $user->hasRole(User::ROLES['ADMIN']);
+        return  false;
     }
+
     public static function form(Form $form): Form
     {
         return $form
