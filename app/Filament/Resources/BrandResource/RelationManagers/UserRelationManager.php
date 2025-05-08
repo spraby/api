@@ -62,7 +62,6 @@ class UserRelationManager extends RelationManager
                             ->label('Choose user')
                             ->searchable()
                             ->options(function () {
-                                dd(User::manager()->with('brands')->get()->toArray());
                                 return User::manager()->doesntHave('brands')->pluck('email', 'id');
                             })
                             ->required(),

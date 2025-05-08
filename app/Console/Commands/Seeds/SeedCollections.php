@@ -4,6 +4,7 @@ namespace App\Console\Commands\Seeds;
 
 use App\Models\Category;
 use App\Models\Collection;
+use App\Models\Option;
 use Illuminate\Console\Command;
 
 class SeedCollections extends Command
@@ -34,6 +35,10 @@ class SeedCollections extends Command
 
             Collection::cursor()->each(function (Collection $collection) {
                 $collection->delete();
+            });
+
+            Option::cursor()->each(function (Option $option) {
+                $option->delete();
             });
         }
 
@@ -70,6 +75,27 @@ class SeedCollections extends Command
                     'description' => $category['name'],
                 ]);
 
+                $optionIds = [];
+                foreach ($category['filters'] as $filter) {
+                    $values = $filter['options'];
+                    $option = Option::updateOrCreate([
+                        'name' => $filter['id'],
+                        'title' => $filter['id'],
+                    ], [
+                        'description' => $filter['id'],
+                    ]);
+
+                    $optionIds[] = $option->id;
+
+                    foreach ($values as $value) {
+                        $option->values()->updateOrCreate([
+                            'option_id' => $option->id,
+                            'value' => $value,
+                        ]);
+                    }
+                }
+
+                $dbCategory->options()->sync($optionIds);
                 $categoryIds[] = $dbCategory->id;
             }
         }

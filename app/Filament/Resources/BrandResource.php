@@ -82,6 +82,9 @@ class BrandResource extends Resource
                     ->label(__('filament-resources.resources.brand.fields.description'))
                     ->limit(50)
                     ->searchable(),
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Email')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('products_count')
                     ->label(__('filament-resources.resources.brand.fields.products_count'))
                     ->counts('products')
@@ -104,13 +107,13 @@ class BrandResource extends Resource
             ->filters([
                 Tables\Filters\Filter::make('has_description')
                     ->label(__('filament-resources.resources.brand.filters.has_description'))
-                    ->query(fn (Builder $query): Builder => $query->whereNotNull('description')),
+                    ->query(fn(Builder $query): Builder => $query->whereNotNull('description')),
                 Tables\Filters\Filter::make('has_products')
                     ->label(__('filament-resources.resources.brand.filters.has_products'))
-                    ->query(fn (Builder $query): Builder => $query->has('products')),
+                    ->query(fn(Builder $query): Builder => $query->has('products')),
                 Tables\Filters\Filter::make('has_orders')
                     ->label(__('filament-resources.resources.brand.filters.has_orders'))
-                    ->query(fn (Builder $query): Builder => $query->has('orders')),
+                    ->query(fn(Builder $query): Builder => $query->has('orders')),
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('created_from'),
@@ -120,11 +123,11 @@ class BrandResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
