@@ -3,34 +3,56 @@
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
 use App\Models\Product;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 
 class VariantsRelationManager extends RelationManager
 {
     protected static string $relationship = 'variants';
 
+    public function mount($record = null): void
+    {
+        parent::mount($record);
+
+        if ($record && $record->category === null) {
+            Notification::make()
+                ->warning('Категория продукта была удалена, опции для вариантов недоступны')
+                ->send();
+        }
+    }
+
     public function form(Form $form): Form
     {
+        /**
+         * @var User $user
+         */
+        $user = Auth::user();
+        $brand = $user->getBrand();
+
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                    ->label(__('filament-resources.resources.product.relations.variants.fields.title'))
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('price')
-                    ->label(__('filament-resources.resources.product.relations.variants.fields.price'))
-                    ->required()
-                    ->numeric()
-                    ->prefix('$'),
-                Forms\Components\TextInput::make('final_price')
-                    ->label(__('filament-resources.resources.product.relations.variants.fields.final_price'))
-                    ->required()
-                    ->numeric()
-                    ->prefix('$'),
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('title')
+                            ->label(__('filament-resources.resources.product.relations.variants.fields.title'))
+                            ->maxLength(255)
+                            ->columnSpan(2),
+                        Forms\Components\TextInput::make('price')
+                            ->label(__('filament-resources.resources.product.relations.variants.fields.price'))
+                            ->default(fn(RelationManager $livewire) => $livewire->getOwnerRecord()->price)
+                            ->numeric(),
+                        Forms\Components\TextInput::make('final_price')
+                            ->label(__('filament-resources.resources.product.relations.variants.fields.final_price'))
+                            ->default(fn(RelationManager $livewire) => $livewire->getOwnerRecord()->final_price)
+                            ->numeric(),
+                    ]),
                 Forms\Components\Select::make('image_id')
                     ->label('Image')
                     ->preload()
@@ -60,27 +82,66 @@ class VariantsRelationManager extends RelationManager
                             ->label(__('filament-resources.resources.product.relations.variants.fields.values'))
                             ->relationship()
                             ->reorderable('product_images.position')
+                            ->helperText(fn() => $this->ownerRecord->category === null
+                                ? 'Категория удалена, поэтому опции недоступны'
+                                : null)
                             ->schema([
                                 Forms\Components\Select::make('option_id')
                                     ->label(__('filament-resources.resources.product.relations.variants.fields.option_id'))
-                                    ->relationship('option', 'name')
-                                    ->required()
-                                    ->reactive()
-                                    ->searchable()
-                                    ->preload(),
-                                Forms\Components\Select::make('option_value_id')
-                                    ->label(__('filament-resources.resources.product.relations.variants.fields.option_value_id'))
-                                    ->relationship('value', 'value', function (Builder $query, $get) {
-                                        return $query->where('option_id', $get('option_id'));
+                                    ->options(function () {
+                                        $category = $this->ownerRecord->category;
+                                        return $category ? $category->options->pluck('name', 'id')->toArray() : [];
                                     })
                                     ->required()
+                                    ->reactive()
+                                    ->disabled(fn() => !$this->ownerRecord->category)
+                                    ->afterStateHydrated(function ($state, callable $set) {
+                                        if ($this->ownerRecord->category === null) {
+                                            $set('option_id', null);
+                                        }
+                                    })
+                                    ->afterStateUpdated(fn($state, callable $set) => $set('option_value_id', null))
                                     ->searchable()
                                     ->preload()
-                                    ->createOptionForm([
-                                        Forms\Components\TextInput::make('value')
-                                            ->required()
-                                            ->maxLength(255),
-                                    ]),
+                                    ->helperText(fn() => $this->ownerRecord->category === null
+                                        ? new HtmlString(
+                                            '<span class="flex items-center text-danger-600 dark:text-danger-400">' .
+                                            '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">' .
+                                            '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0V7zm0 6a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V13z" clip-rule="evenodd"/>' .
+                                            '</svg>' .
+                                            'Категория удалена, поэтому опции недоступны' .
+                                            '</span>'
+                                        )
+                                        : null),
+                                Forms\Components\Select::make('option_value_id')
+                                    ->label(__('filament-resources.resources.product.relations.variants.fields.option_value_id'))
+                                    ->options(function (callable $get) {
+                                        $product = $this->ownerRecord;
+                                        $category = $product->category;
+                                        $optionId = $get('option_id') ?? null;
+
+                                        if (!$category || !$optionId) {
+                                            return [];
+                                        }
+
+                                        return $category
+                                            ->options
+                                            ->firstWhere('id', $optionId)
+                                            ->values
+                                            ->pluck('value', 'id')
+                                            ->toArray();
+                                    })
+                                    ->required()
+                                    ->reactive()
+                                    ->disabled(fn() => !$this->ownerRecord->category)
+                                    ->afterStateHydrated(function ($state, callable $set) {
+                                        if ($this->ownerRecord->category === null || !$state) {
+                                            $set('option_value_id', null);
+                                        }
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->placeholder('–')
                             ])
                             ->columns(2)
                             ->defaultItems(0),

@@ -70,23 +70,32 @@ class ProductResource extends Resource
                                     ->required()
                                     ->maxLength(255),
                                 Forms\Components\RichEditor::make('description')
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'underline',
+                                        'strike',
+                                        'orderedList',
+                                        'bulletList',
+                                        'undo',
+                                        'redo',
+                                    ])
                                     ->label(__('filament-resources.resources.product.fields.description'))
                                     ->maxLength(65535)
                                     ->columnSpanFull(),
                             ]),
 
                         Forms\Components\Section::make(__('filament-resources.resources.product.sections.pricing'))
+                            ->columns(2)
                             ->schema([
                                 Forms\Components\TextInput::make('price')
+                                    ->default(0)
                                     ->label(__('filament-resources.resources.product.fields.price'))
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('$'),
+                                    ->numeric(),
                                 Forms\Components\TextInput::make('final_price')
                                     ->label(__('filament-resources.resources.product.fields.final_price'))
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('$'),
+                                    ->default(0)
+                                    ->numeric(),
                             ]),
                     ])
                     ->columnSpan(['lg' => 2]),
@@ -111,11 +120,12 @@ class ProductResource extends Resource
                                     ->visible(fn() => Auth::user()?->hasRole('admin')),
                                 Forms\Components\Select::make('category_id')
                                     ->label(__('filament-resources.resources.product.fields.category_id'))
-                                    ->relationship('category', 'name', function (Builder $query, callable $get) {
+                                    ->relationship('category', 'name', function () {
+                                        /**
+                                         * @var User $user
+                                         */
                                         $user = Auth::user();
-                                        $brandId = $get('brand_id') ?? $user->brands->first()?->id;
-
-                                        $query->whereHas('brands', fn($q) => $q->where('brands.id', $brandId));
+                                        return $user->getBrand()?->categories();
                                     })
                                     ->searchable()
                                     ->preload(),
@@ -194,6 +204,7 @@ class ProductResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
