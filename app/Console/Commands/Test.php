@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Image;
 use App\Models\Product;
+use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -31,6 +32,9 @@ class Test extends Command
      */
     public function handle()
     {
+
+        $menu = Settings::createMenu([]);
+        dd($menu);
 
         /**
          * @var Product $product

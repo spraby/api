@@ -26,18 +26,22 @@ class BrandSettings extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'id',
-        'type',
-        'data',
-        'brand_id',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'data' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'type' => 'string',
+    ];
+
+    public const TYPES = [
+        'REFUND' => 'refund',
+        'ADDRESSES' => 'addresses',
+        'DELIVERY' => 'delivery',
+        'PHONES' => 'phones',
+        'EMAILS' => 'emails',
+        'SOCIALS' => 'socials'
     ];
 
     public function brand(): BelongsTo
