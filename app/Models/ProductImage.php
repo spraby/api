@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, Pivot};
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $id
@@ -25,7 +26,7 @@ use Carbon\Carbon;
  *
  * @mixin Builder
  */
-class ProductImage extends Pivot
+class ProductImage extends Model
 {
     use HasFactory;
 

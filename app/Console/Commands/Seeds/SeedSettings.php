@@ -86,7 +86,7 @@ class SeedSettings extends Command
 
         $collectionData = [
             'id' => $dbCollection->id,
-            'url' => "/collections/{$dbCollection->id}",
+            'url' => "/collections/{$dbCollection->handle}",
             'title' => $dbCollection->name,
         ];
 

@@ -42,9 +42,15 @@ class SeedBrands extends Command
             $brand->delete();
         });
 
-        User::manager()->cursor()->each(static function (User $user) {
+        $users = User::get();
+        $categories = Category::get();
+        $categoriesPerUser = ceil($categories->count() / ($users->count() > 0 ? $users->count() : 1));
+        $categories = $categories->chunk($categoriesPerUser);
 
-            $categories = Category::inRandomOrder()->take(rand(1, 4))->get();
+
+        foreach ($users as $key => $user) {
+            $index = isset($categories[$key]) ? $key : random_int(0, $users->count() - 1);
+            $categoryIds = $categories[$index]->pluck('id');
 
             $brand = Brand::updateOrCreate([
                 'user_id' => $user->id,
@@ -52,8 +58,7 @@ class SeedBrands extends Command
             ], [
                 'description' => "Brand for user {$user->email}",
             ]);
-
-            $brand->categories()->sync($categories->pluck('id'));
-        });
+            $brand->categories()->sync($categoryIds);
+        }
     }
 }

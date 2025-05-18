@@ -68,13 +68,9 @@ class Product extends Model
         return $this->hasMany(Variant::class);
     }
 
-    public function images(): BelongsToMany
+    public function images(): HasMany
     {
-        return $this->belongsToMany(Image::class, 'product_images')
-            ->withPivot(['id', 'position'])
-            ->using(ProductImage::class)
-            ->as('images')
-            ->orderBy('product_images.position');
+        return $this->hasMany(ProductImage::class);
     }
 
     public function orderItems(): HasMany

@@ -85,7 +85,7 @@ class SeedUsers extends Command
      * @param int $count
      * @return void
      */
-    private function generateManagers(int $count = 3): void
+    private function generateManagers(int $count = 15): void
     {
         while ($count > 0) {
             $email = "manager{$count}@gmail.com";
