@@ -6,9 +6,11 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Image;
 use App\Models\Option;
+use App\Models\OptionValue;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Variant;
+use App\Models\VariantValue;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -132,7 +134,7 @@ class SeedProducts extends Command
         $productImageIds = [];
 
         foreach ($imageIds as $key => $imageId) {
-            $productImage =  ProductImage::create([
+            $productImage = ProductImage::create([
                 'image_id' => $imageId,
                 'product_id' => $product->id,
                 'position' => $key
@@ -140,17 +142,41 @@ class SeedProducts extends Command
             $productImageIds[] = $productImage->id;
         }
 
-
-        foreach ($variants as $key => $variant) {
+        $variantLines = "";
+        foreach ($variants as $key => $variantsData) {
             $variantPrice = $price * (random_int(90, 110) / 100);
-            Variant::create([
+            $title = implode('|', array_column($variantsData, 'value'));
+            /**
+             * @var Variant $variant
+             */
+            $variant = Variant::create([
                 'image_id' => $productImageIds[$key],
                 'product_id' => $product->id,
-                'title' => implode('|', array_column($variant, 'value')),
+                'title' => $title,
                 'price' => $variantPrice,
                 'final_price' => $variantPrice * (random_int(90, 100) / 100),
             ]);
+
+            foreach ($variantsData as $variantData) {
+                VariantValue::create([
+                    'variant_id' => $variant->id,
+                    'option_id' => $variantData['option_id'],
+                    'option_value_id' => $variantData['value_id']
+                ]);
+            }
+
+            $variantLines .= "<p>Variant {$variant->id}: {$title}</p>";
         }
+
+        $product->description = "<div>
+            <p>Category: {$category->name}</p>
+            <p>Brand_id: {$brand->id}</p>
+            <p>Email: {$brand->user->email}</p>
+            <p>VARIANTS:</p>
+            {$variantLines}
+        </div>";
+
+        $product->save();
 
         return $product;
     }
@@ -184,9 +210,14 @@ class SeedProducts extends Command
                 return;
             }
 
+            /**
+             * @var OptionValue $optionValue
+             */
+            $optionValue = $option->values->random();
             $variant[] = [
                 'option_id' => $option->id,
-                'value' => $option->values->random()->value,
+                'value_id' => $optionValue->id,
+                'value' => $optionValue->value,
             ];
         });
         return $variant;
