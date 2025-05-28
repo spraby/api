@@ -78,6 +78,11 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function views(): HasMany
+    {
+        return $this->hasMany(ProductStatistics::class)->where('type', 'view');
+    }
+
 
     /**
      * @return void

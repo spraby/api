@@ -5,14 +5,17 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ProductResource extends Resource
 {
@@ -140,12 +143,22 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
+                Columns\ImageColumn::make('images')
+                    ->label('')
+                    ->circular(false)
+                    ->height(100)
+                    ->width(100)
+                    ->getStateUsing(function (Product $product) {
+                        /**
+                         * @var ProductImage $image
+                         */
+                        $image = $product->images()->with('image')->orderByDesc('position')->first();
+                        return $image?->image?->src ?? null;
+                    }),
                 Tables\Columns\TextColumn::make('title')
                     ->label(__('filament-resources.resources.product.fields.title'))
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('brand.name')
-                    ->label(__('filament-resources.resources.product.fields.brand_id'))
+                    ->getStateUsing(fn(Product $p): ?string => Str::limit($p->title, 25, '...'))
+                    ->tooltip(fn(Product $p): ?string => $p->title)
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('category.name')
@@ -203,8 +216,15 @@ class ProductResource extends Resource
                     ->query(fn(Builder $query): Builder => $query->has('orderItems')),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('goToIpc')
+                        ->label('View Product')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn(Product $product) => url("http://localhost:3010/products/{$product->id}"))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->label('Actions')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
