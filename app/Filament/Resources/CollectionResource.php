@@ -52,23 +52,43 @@ class CollectionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('handle')
-                    ->label(__('filament-resources.resources.collection.fields.handle'))
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('name')
-                    ->label(__('filament-resources.resources.collection.fields.name'))
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('title')
-                    ->label(__('filament-resources.resources.collection.fields.title'))
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('description')
-                    ->label(__('filament-resources.resources.collection.fields.description'))
-                    ->maxLength(65535)
-                    ->columnSpanFull(),
+                Forms\Components\Tabs::make(__('filament-resources.resources.collection.tabs.main'))
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make(__('filament-resources.resources.collection.tabs.general_info'))
+                            ->schema([
+                                Forms\Components\TextInput::make('handle')
+                                    ->label(__('filament-resources.resources.collection.fields.handle'))
+                                    ->required()
+                                    ->unique(ignoreRecord: true)
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('name')
+                                    ->label(__('filament-resources.resources.collection.fields.name'))
+                                    ->required()
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('title')
+                                    ->label(__('filament-resources.resources.collection.fields.title'))
+                                    ->required()
+                                    ->maxLength(255),
+                                Forms\Components\Textarea::make('description')
+                                    ->label(__('filament-resources.resources.collection.fields.description'))
+                                    ->maxLength(65535)
+                                    ->columnSpanFull(),
+                            ]),
+                        Forms\Components\Tabs\Tab::make('SEO')
+                            ->schema([
+                                Forms\Components\TextInput::make('meta_title')
+                                    ->label(__('filament-resources.resources.collection.fields.meta_title'))
+                                    ->maxLength(60)
+                                    ->helperText(__('filament-resources.resources.collection.helpers.meta_title')),
+                                Forms\Components\Textarea::make('meta_description')
+                                    ->label(__('filament-resources.resources.collection.fields.meta_description'))
+                                    ->maxLength(160)
+                                    ->helperText(__('filament-resources.resources.collection.helpers.meta_title')),
+                                Forms\Components\TextInput::make('meta_keywords')
+                                    ->label(__('filament-resources.resources.collection.fields.meta_keywords'))
+                                    ->helperText(__('filament-resources.resources.collection.helpers.meta_keywords')),
+                            ]),
+                    ])->columnSpanFull(),
             ]);
     }
 

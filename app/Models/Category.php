@@ -15,6 +15,9 @@ use Carbon\Carbon;
  * @property string $name
  * @property string $title
  * @property string|null $description
+ * @property string|null $meta_title
+ * @property string|null $meta_description
+ * @property string|null $meta_keywords
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *

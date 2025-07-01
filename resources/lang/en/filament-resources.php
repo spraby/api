@@ -110,11 +110,24 @@ return [
             'label' => 'Category',
             'plural_label' => 'Categories',
             'navigation_label' => 'Categories',
+            'tabs' => [
+                'main' => 'Main',
+                'general_info' => 'General Information',
+                'seo' => 'SEO',
+            ],
+            'helpers' => [
+                'meta_title' => 'Recommended length: up to 60 characters',
+                'meta_description' => 'Recommended length: up to 160 characters',
+                'meta_keywords' => 'Separate keywords with commas',
+            ],
             'fields' => [
                 'handle' => 'Handle',
                 'name' => 'Name',
                 'title' => 'Title',
                 'description' => 'Description',
+                'meta_title' => 'Meta Title',
+                'meta_description' => 'Meta Description',
+                'meta_keywords' => 'Meta Keywords',
                 'created_at' => 'Created at',
                 'updated_at' => 'Updated at',
             ],
@@ -145,13 +158,26 @@ return [
             'label' => 'Collection',
             'plural_label' => 'Collections',
             'navigation_label' => 'Collections',
+            'tabs' => [
+                'main' => 'Main',
+                'general_info' => 'General Information',
+                'seo' => 'SEO',
+            ],
+            'helpers' => [
+                'meta_title' => 'Recommended length: up to 60 characters',
+                'meta_description' => 'Recommended length: up to 160 characters',
+                'meta_keywords' => 'Separate keywords with commas',
+            ],
             'fields' => [
                 'handle' => 'Handle',
                 'name' => 'Name',
                 'title' => 'Title',
                 'description' => 'Description',
-                'created_at' => 'Created at',
-                'updated_at' => 'Updated at',
+                'meta_title' => 'Meta Title',
+                'meta_description' => 'Meta Description',
+                'meta_keywords' => 'Meta Keywords',
+                'created_at' => 'Created At',
+                'updated_at' => 'Updated At',
             ],
             'relations' => [
                 'categories' => [
