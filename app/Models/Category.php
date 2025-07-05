@@ -34,12 +34,7 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'handle',
-        'name',
-        'title',
-        'description',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'created_at' => 'datetime',
