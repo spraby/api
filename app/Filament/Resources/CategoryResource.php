@@ -66,6 +66,9 @@ class CategoryResource extends Resource
                     ->label(__('filament-resources.resources.category.fields.title'))
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('header')
+                    ->label(__('filament-resources.resources.category.fields.header'))
+                    ->maxLength(255),
                 Forms\Components\Textarea::make('description')
                     ->label(__('filament-resources.resources.category.fields.description'))
                     ->maxLength(65535)

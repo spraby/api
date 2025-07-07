@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::table('collections', function (Blueprint $table) {
+            $table->string('header')->nullable()->after('title');
+        });
+
         Schema::table('categories', function (Blueprint $table) {
-            $table->string('meta_title')->nullable()->after('description');
-            $table->text('meta_description')->nullable()->after('meta_title');
-            $table->string('meta_keywords')->nullable()->after('meta_description');
+            $table->string('header')->nullable()->after('title');
         });
     }
 
@@ -23,8 +25,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('collections', function (Blueprint $table) {
+            $table->dropColumn(['header']);
+        });
+
         Schema::table('categories', function (Blueprint $table) {
-            $table->dropColumn(['meta_title', 'meta_description', 'meta_keywords']);
+            $table->dropColumn(['header']);
         });
     }
 };

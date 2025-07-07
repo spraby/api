@@ -65,6 +65,9 @@ class CollectionResource extends Resource
                     ->label(__('filament-resources.resources.collection.fields.title'))
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('header')
+                    ->label(__('filament-resources.resources.collection.fields.header'))
+                    ->maxLength(255),
                 Forms\Components\Textarea::make('description')
                     ->label(__('filament-resources.resources.collection.fields.description'))
                     ->maxLength(65535)
