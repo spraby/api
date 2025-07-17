@@ -220,7 +220,7 @@ class ProductResource extends Resource
                     Tables\Actions\Action::make('goToIpc')
                         ->label('View Product')
                         ->icon('heroicon-o-arrow-top-right-on-square')
-                        ->url(fn(Product $product) => url("http://localhost:3010/products/{$product->id}"))
+                        ->url(fn(Product $product) => $product->externalUrl)
                         ->openUrlInNewTab(),
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),

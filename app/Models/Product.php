@@ -21,6 +21,8 @@ use Carbon\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
+ * @property string $externalUrl
+ *
  * @property-read Brand $brand
  * @property-read Category|null $category
  * @property-read Collection<Variant> $variants
@@ -99,5 +101,13 @@ class Product extends Model
             $brand = $user->brands()->first();
             if ($brand) $model->brand_id = $brand->id;
         });
+    }
+
+    /**
+     * @return string
+     */
+    public function getExternalUrlAttribute(): string
+    {
+        return config('app.url') . '/product/' . $this->id;
     }
 }
