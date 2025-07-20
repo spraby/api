@@ -1467,7 +1467,7 @@
     @endif
 </head>
 <body class="bg-black relative">
-<p class=" absolute left-[50%] top-[50%]">
+<p class=" absolute left-[20%] top-[60%]">
 <span class="text-white text-[78px] block leading-10">SPRABY</span>
 <span class="text-[#ccc] text-[36px] block text-right">admin</span>
 </p>
