@@ -53,6 +53,7 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
+    'store_url' => env('APP_STORE_URL', 'http://localhost'),
 
     /*
     |--------------------------------------------------------------------------

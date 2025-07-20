@@ -108,6 +108,6 @@ class Product extends Model
      */
     public function getExternalUrlAttribute(): string
     {
-        return config('app.url') . '/product/' . $this->id;
+        return config('app.store_url') . '/products/' . $this->id;
     }
 }
