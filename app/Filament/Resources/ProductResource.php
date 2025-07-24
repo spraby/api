@@ -9,6 +9,8 @@ use App\Models\ProductImage;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns;
@@ -89,16 +91,36 @@ class ProductResource extends Resource
                             ]),
 
                         Forms\Components\Section::make(__('filament-resources.resources.product.sections.pricing'))
-                            ->columns(2)
+                            ->columns(3)
                             ->schema([
                                 Forms\Components\TextInput::make('price')
                                     ->default(0)
                                     ->label(__('filament-resources.resources.product.fields.price'))
-                                    ->numeric(),
+                                    ->numeric()
+                                    ->reactive()
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        self::updateFinalPrice($get, $set);
+                                    }),
+                                Forms\Components\TextInput::make('discount')
+                                    ->default(0)
+                                    ->label('%')
+                                    ->dehydrated(false)
+                                    ->numeric()
+                                    ->reactive()
+                                    ->afterStateHydrated(function (Product $product, Set $set) {
+                                        $set('discount', $product->discount);
+                                    })
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        self::updateFinalPrice($get, $set);
+                                    }),
                                 Forms\Components\TextInput::make('final_price')
                                     ->label(__('filament-resources.resources.product.fields.final_price'))
                                     ->default(0)
-                                    ->numeric(),
+                                    ->numeric()
+                                    ->reactive()
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        self::updateDiscountValue($get, $set);
+                                    }),
                             ]),
                     ])
                     ->columnSpan(['lg' => 2]),
@@ -249,5 +271,49 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * @param Get $get
+     * @param Set $set
+     * @return void
+     */
+    private static function updateFinalPrice(Get $get, Set $set): void
+    {
+        $price = (float)$get('price');
+        $percentage = (float)$get('discount');
+
+        if ($price < 0 || $percentage < 0) {
+            return;
+        }
+
+        $finalPrice = $price - ($price * $percentage / 100);
+
+        $set('final_price', round($finalPrice, 2));
+    }
+
+    /**
+     * @param Get $get
+     * @param Set $set
+     * @return void
+     */
+    private static function updateDiscountValue(Get $get, Set $set): void
+    {
+        $price = (float)$get('price');
+        $finalPrice = (float)$get('final_price');
+
+        if ($finalPrice >= $price || $finalPrice < 0) {
+            $set('final_price', $price);
+            $set('discount', 0);
+            return;
+        }
+
+        if ($price <= 0) {
+            $set('discount', 0);
+            return;
+        }
+
+        $discount = (($price - $finalPrice) / $price) * 100;
+        $set('discount', round($discount, 0));
     }
 }
