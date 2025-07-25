@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\CustomerInfoCard;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
@@ -117,14 +118,9 @@ class OrderResource extends Resource
 
                 Forms\Components\Group::make()
                     ->schema([
+                        CustomerInfoCard::make(__('filament-resources.resources.order.fields.customer_id')),
                         Forms\Components\Section::make(__('filament-resources.resources.order.sections.associations'))
                             ->schema([
-                                Forms\Components\Select::make('customer_id')
-                                    ->label(__('filament-resources.resources.order.fields.customer_id'))
-                                    ->relationship('customer', 'name')
-                                    ->required()
-                                    ->searchable()
-                                    ->preload(),
                                 Forms\Components\Select::make('brand_id')
                                     ->label(__('filament-resources.resources.order.fields.brand_id'))
                                     ->relationship('brand', 'name')
