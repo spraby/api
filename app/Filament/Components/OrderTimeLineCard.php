@@ -8,9 +8,9 @@ use Closure;
 use Filament\Infolists\Components\Component;
 use Illuminate\Contracts\Support\Htmlable;
 
-class CustomerInfoCard extends Component
+class OrderTimeLineCard extends Component
 {
-    protected string $view = 'filament.components.customer-info-card';
+    protected string $view = 'filament.components.order-timeline';
 
     public function __construct(
         protected string|Htmlable|null|Closure $label = null,
@@ -18,9 +18,9 @@ class CustomerInfoCard extends Component
     {
     }
 
-    public static function make(?string $label = null): static
+    public static function make(): static
     {
-        return app(static::class, ['label' => $label]);
+        return app(static::class);
     }
 
     public function getState(): array
@@ -32,8 +32,7 @@ class CustomerInfoCard extends Component
         }
 
         return [
-            'customer' => $record->customer,
-            'label' => $this->label,
+            'order' => $record,
         ];
     }
 }

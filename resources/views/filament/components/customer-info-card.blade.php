@@ -8,8 +8,8 @@
     $label = $state['label'] ?? null;
 @endphp
 
-<div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 px-6 py-4">
-    <div class="flex items-center justify-between mb-4">
+<div class="flex flex-col gap-5 rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 px-6 py-4">
+    <div class="flex items-center justify-between">
         @if($label)
             <h3 class="text-lg font-semibold text-gray-900">{{$label}}</h3>
         @endif
@@ -19,6 +19,10 @@
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
         </div>
+    </div>
+
+    <div>
+        {{$customer->name}}
     </div>
 
     <div class="space-y-4">
@@ -31,7 +35,7 @@
                        title="{{ $customer->email }}">
                         {{ $customer->email }}
                     </a>
-                    @include('filament.components.copy-button', ['text' => $customer->email])
+                    <x-copyable :text="$customer->email ?? ''" />
                 </div>
             </div>
         @endif
@@ -44,7 +48,7 @@
                        class="text-sm font-medium text-blue-600 hover:text-blue-800">
                         {{ $customer->phone }}
                     </a>
-                    @include('filament.components.copy-button', ['text' => $customer->phone])
+                    <x-copyable :text="$customer->phone ?? ''" />
                 </div>
             </div>
         @endif
