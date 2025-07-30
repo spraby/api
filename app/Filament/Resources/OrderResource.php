@@ -49,6 +49,16 @@ class OrderResource extends Resource
         return __('filament-resources.resources.order.navigation_label');
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('status', 'pending')->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
