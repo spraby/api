@@ -7,10 +7,12 @@ use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\User;
+use App\Models\Variant;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns;
@@ -131,7 +133,16 @@ class ProductResource extends Resource
                             ->schema([
                                 Forms\Components\Toggle::make('enabled')
                                     ->label(__('filament-resources.resources.product.fields.enabled'))
-                                    ->default(true),
+                                    ->default(fn(Product $p) => $p->enabled)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Product $p) {
+                                        $p->enabled = $state;
+                                        $p->save();
+                                        Notification::make()
+                                            ->title(__('Status changed'))
+                                            ->success()
+                                            ->send();
+                                    })
                             ]),
 
                         Forms\Components\Section::make(__('filament-resources.resources.product.sections.associations'))

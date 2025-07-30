@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ProductResource\RelationManagers;
 
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Variant;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -40,10 +41,26 @@ class VariantsRelationManager extends RelationManager
             ->schema([
                 Forms\Components\Grid::make(2)
                     ->schema([
-                        Forms\Components\TextInput::make('title')
-                            ->label(__('filament-resources.resources.product.relations.variants.fields.title'))
-                            ->maxLength(255)
-                            ->columnSpan(2),
+                        Forms\Components\Grid::make(12)->schema([
+                            Forms\Components\TextInput::make('title')
+                                ->label(__('filament-resources.resources.product.relations.variants.fields.title'))
+                                ->maxLength(255)
+                                ->columnSpan(10),
+                            Forms\Components\Toggle::make('enabled')
+                                ->label(__('filament-resources.resources.product.fields.enabled'))
+                                ->default(fn(Variant $variant) => $variant->enabled)
+                                ->live()
+                                ->afterStateUpdated(function ($state, Variant $variant) {
+                                    $variant->enabled = $state;
+                                    $variant->save();
+                                    Notification::make()
+                                        ->title(__('Status changed'))
+                                        ->success()
+                                        ->send();
+                                })
+                                ->extraFieldWrapperAttributes(['style' => 'padding-top: 37px'])
+                                ->columnSpan(2)
+                        ]),
                         Forms\Components\TextInput::make('price')
                             ->label(__('filament-resources.resources.product.relations.variants.fields.price'))
                             ->default(fn(RelationManager $livewire) => $livewire->getOwnerRecord()->price)
