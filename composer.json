@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-ide-helper": "^3.5",
+        "eduard9969/blade-polaris-icons": "^2.8",
         "fakerphp/faker": "^1.23",
         "filament/actions": "^3.3",
         "filament/filament": "^3.3",

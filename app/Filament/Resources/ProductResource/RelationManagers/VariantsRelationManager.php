@@ -2,16 +2,21 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Models\Category;
+use App\Models\Option;
+use App\Models\OptionValue;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Variant;
+use App\Models\VariantValue;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\HtmlString;
 
 class VariantsRelationManager extends RelationManager
 {
@@ -31,6 +36,13 @@ class VariantsRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         /**
+         * @var Category|null $category
+         * @var Product $product
+         */
+        $product = $this->ownerRecord;
+        $product->load(['category.options.values', 'variants.values']);
+
+        /**
          * @var User $user
          */
         $user = Auth::user();
@@ -40,10 +52,26 @@ class VariantsRelationManager extends RelationManager
             ->schema([
                 Forms\Components\Grid::make(2)
                     ->schema([
-                        Forms\Components\TextInput::make('title')
-                            ->label(__('filament-resources.resources.product.relations.variants.fields.title'))
-                            ->maxLength(255)
-                            ->columnSpan(2),
+                        Forms\Components\Grid::make(12)->schema([
+                            Forms\Components\TextInput::make('title')
+                                ->label(__('filament-resources.resources.product.relations.variants.fields.title'))
+                                ->maxLength(255)
+                                ->columnSpan(10),
+                            Forms\Components\Toggle::make('enabled')
+                                ->label(__('filament-resources.resources.product.fields.enabled'))
+                                ->default(fn(Variant $variant) => $variant->enabled)
+                                ->live()
+                                ->afterStateUpdated(function ($state, Variant $variant) {
+                                    $variant->enabled = $state;
+                                    $variant->save();
+                                    Notification::make()
+                                        ->title(__('Status changed'))
+                                        ->success()
+                                        ->send();
+                                })
+                                ->extraFieldWrapperAttributes(['style' => 'padding-top: 37px'])
+                                ->columnSpan(2)
+                        ]),
                         Forms\Components\TextInput::make('price')
                             ->label(__('filament-resources.resources.product.relations.variants.fields.price'))
                             ->default(fn(RelationManager $livewire) => $livewire->getOwnerRecord()->price)
@@ -76,77 +104,96 @@ class VariantsRelationManager extends RelationManager
                     ->searchable()
                     ->allowHtml()
                     ->nullable(),
-                Forms\Components\Section::make(__('filament-resources.resources.product.relations.variants.sections.options'))
+
+
+                Forms\Components\Section::make('Variant Options')
+                    ->description('Select the combinations of options that define this product variant.')
                     ->schema([
                         Forms\Components\Repeater::make('values')
-                            ->label(__('filament-resources.resources.product.relations.variants.fields.values'))
+                            ->label('Combinations')
                             ->relationship()
-                            ->reorderable('product_images.position')
-                            ->helperText(fn() => $this->ownerRecord->category === null
-                                ? 'Категория удалена, поэтому опции недоступны'
-                                : null)
                             ->schema([
                                 Forms\Components\Select::make('option_id')
-                                    ->label(__('filament-resources.resources.product.relations.variants.fields.option_id'))
-                                    ->options(function () {
-                                        $category = $this->ownerRecord->category;
-                                        return $category ? $category->options->pluck('name', 'id')->toArray() : [];
+                                    ->label('Option')
+                                    ->options(function () use ($product): Collection {
+                                        if (!$product->category) return collect();
+                                        return $product->category->options->pluck('title', 'id');
+                                    })
+                                    ->disableOptionWhen(function (string $value, Forms\Get $get) use ($product) {
+                                        if (!$product->category) return collect();
+                                        $option = $product->category->options->firstWhere('id', $value);
+                                        return !$option->values->count() || !!collect($get('../../values'))
+                                                ->first(fn($v) => isset($v['option_id']) && $value === (string)$v['option_id']);
                                     })
                                     ->required()
-                                    ->reactive()
-                                    ->disabled(fn() => !$this->ownerRecord->category)
-                                    ->afterStateHydrated(function ($state, callable $set) {
-                                        if ($this->ownerRecord->category === null) {
-                                            $set('option_id', null);
-                                        }
+                                    ->live()
+                                    ->default(function (Forms\Get $get) use ($product) {
+                                        if (!$product->category) return [];
+                                        /**
+                                         * @var Option|null $option
+                                         */
+                                        $option = $product->category->options->first(function (Option $o) use ($get) {
+                                            return $o->values->count() && !collect($get('../../values'))
+                                                    ->first(fn($v) => isset($v['option_id']) && (string)$o->id === (string)$v['option_id']);
+                                        });
+
+                                        return $option ? (string)$option->id : null;
                                     })
-                                    ->afterStateUpdated(fn($state, callable $set) => $set('option_value_id', null))
-                                    ->searchable()
-                                    ->preload()
-                                    ->helperText(fn() => $this->ownerRecord->category === null
-                                        ? new HtmlString(
-                                            '<span class="flex items-center text-danger-600 dark:text-danger-400">' .
-                                            '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">' .
-                                            '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0V7zm0 6a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V13z" clip-rule="evenodd"/>' .
-                                            '</svg>' .
-                                            'Категория удалена, поэтому опции недоступны' .
-                                            '</span>'
-                                        )
-                                        : null),
+                                    ->columnSpan(1),
+
+
                                 Forms\Components\Select::make('option_value_id')
-                                    ->label(__('filament-resources.resources.product.relations.variants.fields.option_value_id'))
-                                    ->options(function (callable $get) {
-                                        $product = $this->ownerRecord;
-                                        $category = $product->category;
-                                        $optionId = $get('option_id') ?? null;
+                                    ->label('Value')
+                                    ->options(function (Forms\Get $get) use ($product): Collection {
+                                        if (!$product->category) return collect();
 
-                                        if (!$category || !$optionId) {
-                                            return [];
-                                        }
+                                        $optionId = $get('option_id');
+                                        /** @var Option|null $option */
+                                        $option = $optionId ? $product->category->options->firstWhere('id', $optionId) : null;
+                                        if (!$option) return collect();
 
-                                        return $category
-                                            ->options
-                                            ->firstWhere('id', $optionId)
-                                            ->values
-                                            ->pluck('value', 'id')
-                                            ->toArray();
+                                        return $option->values->pluck('value', 'id');
                                     })
                                     ->required()
-                                    ->reactive()
-                                    ->disabled(fn() => !$this->ownerRecord->category)
-                                    ->afterStateHydrated(function ($state, callable $set) {
-                                        if ($this->ownerRecord->category === null || !$state) {
-                                            $set('option_value_id', null);
-                                        }
+                                    ->default(function (Forms\Get $get) use ($product) {
+                                        if (!$product->category) return null;
+
+                                        $firstValue = collect($get('../../values'))
+                                            ->first(fn($v) => isset($v['option_id']) && !isset($v['option_value_id']));
+
+                                        /**
+                                         * @var Option|null $option
+                                         */
+                                        $option = $firstValue && $firstValue['option_id'] ? $product->category->options->firstWhere('id', $firstValue['option_id']) : null;
+                                        if (!$option) return null;
+
+                                        $optionUsedValueIds = collect($get('../../values'))
+                                            ->filter(fn($value) => (string)$option->id === (string)$value['option_id'])
+                                            ->pluck('option_value_id')
+                                            ->filter()
+                                            ->all();
+
+                                        /**
+                                         * @var OptionValue|null $availableValue
+                                         */
+                                        $availableValue = $option->values
+                                            ->whereNotIn('id', $optionUsedValueIds)
+                                            ->first();
+
+                                        return $availableValue?->id;
                                     })
                                     ->searchable()
-                                    ->preload()
-                                    ->placeholder('–')
+                                    ->columnSpan(1),
                             ])
                             ->columns(2)
-                            ->defaultItems(0),
+                            ->addActionLabel('Add combination')
+                            ->maxItems(function (Forms\Get $get) use ($product): int {
+                                $usedOptionIds = collect($get('values'))->pluck('option_id')->filter()->all();
+                                $optionIds = $product->category?->options->filter(fn(Option $o) => $o->values->count())->pluck('id')->all();
+                                return count(array_diff($optionIds, $usedOptionIds)) === 0 ? 0 : 10000;
+                            })
+                            ->hidden(fn(Forms\Get $get) => !$get('product_id')),
                     ])
-                    ->columnSpanFull(),
             ]);
     }
 

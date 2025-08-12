@@ -16,6 +16,7 @@ use Carbon\Carbon;
  * @property string|null $title
  * @property string $price
  * @property string $final_price
+ * @property bool $enabled
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *

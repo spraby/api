@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
@@ -21,6 +22,8 @@ use Carbon\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
+ * @property string $status_url
+ *
  * @property-read Customer $customer
  * @property-read Brand $brand
  * @property-read Collection<OrderShipping> $orderShippings
@@ -33,16 +36,9 @@ use Carbon\Carbon;
 class Order extends Model
 {
     use HasFactory;
+    use Auditable;
 
-    protected $fillable = [
-        'name',
-        'customer_id',
-        'brand_id',
-        'note',
-        'status',
-        'delivery_status',
-        'financial_status',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'created_at' => 'datetime',
@@ -50,6 +46,30 @@ class Order extends Model
         'status' => 'string',
         'delivery_status' => 'string',
         'financial_status' => 'string',
+    ];
+
+    public const STATUSES = [
+        'PENDING' => 'pending',
+        'CONFIRMED' => 'confirmed',
+        'PROCESSING' => 'processing',
+        'COMPLETED' => 'completed',
+        'CANCELLED' => 'cancelled',
+        'ARCHIVED' => 'archived',
+    ];
+
+    public const DELIVERY_STATUSES = [
+        'PENDING' => 'pending',
+        'PACKING' => 'packing',
+        'SHIPPED' => 'shipped',
+        'TRANSIT' => 'transit',
+        'DELIVERED' => 'delivered',
+    ];
+
+    public const FINANCIAL_STATUSES = [
+        'UNPAID' => 'unpaid',
+        'PAID' => 'paid',
+        'PARTIAL_PAID' => 'partial_paid',
+        'REFUNDED' => 'refunded',
     ];
 
     public function customer(): BelongsTo
@@ -70,5 +90,13 @@ class Order extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatusUrlAttribute(): string
+    {
+        return config('app.store_url') . '/purchases/' . str_replace('#', '', $this->name);
     }
 }

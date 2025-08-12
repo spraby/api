@@ -22,6 +22,7 @@ use Carbon\Carbon;
  * @property Carbon $updated_at
  *
  * @property string $externalUrl
+ * @property float $discount
  *
  * @property-read Brand $brand
  * @property-read Category|null $category
@@ -108,6 +109,14 @@ class Product extends Model
      */
     public function getExternalUrlAttribute(): string
     {
-        return config('app.url') . '/product/' . $this->id;
+        return config('app.store_url') . '/products/' . $this->id;
+    }
+
+    /**
+     * @return float
+     */
+    public function getDiscountAttribute(): float
+    {
+        return round($this->price > 0 ? (($this->price - $this->final_price) / $this->price) * 100 : 0, 0);
     }
 }

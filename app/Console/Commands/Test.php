@@ -3,12 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Models\Image;
+use App\Models\Order;
 use App\Models\Product;
-use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class Test extends Command
@@ -32,9 +31,11 @@ class Test extends Command
      */
     public function handle()
     {
+        $order = Order::first();
+        $order->status = 'confirmed';
+        $order->save();
 
-        $menu = Settings::createMenu([]);
-        dd($menu);
+        dd();
 
         /**
          * @var Product $product
