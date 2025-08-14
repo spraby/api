@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 
 /**
- * @property string $id
+ * @property int $id
  * @property string $name
  * @property string $title
  * @property string|null $description

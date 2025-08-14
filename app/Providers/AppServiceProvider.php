@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             Css::make('fancybox-style', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css')->loadedOnRequest(),
             Js::make('fancybox-script', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js')->loadedOnRequest(),
             Js::make('fancybox-loader', asset('js/custom/fancyapps-loader.js'))->loadedOnRequest(),
-            Css::make('custom-stylesheet', asset('css/app/custom-stylesheet.css')),
+
         ]);
     }
 }

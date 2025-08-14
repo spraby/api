@@ -72,4 +72,13 @@ class Brand extends Model
     {
         return $this->belongsToMany(Image::class);
     }
+
+    /**
+     * @param int $value
+     * @return string
+     */
+    public function toMoney(int $value): string {
+        $format = "{amount} BYN"; //@todo get form settings
+        return str_replace("{amount}", number_format($value, 2, '.', ' '), $format);
+    }
 }

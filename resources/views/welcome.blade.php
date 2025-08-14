@@ -1468,8 +1468,8 @@
 </head>
 <body class="bg-black relative">
 <p class=" absolute left-[20%] top-[60%]">
-<span class="text-white text-[78px] block leading-10">SPRABY</span>
-<span class="text-[#ccc] text-[36px] block text-right">admin</span>
+    <span class="text-white text-[78px] block leading-10">SPRABY</span>
+    <span class="text-[#ccc] text-[36px] block text-right">admin</span>
 </p>
 <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="800" fill="none">
     <path fill="#000" d="M0 0h3109v2267H0z"/>

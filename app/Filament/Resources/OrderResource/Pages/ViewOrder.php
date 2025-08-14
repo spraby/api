@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Components\CustomerInfoCard;
+use App\Filament\Components\OrderItemsList;
 use App\Filament\Components\OrderTimeLineCard;
 use App\Filament\Resources\OrderResource;
 use App\Models\Order;
@@ -58,6 +59,7 @@ class ViewOrder extends ViewRecord
                                     ->iconPosition('after'),
                             ]),
                         Section::make()
+                            ->heading('Status')
                             ->columns(3)
                             ->schema([
                                 TextEntry::make('status')
@@ -160,10 +162,21 @@ class ViewOrder extends ViewRecord
                                                 ->success()
                                                 ->send();
                                         })
-                                    )
+                                    ),
+
+                            ]),
+                        Section::make()
+                            ->heading('LineItems')
+                            ->schema([
+                                OrderItemsList::make()
                             ]),
 
-                        OrderTimeLineCard::make()
+                        Section::make()
+                            ->heading('Timeline')
+                            ->schema([
+                                OrderTimeLineCard::make()
+                            ]),
+
                     ]),
 
                 Group::make()
