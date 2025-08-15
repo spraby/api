@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Filament\Actions\Utilities;
 use App\Models\Category;
 use App\Models\Option;
 use App\Models\OptionValue;
@@ -11,6 +12,8 @@ use App\Models\Variant;
 use App\Models\VariantValue;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -50,7 +53,7 @@ class VariantsRelationManager extends RelationManager
 
         return $form
             ->schema([
-                Forms\Components\Grid::make(2)
+                Forms\Components\Grid::make(12)
                     ->schema([
                         Forms\Components\Grid::make(12)->schema([
                             Forms\Components\TextInput::make('title')
@@ -72,46 +75,47 @@ class VariantsRelationManager extends RelationManager
                                 ->extraFieldWrapperAttributes(['style' => 'padding-top: 37px'])
                                 ->columnSpan(2)
                         ]),
-                        Forms\Components\TextInput::make('price')
-                            ->label(__('filament-resources.resources.product.relations.variants.fields.price'))
-                            ->default(fn(RelationManager $livewire) => $livewire->getOwnerRecord()->price)
-                            ->numeric(),
-                        Forms\Components\TextInput::make('final_price')
-                            ->label(__('filament-resources.resources.product.relations.variants.fields.final_price'))
-                            ->default(fn(RelationManager $livewire) => $livewire->getOwnerRecord()->final_price)
-                            ->numeric(),
-                    ]),
-                Forms\Components\Select::make('image_id')
-                    ->label('Image')
-                    ->preload()
-                    ->options(function (RelationManager $livewire) {
-                        /**
-                         * @var Product $product
-                         */
-                        $product = $livewire->ownerRecord;
 
-                        return $product->images->mapWithKeys(function ($img) {
-                            return [
-                                $img->pivot_id => <<<HTML
-                                    <div class="flex items-center gap-2">
-                                        <img src="{$img->url}" class="h-16 w-16 rounded object-cover" alt="">
-                                        <span>{$img->name}</span>
-                                    </div>
-                                HTML,
-                            ];
-                        });
-                    })
-                    ->searchable()
-                    ->allowHtml()
-                    ->nullable(),
+                        Forms\Components\Grid::make(8)
+                            ->schema([
+                                Forms\Components\TextInput::make('price')
+                                    ->default(0)
+                                    ->label(__('filament-resources.resources.product.fields.price'))
+                                    ->numeric()
+                                    ->reactive()
+                                    ->columnSpan(3)
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        Utilities::updateFinalPrice($get, $set);
+                                    }),
+                                Forms\Components\TextInput::make('discount')
+                                    ->default(0)
+                                    ->label('%')
+                                    ->dehydrated(false)
+                                    ->numeric()
+                                    ->reactive()
+                                    ->columnSpan(2)
+                                    ->afterStateHydrated(function (Variant $variant, Set $set) {
+                                        $set('discount', $variant->discount);
+                                    })
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        Utilities::updateFinalPrice($get, $set);
+                                    }),
+                                Forms\Components\TextInput::make('final_price')
+                                    ->label(__('filament-resources.resources.product.fields.final_price'))
+                                    ->default(0)
+                                    ->numeric()
+                                    ->reactive()
+                                    ->columnSpan(3)
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        Utilities::updateDiscountValue($get, $set);
+                                    }),
+                            ]),
 
 
-                Forms\Components\Section::make('Variant Options')
-                    ->description('Select the combinations of options that define this product variant.')
-                    ->schema([
                         Forms\Components\Repeater::make('values')
-                            ->label('Combinations')
+                            ->label('Variant Options')
                             ->relationship()
+                            ->columnSpan(12)
                             ->schema([
                                 Forms\Components\Select::make('option_id')
                                     ->label('Option')
@@ -190,10 +194,39 @@ class VariantsRelationManager extends RelationManager
                             ->maxItems(function (Forms\Get $get) use ($product): int {
                                 $usedOptionIds = collect($get('values'))->pluck('option_id')->filter()->all();
                                 $optionIds = $product->category?->options->filter(fn(Option $o) => $o->values->count())->pluck('id')->all();
-                                return count(array_diff($optionIds, $usedOptionIds)) === 0 ? 0 : 10000;
+                                return count(array_diff($optionIds, $usedOptionIds)) === 0 ? count($optionIds) : 10000;
                             })
                             ->hidden(fn(Forms\Get $get) => !$get('product_id')),
-                    ])
+
+
+                    ]),
+
+
+//                Forms\Components\Select::make('image_id')
+//                    ->label('Image')
+//                    ->preload()
+//                    ->options(function (RelationManager $livewire) {
+//                        /**
+//                         * @var Product $product
+//                         */
+//                        $product = $livewire->ownerRecord;
+//
+//                        return $product->images->mapWithKeys(function ($img) {
+//                            return [
+//                                $img->pivot_id => <<<HTML
+//                                    <div class="flex items-center gap-2">
+//                                        <img src="{$img->url}" class="h-16 w-16 rounded object-cover" alt="">
+//                                        <span>{$img->name}</span>
+//                                    </div>
+//                                HTML,
+//                            ];
+//                        });
+//                    })
+//                    ->searchable()
+//                    ->allowHtml()
+//                    ->nullable(),
+
+
             ]);
     }
 

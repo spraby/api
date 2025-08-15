@@ -20,6 +20,8 @@ use Carbon\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
+ * @property float $discount
+ *
  * @property-read Product $product
  * @property-read ProductImage|null $image
  * @property-read Collection<VariantValue> $values
@@ -60,5 +62,13 @@ class Variant extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * @return float
+     */
+    public function getDiscountAttribute(): float
+    {
+        return round($this->price > 0 ? (($this->price - $this->final_price) / $this->price) * 100 : 0, 0);
     }
 }

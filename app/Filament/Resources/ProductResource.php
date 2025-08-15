@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Actions\Utilities;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
@@ -101,7 +102,7 @@ class ProductResource extends Resource
                                     ->numeric()
                                     ->reactive()
                                     ->afterStateUpdated(function (Get $get, Set $set) {
-                                        self::updateFinalPrice($get, $set);
+                                        Utilities::updateFinalPrice($get, $set);
                                     }),
                                 Forms\Components\TextInput::make('discount')
                                     ->default(0)
@@ -113,7 +114,7 @@ class ProductResource extends Resource
                                         $set('discount', $product->discount);
                                     })
                                     ->afterStateUpdated(function (Get $get, Set $set) {
-                                        self::updateFinalPrice($get, $set);
+                                        Utilities::updateFinalPrice($get, $set);
                                     }),
                                 Forms\Components\TextInput::make('final_price')
                                     ->label(__('filament-resources.resources.product.fields.final_price'))
@@ -121,7 +122,7 @@ class ProductResource extends Resource
                                     ->numeric()
                                     ->reactive()
                                     ->afterStateUpdated(function (Get $get, Set $set) {
-                                        self::updateDiscountValue($get, $set);
+                                        Utilities::updateDiscountValue($get, $set);
                                     }),
                             ]),
                     ])
@@ -271,7 +272,6 @@ class ProductResource extends Resource
         return [
             RelationManagers\ProductImagesRelationManager::class,
             RelationManagers\VariantsRelationManager::class,
-//            RelationManagers\OrderItemsRelationManager::class,
         ];
     }
 
@@ -282,49 +282,5 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
-    }
-
-    /**
-     * @param Get $get
-     * @param Set $set
-     * @return void
-     */
-    private static function updateFinalPrice(Get $get, Set $set): void
-    {
-        $price = (float)$get('price');
-        $percentage = (float)$get('discount');
-
-        if ($price < 0 || $percentage < 0) {
-            return;
-        }
-
-        $finalPrice = $price - ($price * $percentage / 100);
-
-        $set('final_price', round($finalPrice, 2));
-    }
-
-    /**
-     * @param Get $get
-     * @param Set $set
-     * @return void
-     */
-    private static function updateDiscountValue(Get $get, Set $set): void
-    {
-        $price = (float)$get('price');
-        $finalPrice = (float)$get('final_price');
-
-        if ($finalPrice >= $price || $finalPrice < 0) {
-            $set('final_price', $price);
-            $set('discount', 0);
-            return;
-        }
-
-        if ($price <= 0) {
-            $set('discount', 0);
-            return;
-        }
-
-        $discount = (($price - $finalPrice) / $price) * 100;
-        $set('discount', round($discount, 0));
     }
 }
