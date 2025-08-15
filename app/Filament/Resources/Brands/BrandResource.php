@@ -9,6 +9,7 @@ use App\Filament\Resources\Brands\Schemas\BrandForm;
 use App\Filament\Resources\Brands\Tables\BrandsTable;
 use App\Models\Brand;
 use BackedEnum;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -35,7 +36,10 @@ class BrandResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\UserRelationManager::class,
+            RelationManagers\ProductsRelationManager::class,
+            RelationManagers\CategoriesRelationManager::class,
+            RelationManagers\OrdersRelationManager::class,
         ];
     }
 

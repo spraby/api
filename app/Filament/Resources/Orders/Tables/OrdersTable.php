@@ -1,49 +1,41 @@
 <?php
 
-namespace App\Filament\Resources\Brands\Tables;
+namespace App\Filament\Resources\Orders\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
-class BrandsTable
+class OrdersTable
 {
-    /**
-     * @throws \Exception
-     */
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('user.email')
+                TextColumn::make('customer.name')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('products_count')
-                    ->label('Products count')
-                    ->counts('products')
+                TextColumn::make('brand.name')
+                    ->numeric()
                     ->sortable(),
-                TextColumn::make('orders_count')
-                    ->label('Orders count')
-                    ->counts('orders')
-                    ->sortable(),
+                TextColumn::make('status'),
+                TextColumn::make('delivery_status'),
+                TextColumn::make('financial_status'),
                 TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Filter::make('has_orders')
-                    ->label('Has orders')
-                    ->query(fn(Builder $query): Builder => $query->has('orders')),
-                Filter::make('has_products')
-                    ->label('Has products')
-                    ->query(fn(Builder $query): Builder => $query->has('products')),
+                //
             ])
             ->recordActions([
                 EditAction::make(),
