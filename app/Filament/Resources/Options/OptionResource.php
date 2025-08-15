@@ -35,7 +35,7 @@ class OptionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ValuesRelationManager::class,
         ];
     }
 

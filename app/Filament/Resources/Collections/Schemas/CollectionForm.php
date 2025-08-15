@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\Collections\Schemas;
 
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
 
 class CollectionForm
 {
+    /**
+     * @throws \Exception
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -18,9 +21,23 @@ class CollectionForm
                     ->required(),
                 TextInput::make('title')
                     ->required(),
-                Textarea::make('description')
-                    ->columnSpanFull(),
                 TextInput::make('header'),
+                RichEditor::make('description')
+                    ->maxLength(65535)
+                    ->toolbarButtons([
+                        'bold',
+                        'italic',
+                        'underline',
+                        'strike',
+                        'h2',
+                        'h3',
+                        'bulletList',
+                        'orderedList',
+                        'undo',
+                        'redo',
+                    ])
+                    ->columnSpanFull()
+
             ]);
     }
 }
