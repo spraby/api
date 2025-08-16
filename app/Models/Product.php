@@ -23,6 +23,7 @@ use Carbon\Carbon;
  *
  * @property string $externalUrl
  * @property float $discount
+ * @property ProductImage $mainImage
  *
  * @property-read Brand $brand
  * @property-read Category|null $category
@@ -71,6 +72,9 @@ class Product extends Model
         return $this->hasMany(Variant::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
@@ -85,7 +89,6 @@ class Product extends Model
     {
         return $this->hasMany(ProductStatistics::class)->where('type', 'view');
     }
-
 
     /**
      * @return void
@@ -102,6 +105,14 @@ class Product extends Model
             $brand = $user->brands()->first();
             if ($brand) $model->brand_id = $brand->id;
         });
+    }
+
+    /**
+     * @return ProductImage|null
+     */
+    public function getMainImageAttribute(): ProductImage|null
+    {
+        return $this->images?->sortByDesc('position')?->first();
     }
 
     /**

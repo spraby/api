@@ -9,6 +9,7 @@ use App\Filament\Resources\Products\Schemas\ProductForm;
 use App\Filament\Resources\Products\Tables\ProductsTable;
 use App\Models\Product;
 use BackedEnum;
+use Exception;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -22,11 +23,17 @@ class ProductResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
+    /**
+     * @throws Exception
+     */
     public static function form(Schema $schema): Schema
     {
         return ProductForm::configure($schema);
     }
 
+    /**
+     * @throws Exception
+     */
     public static function table(Table $table): Table
     {
         return ProductsTable::configure($table);
@@ -35,7 +42,7 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\VariantsRelationManager::class,
         ];
     }
 

@@ -77,7 +77,7 @@ class Brand extends Model
      * @param int $value
      * @return string
      */
-    public function toMoney(int $value): string {
+    public static function toMoney(int $value): string {
         $format = "{amount} BYN"; //@todo get form settings
         return str_replace("{amount}", number_format($value, 2, '.', ' '), $format);
     }
