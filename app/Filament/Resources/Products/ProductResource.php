@@ -8,12 +8,15 @@ use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Products\Schemas\ProductForm;
 use App\Filament\Resources\Products\Tables\ProductsTable;
 use App\Models\Product;
+use App\Models\User;
 use BackedEnum;
 use Exception;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProductResource extends Resource
 {
@@ -22,6 +25,24 @@ class ProductResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
 
     protected static ?string $recordTitleAttribute = 'title';
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /**
+         * @var User $user
+         */
+        $user = Auth::user();
+
+        if ($user?->hasRole(User::ROLES['ADMIN'])) return $query;
+
+        $brand = $user->getBrand();
+
+        return $query->when($brand, function (Builder $r) use ($brand) {
+            $r->whereHas('brand', fn($q) => $q->where('brand_id', $brand->id));
+        });
+    }
 
     /**
      * @throws Exception

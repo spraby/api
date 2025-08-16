@@ -8,7 +8,9 @@ use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
 use App\Filament\Resources\Categories\Tables\CategoriesTable;
 use App\Models\Category;
+use App\Models\User;
 use BackedEnum;
+use Exception;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -22,6 +24,21 @@ class CategoryResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        /**
+         * @var User $user
+         */
+        $user = auth()->user();
+        return $user && $user->hasRole(User::ROLES['ADMIN']);
+    }
+
+    /**
+     * @throws Exception
+     */
     public static function form(Schema $schema): Schema
     {
         return CategoryForm::configure($schema);

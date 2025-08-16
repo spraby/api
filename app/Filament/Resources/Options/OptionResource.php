@@ -8,6 +8,7 @@ use App\Filament\Resources\Options\Pages\ListOptions;
 use App\Filament\Resources\Options\Schemas\OptionForm;
 use App\Filament\Resources\Options\Tables\OptionsTable;
 use App\Models\Option;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -21,6 +22,18 @@ class OptionResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    /**
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        /**
+         * @var User $user
+         */
+        $user = auth()->user();
+        return $user && $user->hasRole(User::ROLES['ADMIN']);
+    }
 
     public static function form(Schema $schema): Schema
     {

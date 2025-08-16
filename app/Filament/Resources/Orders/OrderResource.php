@@ -10,11 +10,15 @@ use App\Filament\Resources\Orders\Schemas\OrderForm;
 use App\Filament\Resources\Orders\Schemas\OrderInfolist;
 use App\Filament\Resources\Orders\Tables\OrdersTable;
 use App\Models\Order;
+use App\Models\User;
 use BackedEnum;
+use Exception;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class OrderResource extends Resource
 {
@@ -24,11 +28,42 @@ class OrderResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /**
+         * @var User $user
+         */
+        $user = Auth::user();
+
+        if ($user?->hasRole('admin')) return $query;
+
+        $brand = $user->getBrand();
+
+        return $query->when($brand, function (Builder $r) use ($brand) {
+            $r->where('brand_id', $brand->id);
+        });
+    }
+
     protected static ?string $navigationBadgeTooltip = 'Count new orders';
 
+    /**
+     * @return string|null
+     */
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status', 'pending')->count();
+        /**
+         * @var User $user
+         */
+        $user = Auth::user();
+        $brand = $user->getBrand();
+        $count = static::getModel()::when($brand, function (Builder $r) use ($brand) {
+            $r->where('brand_id', $brand->id);
+        })
+            ->where('status', 'pending')->count();
+
+        return $count > 0 ? $count : null;
     }
 
     public static function getNavigationBadgeColor(): ?string
@@ -41,6 +76,9 @@ class OrderResource extends Resource
         return OrderForm::configure($schema);
     }
 
+    /**
+     * @throws Exception
+     */
     public static function infolist(Schema $schema): Schema
     {
         return OrderInfolist::configure($schema);
