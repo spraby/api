@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\Collections\Schemas;
 
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 class CollectionForm
@@ -15,13 +17,31 @@ class CollectionForm
     {
         return $schema
             ->components([
-                TextInput::make('handle')
-                    ->required(),
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('title')
-                    ->required(),
-                TextInput::make('header'),
+
+                Grid::make()
+                    ->columnSpanFull()
+                    ->schema([
+                        Grid::make(1)
+                            ->schema([
+                                TextInput::make('name')
+                                    ->required(),
+                                TextInput::make('title')
+                                    ->required(),
+                                TextInput::make('header'),
+                                TextInput::make('handle')
+                                    ->required(),
+
+                            ]),
+                        Grid::make(1)
+                            ->schema([
+                                Select::make('categories')
+                                    ->relationship('categories', 'name')
+                                    ->multiple()
+                                    ->preload()
+                                    ->columnSpanFull(),
+                            ])
+                    ]),
+
                 RichEditor::make('description')
                     ->maxLength(65535)
                     ->toolbarButtons([
@@ -37,7 +57,6 @@ class CollectionForm
                         'redo',
                     ])
                     ->columnSpanFull()
-
             ]);
     }
 }

@@ -52,7 +52,7 @@ class CategoryResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\OptionsRelationManager::class
+//            RelationManagers\OptionsRelationManager::class
         ];
     }
 
@@ -61,7 +61,7 @@ class CategoryResource extends Resource
         return [
             'index' => ListCategories::route('/'),
             'create' => CreateCategory::route('/create'),
-            'edit' => EditCategory::route('/{record}/edit'),
+//            'edit' => EditCategory::route('/{record}/edit'),
         ];
     }
 }

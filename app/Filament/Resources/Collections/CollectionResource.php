@@ -52,7 +52,7 @@ class CollectionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\CategoriesRelationManager::class,
+//            RelationManagers\CategoriesRelationManager::class,
         ];
     }
 
@@ -61,7 +61,7 @@ class CollectionResource extends Resource
         return [
             'index' => ListCollections::route('/'),
             'create' => CreateCollection::route('/create'),
-            'edit' => EditCollection::route('/{record}/edit'),
+//            'edit' => EditCollection::route('/{record}/edit'),
         ];
     }
 }

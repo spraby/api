@@ -19,6 +19,8 @@ class Utilities
         $percentage = (float)$get('discount');
 
         if ($price < 0 || $percentage < 0) {
+            $set('price', 0);
+            $set('final_price', 0);
             return;
         }
 
@@ -36,6 +38,11 @@ class Utilities
     {
         $price = (float)$get('price');
         $finalPrice = (float)$get('final_price');
+
+        if($price < 0 || $finalPrice < 0) {
+            $set('price', 0);
+            $set('final_price', 0);
+        }
 
         if ($finalPrice >= $price || $finalPrice < 0) {
             $set('final_price', $price);
