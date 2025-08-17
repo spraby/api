@@ -6,8 +6,8 @@ use Exception;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -20,22 +20,35 @@ class ImagesTable
     {
         return $table
             ->columns([
-                ImageColumn::make('url')
-                    ->label('Image')
-                    ->imageHeight(150)
-                    ->imageWidth(150)
-                    ->extraImgAttributes([
-                        'alt' => 'Image',
-                        'loading' => 'lazy',
-                    ]),
-                TextColumn::make('name')
-                    ->searchable(),
+                Stack::make([
+                    ImageColumn::make('url')
+                        ->label('Image')
+                        ->imageHeight('200px')
+                        ->imageWidth('100%')
+                        ->square()
+                        ->extraImgAttributes([
+                            'alt' => 'Image',
+                            'loading' => 'lazy',
+                        ]),
+                    TextColumn::make('name')
+                        ->searchable(),
+                ])
+                    ->space(3),
             ])
             ->filters([
                 //
             ])
+            ->contentGrid([
+                'md' => 3,
+                'xl' => 4,
+            ])
+            ->paginated([
+                20,
+                40,
+                80,
+                'all',
+            ])
             ->recordActions([
-                ViewAction::make(),
                 EditAction::make(),
             ])
             ->toolbarActions([

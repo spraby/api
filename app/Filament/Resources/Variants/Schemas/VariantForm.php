@@ -32,6 +32,7 @@ class VariantForm
         return $schema
             ->components([
                 Grid::make(12)
+                    ->columnSpanFull()
                     ->schema([
                         Section::make()
                             ->columnSpan(4)

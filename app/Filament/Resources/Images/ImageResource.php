@@ -22,16 +22,11 @@ class ImageResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'src';
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {
         return ImageForm::configure($schema);
-    }
-
-    public static function infolist(Schema $schema): Schema
-    {
-        return ImageInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table
@@ -51,7 +46,6 @@ class ImageResource extends Resource
         return [
             'index' => ListImages::route('/'),
             'create' => CreateImage::route('/create'),
-            'view' => ViewImage::route('/{record}'),
             'edit' => EditImage::route('/{record}/edit'),
         ];
     }
