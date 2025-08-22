@@ -1468,7 +1468,6 @@
 </head>
 <body class="bg-black relative">
 <p class=" absolute left-[20%] top-[60%]">
-    @livewire('image-picker')
     <span class="text-white text-[78px] block leading-10">SPRABY</span>
     <span class="text-[#ccc] text-[36px] block text-right">admin</span>
 </p>
