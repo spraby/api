@@ -2,12 +2,17 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
+use App\Filament\Resources\Variants\Schemas\VariantForm;
 use App\Models\Brand;
 use App\Models\Product;
+use App\Models\Variant;
 use Exception;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -54,6 +59,14 @@ class ProductsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->headerActions([
+                Action::make('Edit')
+                    ->icon(Heroicon::PencilSquare)
+                    ->schema(fn(Schema $schema) => VariantForm::configure($schema))
+                    ->fillForm(fn(Variant $record) => $record->toArray())
+                    ->modalHeading('Edit Variant')
+                    ->modalSubmitAction(false)
             ])
             ->filters([
                 //

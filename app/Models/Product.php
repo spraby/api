@@ -112,7 +112,7 @@ class Product extends Model
      */
     public function getMainImageAttribute(): ProductImage|null
     {
-        return $this->images?->sortByDesc('position')?->first();
+        return $this->images?->sortBy('position')?->first();
     }
 
     /**
