@@ -29,8 +29,6 @@ class ProductImagesTable
                             'alt' => 'Image',
                             'loading' => 'lazy',
                         ]),
-                    TextColumn::make('name')
-                        ->searchable(),
                     TextColumn::make('position')
                         ->searchable(),
                 ])

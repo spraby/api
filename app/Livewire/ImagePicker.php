@@ -7,16 +7,11 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 use App\Models\Image;
 use App\Models\Product;
-use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
@@ -75,11 +70,12 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
                 'all',
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    BulkAction::make('attach')
-                        ->label('Attach')
-                        ->icon('heroicon-o-plus')
-                        ->action(function (Collection $records) {
+                BulkAction::make('attach')
+                    ->label('Add selected images')
+                    ->icon('heroicon-o-plus')
+                    ->action(function (Collection $records) {
+
+                        try {
                             $ids = $records->pluck('id')->toArray();
 
                             foreach ($ids as $id) {
@@ -95,13 +91,17 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
                             }
 
                             Notification::make()
-                                ->title('Images attached')
+                                ->title('Images was added successfully')
                                 ->success()
                                 ->send();
 
                             $this->dispatch('close-modal', id: 'edit-profile');
-                        })
-                ]),
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Something went wrong')
+                                ->danger();
+                        }
+                    })
             ]);
     }
 

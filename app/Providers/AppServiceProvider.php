@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Filament\Components\Copyable;
+use App\Models\ProductImage;
+use App\Observers\ProductImageObserver;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
@@ -28,7 +30,8 @@ class AppServiceProvider extends ServiceProvider
             Css::make('fancybox-style', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css')->loadedOnRequest(),
             Js::make('fancybox-script', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js')->loadedOnRequest(),
             Js::make('fancybox-loader', asset('js/custom/fancyapps-loader.js'))->loadedOnRequest(),
-
         ]);
+
+        ProductImage::observe(ProductImageObserver::class);
     }
 }

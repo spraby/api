@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany};
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property string $id
@@ -129,5 +130,18 @@ class Product extends Model
     public function getDiscountAttribute(): float
     {
         return round($this->price > 0 ? (($this->price - $this->final_price) / $this->price) * 100 : 0, 0);
+    }
+
+    /**
+     * @return void
+     */
+    public function reorderImages(): void
+    {
+        DB::transaction(function () {
+            $images = $this->images()->orderBy('position')->get();
+            foreach ($images as $index => $image) {
+                $image->updateQuietly(['position' => $index + 1]);
+            }
+        });
     }
 }
