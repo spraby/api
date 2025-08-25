@@ -60,14 +60,6 @@ class ProductsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->headerActions([
-                Action::make('Edit')
-                    ->icon(Heroicon::PencilSquare)
-                    ->schema(fn(Schema $schema) => VariantForm::configure($schema))
-                    ->fillForm(fn(Variant $record) => $record->toArray())
-                    ->modalHeading('Edit Variant')
-                    ->modalSubmitAction(false)
-            ])
             ->filters([
                 //
             ])

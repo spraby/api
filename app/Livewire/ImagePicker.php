@@ -79,15 +79,7 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
                             $ids = $records->pluck('id')->toArray();
 
                             foreach ($ids as $id) {
-                                $productImage = $this->product->images()->where('image_id', $id)->first();
-                                if (!$productImage) {
-                                    $lastPosition = $this->product->images()->max('position') ?? 0;
-
-                                    $this->product->images()->create([
-                                        'image_id' => $id,
-                                        'position' => $lastPosition
-                                    ]);
-                                }
+                                $this->product->images()->create(['image_id' => $id]);
                             }
 
                             Notification::make()
