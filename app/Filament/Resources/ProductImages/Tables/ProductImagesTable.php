@@ -39,6 +39,7 @@ class ProductImagesTable
             ->filters([
                 //
             ])
+            ->paginated([24, 48, 96, 'all'])
             ->contentGrid([
                 'md' => 3,
                 'xl' => 4,

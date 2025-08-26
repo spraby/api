@@ -3,13 +3,17 @@
 namespace App\Filament\Resources\Variants\Schemas;
 
 use App\Filament\Actions\Utilities;
+use App\Filament\Resources\Images\Schemas\ImageBulkCreateForm;
 use App\Models\Category;
+use App\Models\Image;
 use App\Models\Option;
 use App\Models\OptionValue;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\Variant;
 use App\Models\VariantValue;
 use Exception;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -20,6 +24,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 
 class VariantForm
@@ -29,6 +34,7 @@ class VariantForm
      */
     public static function configure(Schema $schema): Schema
     {
+
         return $schema
             ->components([
                 Grid::make(12)
@@ -42,6 +48,49 @@ class VariantForm
                                     ->hiddenLabel()
                                     ->imageHeight('auto')
                                     ->imageWidth('100%'),
+                                Grid::make()
+                                    ->extraAttributes(['class' => 'flex justify-start gap-1'])
+                                    ->schema([
+                                        Action::make('select_image')
+                                            ->icon(Heroicon::Photo)
+                                            ->hiddenLabel()
+                                            ->modalContent(fn(Variant $v) => view('livewire.image-picker.data', ['product' => $v->product, 'variant' => $v]))
+                                            ->modalHeading('Add images')
+                                            ->modalSubmitAction(false),
+                                        Action::make('upload_image')
+                                            ->icon(Heroicon::ArrowUpTray)
+                                            ->hiddenLabel()
+                                            ->schema(fn(Schema $schema) => ImageBulkCreateForm::configure($schema))
+                                            ->modalHeading('Upload images')
+                                            ->action(function (array $data, Variant $variant): void {
+                                                $position = $variant->product->images()->count();
+
+                                                foreach ($data['src'] as $src) {
+                                                    $name = $data['attachment_file_names'][$src];
+                                                    /**
+                                                     * @var Image $image
+                                                     */
+                                                    $image = Image::query()->create([
+                                                        'src' => $src,
+                                                        'name' => $name,
+                                                    ]);
+
+                                                    /**
+                                                     * @var ProductImage $productImage
+                                                     */
+                                                    $productImage = $variant->product->images()->create(['image_id' => $image->id, 'position' => $position++]);
+
+                                                    if ($productImage) {
+                                                        $variant->image_id = $productImage->id;
+                                                        $variant->save();
+                                                    }
+                                                }
+                                            })
+                                            ->slideOver()
+                                            ->stickyModalHeader()
+                                    ])
+
+
                             ]),
 
                         Grid::make()

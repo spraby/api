@@ -38,7 +38,7 @@ class ImagesRelationManager extends RelationManager
                 Action::make('add')
                     ->label('Add image')
                     ->icon('heroicon-o-plus')
-                    ->modalContent(view('livewire.image-picker.data', compact('product')))
+                    ->modalContent(view('livewire.image-picker.data', ['product' => $product, 'variant' => new Variant()]))
                     ->modalHeading('Add images')
                     ->modalSubmitAction(false),
 

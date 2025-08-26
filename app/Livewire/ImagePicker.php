@@ -3,6 +3,8 @@
 
 namespace App\Livewire;
 
+use App\Models\ProductImage;
+use App\Models\Variant;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 use App\Models\Image;
@@ -28,11 +30,18 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
     use InteractsWithTable;
 
     public string $search = '';
-    public Product $product;
+    public ?Product $product;
+    public ?Variant $variant;
 
-    public function mount(?Product $product = null): void
+    /**
+     * @param Product|null $product
+     * @param Variant|null $variant
+     * @return void
+     */
+    public function mount(?Product $product = null, ?Variant $variant = null): void
     {
         $this->product = $product;
+        $this->variant = $variant;
     }
 
     public function table(Table $table): Table
@@ -63,23 +72,32 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
             ->contentGrid([
                 'md' => 3,
             ])
-            ->paginated([
-                20,
-                40,
-                80,
-                'all',
-            ])
+            ->paginated([12, 24, 48, 96])
+            ->maxSelectableRecords($this->variant?->id ? 1 : null)
             ->toolbarActions([
                 BulkAction::make('attach')
                     ->label('Add selected images')
                     ->icon('heroicon-o-plus')
                     ->action(function (Collection $records) {
-
                         try {
-                            $ids = $records->pluck('id')->toArray();
+                            if ($this->variant?->id) {
+                                $id = $records->pluck('id')->first();
 
-                            foreach ($ids as $id) {
-                                $this->product->images()->create(['image_id' => $id]);
+                                $productImagesNumber = $this->product->images()->count();
+
+                                /**
+                                 * @var ProductImage $productImage
+                                 */
+                                $productImage = $this->product->images()->create(['image_id' => $id, 'position' => $productImagesNumber + 1]);
+                                if (!$productImage) throw new \Exception('Image not saved');
+                                $this->variant->image_id = $productImage->id;
+                                $this->variant->save();
+                            } else {
+                                $ids = $records->pluck('id')->toArray();
+
+                                foreach ($ids as $id) {
+                                    $this->product->images()->create(['image_id' => $id]);
+                                }
                             }
 
                             Notification::make()
