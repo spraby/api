@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany, HasManyThrough};
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
@@ -63,6 +63,21 @@ class Product extends Model
         return $this->belongsTo(Brand::class);
     }
 
+    /**
+     * @return HasManyThrough
+     */
+    public function options(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Option::class,
+            Category::class,
+            'id',
+            'id',
+            'category_id',
+            'id'
+        );
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
@@ -79,6 +94,18 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
+    }
+
+    public function media(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Image::class,
+            ProductImage::class,
+            'product_id',
+            'id',
+            'id',
+            'image_id'
+        );
     }
 
     public function orderItems(): HasMany

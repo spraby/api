@@ -10,6 +10,8 @@ class ListImages extends ListRecords
 {
     protected static string $resource = ImageResource::class;
 
+    protected ?string $heading = 'Media';
+
     protected function getHeaderActions(): array
     {
         return [

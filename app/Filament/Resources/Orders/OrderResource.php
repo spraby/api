@@ -41,9 +41,11 @@ class OrderResource extends Resource
 
         $brand = $user->getBrand();
 
-        return $query->when($brand, function (Builder $r) use ($brand) {
-            $r->where('brand_id', $brand->id);
-        });
+        if ($brand) {
+            return $query->where('brand_id', $brand->id);
+        } else {
+            return $query->whereNull('brand_id');
+        }
     }
 
     protected static ?string $navigationBadgeTooltip = 'Count new orders';

@@ -4,11 +4,9 @@ namespace App\Filament\Resources\Variants\Schemas;
 
 use App\Filament\Actions\Utilities;
 use App\Filament\Resources\Images\Schemas\ImageBulkCreateForm;
-use App\Models\Category;
 use App\Models\Image;
 use App\Models\Option;
 use App\Models\OptionValue;
-use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Variant;
 use App\Models\VariantValue;
@@ -44,6 +42,8 @@ class VariantForm
                             ->columnSpan(4)
                             ->schema([
                                 ImageEntry::make('image.image.src')
+                                    ->extraAttributes(['class' => 'w-full aspect-square'])
+                                    ->state(fn(Variant|null $v) => $v?->image?->image?->src ?? null)
                                     ->label('')
                                     ->hiddenLabel()
                                     ->imageHeight('auto')
@@ -54,6 +54,7 @@ class VariantForm
                                         Action::make('select_image')
                                             ->icon(Heroicon::Photo)
                                             ->hiddenLabel()
+                                            ->link()
                                             ->modalContent(fn(Variant $v) => view('livewire.image-picker.data', ['product' => $v->product, 'variant' => $v]))
                                             ->modalHeading('Add images')
                                             ->modalSubmitAction(false),
@@ -121,8 +122,8 @@ class VariantForm
                                             ->dehydrated(false)
                                             ->numeric()
                                             ->reactive()
-                                            ->afterStateHydrated(function (Variant $variant, Set $set) {
-                                                $set('discount', $variant->discount);
+                                            ->afterStateHydrated(function (Variant|null $variant, Set $set) {
+                                                $set('discount', $variant?->discount ?? 0);
                                             })
                                             ->afterStateUpdated(function (Get $get, Set $set) {
                                                 Utilities::updateFinalPrice($get, $set);
@@ -150,11 +151,11 @@ class VariantForm
                                         if (!$v?->variant?->product?->category) return collect();
                                         return $v->variant->product->category->options->pluck('title', 'id');
                                     })
-                                    ->disableOptionWhen(function (string $value, Get $get, VariantValue $v) {
+                                    ->disableOptionWhen(function (string $value, string $state, Get $get, VariantValue $v) {
                                         if (!$v->variant?->product?->category) return collect();
                                         $option = $v->variant->product->category->options->firstWhere('id', $value);
-                                        return !$option->values->count() || !!collect($get('../../values'))
-                                                ->first(fn($v) => isset($v['option_id']) && $value === (string)$v['option_id']);
+                                        return $state !== $value && (!$option->values->count() || !!collect($get('../../values'))
+                                                ->first(fn($v) => isset($v['option_id']) && $value === (string)$v['option_id']));
                                     })
                                     ->required()
                                     ->live()
@@ -223,7 +224,6 @@ class VariantForm
                                 $optionIds = $v->product->category?->options->filter(fn(Option $o) => $o->values->count())->pluck('id')->all();
                                 return count(array_diff($optionIds, $usedOptionIds)) === 0 ? count($optionIds) : 10000;
                             })
-                            ->hidden(fn(Get $get) => !$get('product_id')),
                     ]),
             ]);
     }

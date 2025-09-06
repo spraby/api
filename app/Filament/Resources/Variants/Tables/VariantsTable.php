@@ -8,8 +8,10 @@ use App\Models\Variant;
 use App\Models\VariantValue;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -37,7 +39,7 @@ class VariantsTable
                 TextColumn::make('final_price')
                     ->label('Price')
                     ->state(fn(Variant $v): string => Brand::toMoney($v->final_price))
-                    ->description(fn(Variant $v): Htmlable => $v->final_price !== $v->price ? new HtmlString("<s class='text-[10px]'>" . Brand::toMoney($v->final_price) . "</s> <span class='text-green-500'>{$v->discount}%</span>") : new HtmlString(''))
+                    ->description(fn(Variant $v): Htmlable => $v->final_price !== $v->price ? new HtmlString("<s class='text-[10px]'>" . Brand::toMoney($v->price) . "</s> <span class='text-green-500'>{$v->discount}%</span>") : new HtmlString(''))
                     ->sortable(),
                 IconColumn::make('enabled')
                     ->boolean(),
@@ -46,13 +48,22 @@ class VariantsTable
                 //
             ])
             ->recordActions([
-                Action::make('Edit')
+                Action::make('edit-variant')
+                    ->label('Edit')
                     ->icon(Heroicon::PencilSquare)
                     ->schema(fn(Schema $schema) => VariantForm::configure($schema))
                     ->fillForm(fn(Variant $record) => $record->toArray())
                     ->modalHeading('Edit Variant')
-                    ->modalSubmitAction(false)
-                    ->slideOver()
+                    ->action(function (array $data, Variant $record): void {
+                        $record->update($data);
+
+                        Notification::make()
+                            ->title('Variant updated successfully')
+                            ->success()
+                            ->send();
+                    })
+                    ->slideOver(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
