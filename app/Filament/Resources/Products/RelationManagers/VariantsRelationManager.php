@@ -95,13 +95,12 @@ class VariantsRelationManager extends RelationManager
         $product = $this->getOwnerRecord();
         return $schema
             ->components([
-
                 Banner::make('ddd')
                     ->columnSpan(12)
                     ->label('test')
                     ->setHeader('Ваш продукт не имеет категорий. Создание вариантов продукта невозможно')
-                    ->setType('warning'),
-
+                    ->setType('warning')
+                    ->hidden(fn() => !!$product->category),
 
                 Repeater::make('values')
                     ->label('Variant Options')
