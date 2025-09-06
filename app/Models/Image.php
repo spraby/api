@@ -81,5 +81,14 @@ class Image extends Model
             $brand = $user->brands->first();
             if ($brand) $image->brands()->syncWithoutDetaching($brand->id);
         });
+
+        /**
+         *
+         */
+        static::deleting(function (Image $image) {
+            if ($image->src) {
+                Storage::disk('s3')->delete($image->src);
+            }
+        });
     }
 }

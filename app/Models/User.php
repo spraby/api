@@ -124,6 +124,22 @@ class User extends Authenticatable
     ];
 
     /**
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(self::ROLES['ADMIN']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isManager(): bool
+    {
+        return $this->hasRole(self::ROLES['MANAGER']);
+    }
+
+    /**
      * @return HasMany
      */
     public function brands(): HasMany

@@ -39,6 +39,19 @@ class ImageResource extends Resource
         return ImagesTable::configure($table);
     }
 
+    /**
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        /**
+         * @var User $user
+         */
+        $user = auth()->user();
+        if ($user && $user->isAdmin()) return true;
+        if ($user && $user->isManager() && $user->getBrand()) return true;
+        return false;
+    }
 
     public static function getEloquentQuery(): Builder
     {
