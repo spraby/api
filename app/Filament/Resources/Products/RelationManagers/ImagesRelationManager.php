@@ -3,15 +3,11 @@
 namespace App\Filament\Resources\Products\RelationManagers;
 
 use App\Filament\Resources\Images\Schemas\ImageBulkCreateForm;
-use App\Filament\Resources\Images\Schemas\ImageForm;
 use App\Filament\Resources\ProductImages\ProductImageResource;
-use App\Filament\Resources\Variants\Schemas\VariantForm;
 use App\Models\Image;
 use App\Models\Product;
 use App\Models\Variant;
 use Filament\Actions\Action;
-use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -21,6 +17,8 @@ use Filament\Tables\Table;
 class ImagesRelationManager extends RelationManager
 {
     protected static string $relationship = 'images';
+
+    protected static ?string $title = 'Images';
 
     protected static ?string $relatedResource = ProductImageResource::class;
 
@@ -36,15 +34,15 @@ class ImagesRelationManager extends RelationManager
             ->headerActions([])
             ->headerActions([
                 Action::make('add')
-                    ->label('Add image')
-                    ->icon('heroicon-o-plus')
+                    ->label('Add from media')
+                    ->icon(Heroicon::Plus)
                     ->modalContent(view('livewire.image-picker.data', ['product' => $product, 'variant' => new Variant()]))
                     ->modalHeading('Add images')
                     ->modalSubmitAction(false),
 
                 Action::make('create')
-                    ->label('Upload images')
-                    ->icon(Heroicon::PencilSquare)
+                    ->label('Upload new')
+                    ->icon(Heroicon::ArrowUpTray)
                     ->schema(fn(Schema $schema) => ImageBulkCreateForm::configure($schema))
                     ->modalHeading('Upload images')
                     ->action(function (array $data) use ($product): void {

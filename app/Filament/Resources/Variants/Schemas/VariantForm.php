@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Variants\Schemas;
 
 use App\Filament\Actions\Utilities;
-use App\Filament\Resources\Images\Schemas\ImageBulkCreateForm;
+use App\Filament\Resources\Images\Schemas\ImageSingleCreateForm;
 use App\Models\Image;
 use App\Models\Option;
 use App\Models\OptionValue;
@@ -52,46 +52,40 @@ class VariantForm
                                     ->extraAttributes(['class' => 'flex justify-start gap-1'])
                                     ->schema([
                                         Action::make('select_image')
-                                            ->icon(Heroicon::Photo)
+                                            ->icon(Heroicon::OutlinedPhoto)
                                             ->hiddenLabel()
                                             ->link()
                                             ->modalContent(fn(Variant $v) => view('livewire.image-picker.data', ['product' => $v->product, 'variant' => $v]))
                                             ->modalHeading('Add images')
                                             ->modalSubmitAction(false),
                                         Action::make('upload_image')
-                                            ->icon(Heroicon::ArrowUpTray)
+                                            ->icon(Heroicon::OutlinedArrowUpTray)
                                             ->hiddenLabel()
-                                            ->schema(fn(Schema $schema) => ImageBulkCreateForm::configure($schema))
+                                            ->link()
+                                            ->schema(fn(Schema $schema) => ImageSingleCreateForm::configure($schema))
                                             ->modalHeading('Upload images')
-                                            ->action(function (array $data, Variant $variant): void {
+                                            ->action(function (array $data, Variant|null $variant): void {
+                                                if (!isset($data['src']) && !$variant) return;
+
                                                 $position = $variant->product->images()->count();
 
-                                                foreach ($data['src'] as $src) {
-                                                    $name = $data['attachment_file_names'][$src];
-                                                    /**
-                                                     * @var Image $image
-                                                     */
-                                                    $image = Image::query()->create([
-                                                        'src' => $src,
-                                                        'name' => $name,
-                                                    ]);
-
-                                                    /**
-                                                     * @var ProductImage $productImage
-                                                     */
-                                                    $productImage = $variant->product->images()->create(['image_id' => $image->id, 'position' => $position++]);
-
-                                                    if ($productImage) {
-                                                        $variant->image_id = $productImage->id;
-                                                        $variant->save();
+                                                if (is_array($data['src'])) {
+                                                    foreach ($data['src'] as $src) {
+                                                        $position++;
+                                                        $name = $data['attachment_file_names'][$src];
+                                                        self::saveImage($src, $name, $variant, $position);
                                                     }
                                                 }
+
+                                                if (is_string($data['src'])) {
+                                                    self::saveImage($data['src'], $data['attachment_file_names'], $variant, $position + 1);
+                                                }
+
+                                                $variant->refresh();
                                             })
                                             ->slideOver()
                                             ->stickyModalHeader()
                                     ])
-
-
                             ]),
 
                         Grid::make()
@@ -155,7 +149,7 @@ class VariantForm
                                         if (!$v->variant?->product?->category) return collect();
                                         $option = $v->variant->product->category->options->firstWhere('id', $value);
                                         return $state !== $value && (!$option->values->count() || !!collect($get('../../values'))
-                                                ->first(fn($v) => isset($v['option_id']) && $value === (string)$v['option_id']));
+                                                    ->first(fn($v) => isset($v['option_id']) && $value === (string)$v['option_id']));
                                     })
                                     ->required()
                                     ->live()
@@ -226,5 +220,31 @@ class VariantForm
                             })
                     ]),
             ]);
+    }
+
+    /**
+     * @param string $src
+     * @param string $name
+     * @param Variant $variant
+     * @param int $position
+     * @return void
+     */
+    private static function saveImage(string $src, string $name, Variant $variant, int $position): void
+    {
+        /**
+         * @var ProductImage $productImage
+         * @var Image $image
+         */
+        $image = Image::query()->create([
+            'src' => $src,
+            'name' => $name,
+        ]);
+
+        $productImage = $variant->product->images()->create(['image_id' => $image->id, 'position' => $position]);
+
+        if ($productImage) {
+            $variant->image_id = $productImage->id;
+            $variant->save();
+        }
     }
 }

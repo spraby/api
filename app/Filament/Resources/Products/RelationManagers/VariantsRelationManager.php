@@ -13,7 +13,6 @@ use App\Models\Variant;
 use App\Models\VariantValue;
 use Exception;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -40,11 +39,11 @@ class VariantsRelationManager extends RelationManager
         return $table
             ->headerActions([
                 Action::make('add-variant')
-                    ->label('Add variant')
+                    ->label('Add new')
+                    ->icon(Heroicon::Plus)
                     ->schema(fn(Schema $schema) => $this->createForm($schema))
                     ->modalHeading('Add Variant')
                     ->action(function (array $data) use ($product): void {
-
                         $values = collect($data['values']);
                         $optionValueIds = $values->pluck('option_value_id')->filter()->all();
                         $optionValues = OptionValue::query()->whereIn('id', $optionValueIds)->get();;
@@ -95,10 +94,10 @@ class VariantsRelationManager extends RelationManager
         $product = $this->getOwnerRecord();
         return $schema
             ->components([
-                Banner::make('ddd')
+                Banner::make('banner')
                     ->columnSpan(12)
                     ->label('test')
-                    ->setHeader('Ваш продукт не имеет категорий. Создание вариантов продукта невозможно')
+                    ->setHeader('Your product doesn’t have any categories yet, so creating variations isn’t possible right now.')
                     ->setType('warning')
                     ->hidden(fn() => !!$product->category),
 

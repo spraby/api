@@ -10,6 +10,8 @@ class CreateImage extends CreateRecord
 {
     protected static string $resource = ImageResource::class;
 
+    protected ?string $heading = 'Upload images';
+
     /**
      * @return string
      */
@@ -19,23 +21,36 @@ class CreateImage extends CreateRecord
     }
 
     /**
-     * @param array $data
+     * @param array|string $data
      * @return Model
      */
-    protected function handleRecordCreation(array $data): Model
+    protected function handleRecordCreation(array|string $data): Model
     {
         $lastImage = null;
 
-        foreach ($data['src'] as $path) {
-            $imageData = [
-                'src' => $path,
-                'name' => $data['attachment_file_names'][$path] ?? basename($path),
-                'alt' => '',
-                'meta' => '',
-            ];
-            $lastImage = static::getModel()::create($imageData);
+        if (is_array($data)) {
+            foreach ($data['src'] as $path) {
+                $imageData = [
+                    'src' => $path,
+                    'name' => $data['attachment_file_names'][$path] ?? basename($path),
+                    'alt' => '',
+                    'meta' => '',
+                ];
+                $lastImage = static::getModel()::create($imageData);
+            }
         }
 
         return $lastImage ?? new (static::getModel());
+    }
+
+    /**
+     * @return array
+     */
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()->label('Save images'),
+            $this->getCancelFormAction()->label('Cancel'),
+        ];
     }
 }
