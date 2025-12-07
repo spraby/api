@@ -7,11 +7,18 @@
     },
     "devDependencies": {
         "@fancyapps/ui": "^5.0.36",
+        "@inertiajs/vue3": "^2.0.0",
+        "@tailwindcss/forms": "^0.5.3",
+        "@tailwindcss/postcss": "^4.1.17",
         "@tailwindcss/vite": "^4.0.0",
+        "@vitejs/plugin-vue": "^5.0.0",
+        "autoprefixer": "^10.4.12",
         "axios": "^1.8.2",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.2.0",
+        "postcss": "^8.4.31",
         "tailwindcss": "^4.0.0",
-        "vite": "^6.0.11"
+        "vite": "^6.0.11",
+        "vue": "^3.4.0"
     }
 }
