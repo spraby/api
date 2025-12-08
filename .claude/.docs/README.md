@@ -77,6 +77,40 @@ composer dev         # Запустить server, queue, logs, vite
    - Troubleshooting
    - Code style
 
+7. **[Vue Sidebar Menu](07-vue-sidebar.md)**
+   - Обзор и архитектура компонентов
+   - Конфигурация меню
+   - Доступные иконки (Heroicons)
+   - Интеграция с Inertia.js
+   - Анимации и transitions
+   - Responsive design
+   - Troubleshooting
+
+8. **[Vue Users List](08-vue-users-list.md)** ⭐ NEW
+   - Users List с поиском и пагинацией
+   - API endpoints для Vue компонентов
+   - Row-level security
+   - Sortable table columns
+   - Responsive design
+
+9. **[PrimeVue UI Library](09-primevue.md)**
+   - Полная документация PrimeVue для Vue 3
+   - 80+ UI компонентов
+   - Формы, таблицы, диалоги, меню
+   - Tailwind CSS интеграция
+   - Система тем и иконок
+   - Внешние ссылки:
+     - https://primevue.org/llms/llms.txt - краткая LLM документация
+     - https://primevue.org/llms/llms-full.txt - полная LLM документация
+
+10. **[PrimeVue Sidebar Integration](10-primevue-sidebar.md)** ⭐ NEW
+    - Интеграция PrimeVue в проект
+    - Sidebar на основе PrimeVue PanelMenu
+    - Конфигурация и настройка тем
+    - Маппинг иконок Heroicons → PrimeIcons
+    - Кастомизация стилей через passThrough API
+    - Примеры использования других компонентов
+
 ## Быстрые ссылки
 
 ### Часто используемые файлы
@@ -168,9 +202,10 @@ php artisan view:cache
 
 ## Версия
 
-**Дата последнего обновления**: 2025-11-23
-**Версия документации**: 2.0
+**Дата последнего обновления**: 2025-12-08
+**Версия документации**: 2.2
 **Laravel**: 12.x
 **Filament**: 4.0
 **PHP**: 8.2+
 **PostgreSQL**: 15
+**PrimeVue**: 4.x

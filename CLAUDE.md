@@ -68,6 +68,7 @@ vendor/bin/phpunit --filter TestName  # Run specific test
 - **PostgreSQL**: 15 (port 5435)
 - **Spatie Laravel Permission**: Role-based access control
 - **AWS S3**: Image storage via league/flysystem-aws-s3-v3
+- **PrimeVue**: UI component library for Vue.js components (используем по максимуму для всех UI элементов)
 
 ### Docker Setup
 
@@ -286,6 +287,43 @@ Configuration in `phpunit.xml`. Tests use array cache and database queue by defa
   - [ ] Подпункт 3.1
 ```
 
+## Frontend Development Guidelines
+
+### PrimeVue Usage
+
+**КРИТИЧЕСКОЕ ПРАВИЛО**: При разработке Vue.js компонентов ВСЕГДА использовать компоненты PrimeVue по максимуму.
+
+- ✅ **Используем PrimeVue для всех UI элементов**: кнопки, формы, меню, таблицы, диалоги, и т.д.
+- ✅ **PrimeVue Theme**: Используется тема Aura
+- ✅ **PrimeIcons**: Используются иконки из пакета `primeicons`
+- ❌ **Избегаем кастомных компонентов**: Не создавать кастомные UI компоненты, если есть готовый PrimeVue аналог
+
+**Установленные пакеты**:
+- `primevue` - основная библиотека компонентов
+- `primeicons` - набор иконок
+- `@primevue/themes` - система тем
+
+**Примеры компонентов PrimeVue**:
+- Навигация: `Menu`, `PanelMenu`, `TieredMenu`, `Menubar`, `MegaMenu`
+- Формы: `InputText`, `InputNumber`, `Dropdown`, `Calendar`, `Checkbox`, `RadioButton`
+- Кнопки: `Button`, `SplitButton`, `ToggleButton`
+- Данные: `DataTable`, `Tree`, `TreeTable`, `Paginator`
+- Диалоги: `Dialog`, `ConfirmDialog`, `Toast`
+- Панели: `Panel`, `Accordion`, `TabView`, `Card`
+
+**Конфигурация** (в `resources/js/app.js`):
+```javascript
+import PrimeVue from 'primevue/config';
+import Aura from '@primevue/themes/aura';
+import 'primeicons/primeicons.css';
+
+app.use(PrimeVue, {
+    theme: {
+        preset: Aura
+    }
+});
+```
+
 ## Important Notes
 
 - **No Soft Deletes**: All deletions are hard deletes
@@ -293,3 +331,4 @@ Configuration in `phpunit.xml`. Tests use array cache and database queue by defa
 - **Localization**: Supports English (en) and Russian (ru)
 - **Queue System**: Uses database driver for background jobs
 - **Observer Pattern**: Used for lifecycle hooks (e.g., S3 cleanup on image deletion)
+- **PrimeVue First**: Always prefer PrimeVue components over custom solutions

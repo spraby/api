@@ -20,5 +20,11 @@
         "tailwindcss": "^4.0.0",
         "vite": "^6.0.11",
         "vue": "^3.4.0"
+    },
+    "dependencies": {
+        "@heroicons/vue": "^2.2.0",
+        "@primevue/themes": "^4.5.2",
+        "primeicons": "^7.0.0",
+        "primevue": "^4.5.2"
     }
 }
