@@ -30,11 +30,64 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware(['inertia'])->group(fun
         ]);
     });
 
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
+    Route::middleware(['auth', 'verified'])->group(function () {
+        // Dashboard
+        Route::get('/dashboard', function () {
+            return Inertia::render('Admin/Dashboard');
+        })->name('dashboard');
 
-    Route::middleware('auth')->group(function () {
+        // Products
+        Route::prefix('products')->name('products.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Products/Index');
+            })->name('index');
+            Route::get('/create', function () {
+                return Inertia::render('Admin/Products/Create');
+            })->name('create');
+        });
+
+        // Categories
+        Route::get('/categories', function () {
+            return Inertia::render('Admin/Categories/Index');
+        })->name('categories.index');
+
+        // Collections
+        Route::get('/collections', function () {
+            return Inertia::render('Admin/Collections/Index');
+        })->name('collections.index');
+
+        // Orders
+        Route::prefix('orders')->name('orders.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Orders/Index');
+            })->name('index');
+            Route::get('/pending', function () {
+                return Inertia::render('Admin/Orders/Pending');
+            })->name('pending');
+            Route::get('/completed', function () {
+                return Inertia::render('Admin/Orders/Completed');
+            })->name('completed');
+        });
+
+        // Customers
+        Route::get('/customers', function () {
+            return Inertia::render('Admin/Customers/Index');
+        })->name('customers.index');
+
+        // Settings
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/general', function () {
+                return Inertia::render('Admin/Settings/General');
+            })->name('general');
+            Route::get('/brands', function () {
+                return Inertia::render('Admin/Settings/Brands');
+            })->name('brands');
+            Route::get('/users', function () {
+                return Inertia::render('Admin/Settings/Users');
+            })->name('users');
+        });
+
+        // Profile
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
