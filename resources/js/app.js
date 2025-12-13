@@ -9,6 +9,7 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 // PrimeVue
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
+import Tooltip from 'primevue/tooltip';
 import 'primeicons/primeicons.css';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -21,8 +22,9 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
-            .use(plugin)
+        const app = createApp({ render: () => h(App, props) });
+
+        app.use(plugin)
             .use(ZiggyVue)
             .use(PrimeVue, {
                 theme: {
@@ -31,8 +33,12 @@ createInertiaApp({
                         darkModeSelector: false,
                     }
                 }
-            })
-            .mount(el);
+            });
+
+        // Директивы PrimeVue
+        app.directive('tooltip', Tooltip);
+
+        return app.mount(el);
     },
     progress: {
         color: '#4B5563',
