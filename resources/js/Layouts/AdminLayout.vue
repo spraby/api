@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useBreakpoints, breakpointsTailwind } from '@vueuse/core';
 import Button from 'primevue/button';
 import Avatar from 'primevue/avatar';
 import Menu from 'primevue/menu';
@@ -8,8 +9,6 @@ import Sidebar from 'primevue/sidebar';
 import AdminSidebar from '@/Components/Admin/AdminSidebar.vue';
 
 const STORAGE_KEY = 'admin_sidebar_collapsed';
-const MOBILE_BREAKPOINT = 768;
-const TABLET_BREAKPOINT = 1024;
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -19,11 +18,10 @@ const sidebarCollapsed = ref(false);
 const mobileSidebarVisible = ref(false);
 const userMenuRef = ref();
 
-// Определение устройства
-const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200);
-const isMobile = computed(() => windowWidth.value < MOBILE_BREAKPOINT);
-const isTablet = computed(() => windowWidth.value >= MOBILE_BREAKPOINT && windowWidth.value < TABLET_BREAKPOINT);
-const isDesktop = computed(() => windowWidth.value >= TABLET_BREAKPOINT);
+// Определение устройства через VueUse
+const breakpoints = useBreakpoints(breakpointsTailwind);
+const isMobile = breakpoints.smaller('md');  // < 768px
+const isTablet = breakpoints.between('md', 'lg');  // 768px - 1024px
 
 // Badge values (можно получать из props или API)
 const badgeValues = computed(() => ({
@@ -42,23 +40,14 @@ onMounted(() => {
     if (isTablet.value) {
         sidebarCollapsed.value = true;
     }
-
-    updateWindowWidth();
-    window.addEventListener('resize', updateWindowWidth);
 });
 
-onUnmounted(() => {
-    window.removeEventListener('resize', updateWindowWidth);
-});
-
-function updateWindowWidth() {
-    windowWidth.value = window.innerWidth;
-
-    // Автоматически скрываем мобильный sidebar при ресайзе на десктоп
-    if (!isMobile.value) {
+// Автоматически скрываем мобильный sidebar при переходе на десктоп (VueUse отслеживает resize)
+watch(isMobile, (mobile) => {
+    if (!mobile) {
         mobileSidebarVisible.value = false;
     }
-}
+});
 
 // Сохранение состояния при изменении
 watch(sidebarCollapsed, (value) => {

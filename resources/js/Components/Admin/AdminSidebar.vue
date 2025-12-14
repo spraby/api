@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import { sidebarMenuConfig, getMenuForRoles } from '@/config/sidebarMenu.js';
 import Badge from 'primevue/badge';
+import Popover from 'primevue/popover';
 
 const props = defineProps({
     collapsed: {
@@ -31,6 +32,12 @@ const filteredMenu = computed(() => {
 
 // Состояние раскрытых групп
 const expandedKeys = ref({});
+
+// Popup подменю для collapsed режима
+const overlayPanelRefs = ref({});
+const activePopupItem = ref(null);
+const hoverTimeout = ref(null);
+const isOverPopup = ref(false);
 
 // Получаем URL для пункта меню (полный URL для ссылок)
 function getItemUrl(item) {
@@ -143,6 +150,85 @@ function handleItemClick(item, event) {
         emit('item-click', item);
     }
 }
+
+// Popup подменю handlers
+function setOverlayPanelRef(el, itemId) {
+    if (el) {
+        overlayPanelRefs.value[itemId] = el;
+    }
+}
+
+function showPopupSubmenu(event, item) {
+    if (!props.collapsed || !item.children || item.children.length === 0) return;
+
+    clearTimeout(hoverTimeout.value);
+
+    // Закрываем предыдущий popup, если он открыт
+    if (activePopupItem.value && activePopupItem.value.id !== item.id) {
+        const prevPanel = overlayPanelRefs.value[activePopupItem.value.id];
+        if (prevPanel) {
+            prevPanel.hide();
+        }
+    }
+
+    activePopupItem.value = item;
+
+    // Получаем позицию элемента для правильного позиционирования popup
+    const target = event.currentTarget;
+    const rect = target.getBoundingClientRect();
+
+    nextTick(() => {
+        const panel = overlayPanelRefs.value[item.id];
+        if (panel) {
+            panel.show(event);
+
+            // Позиционируем popup справа от сайдбара
+            nextTick(() => {
+                const panelEl = panel.$el;
+                if (panelEl) {
+                    panelEl.style.left = '80px';
+                    panelEl.style.top = `${rect.top}px`;
+                }
+            });
+        }
+    });
+}
+
+function hidePopupSubmenu(item) {
+    if (!props.collapsed) return;
+
+    hoverTimeout.value = setTimeout(() => {
+        if (!isOverPopup.value) {
+            const panel = overlayPanelRefs.value[item.id];
+            if (panel) {
+                panel.hide();
+            }
+            activePopupItem.value = null;
+        }
+    }, 150);
+}
+
+function onPopupEnter() {
+    isOverPopup.value = true;
+    clearTimeout(hoverTimeout.value);
+}
+
+function onPopupLeave(item) {
+    isOverPopup.value = false;
+    hidePopupSubmenu(item);
+}
+
+function handlePopupItemClick(child) {
+    // Закрываем popup после клика
+    if (activePopupItem.value) {
+        const panel = overlayPanelRefs.value[activePopupItem.value.id];
+        if (panel) {
+            panel.hide();
+        }
+        activePopupItem.value = null;
+    }
+    emit('item-click', child);
+}
 </script>
 
 <template>
@@ -168,7 +254,8 @@ function handleItemClick(item, event) {
                             href="#"
                             class="menu-link"
                             @click="handleItemClick(item, $event)"
-                            v-tooltip.right="collapsed ? item.tooltip || item.label : null"
+                            @mouseenter="showPopupSubmenu($event, item)"
+                            @mouseleave="hidePopupSubmenu(item)"
                         >
                             <span class="menu-icon">
                                 <i :class="item.icon"></i>
@@ -185,7 +272,61 @@ function handleItemClick(item, event) {
                             </span>
                         </a>
 
-                        <!-- Submenu -->
+                        <!-- Popup Submenu for collapsed mode -->
+                        <Popover
+                            v-if="collapsed"
+                            :ref="(el) => setOverlayPanelRef(el, item.id)"
+                            class="popup-submenu-panel"
+                            appendTo="body"
+                            @mouseenter="onPopupEnter"
+                            @mouseleave="onPopupLeave(item)"
+                        >
+                            <div class="popup-submenu-header">
+                                <i :class="item.icon"></i>
+                                <span>{{ item.label }}</span>
+                            </div>
+                            <ul class="popup-submenu-list">
+                                <li
+                                    v-for="child in item.children"
+                                    :key="child.id"
+                                    class="popup-submenu-item"
+                                    :class="{ 'active': isActive(child) }"
+                                >
+                                    <Link
+                                        v-if="!child.target"
+                                        :href="getItemUrl(child)"
+                                        class="popup-submenu-link"
+                                        @click="handlePopupItemClick(child)"
+                                    >
+                                        <span class="menu-icon">
+                                            <i :class="child.icon"></i>
+                                        </span>
+                                        <span class="menu-label">{{ child.label }}</span>
+                                        <Badge
+                                            v-if="getBadgeValue(child)"
+                                            :value="getBadgeValue(child)"
+                                            :severity="getBadgeSeverity(child)"
+                                            class="menu-badge"
+                                        />
+                                    </Link>
+                                    <a
+                                        v-else
+                                        :href="getItemUrl(child)"
+                                        :target="child.target"
+                                        class="popup-submenu-link"
+                                        @click="handlePopupItemClick(child)"
+                                    >
+                                        <span class="menu-icon">
+                                            <i :class="child.icon"></i>
+                                        </span>
+                                        <span class="menu-label">{{ child.label }}</span>
+                                        <i v-if="child.target === '_blank'" class="pi pi-external-link external-icon"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </Popover>
+
+                        <!-- Submenu (expanded mode) -->
                         <ul v-show="isExpanded(item.id) && !collapsed" class="submenu">
                                 <li
                                     v-for="child in item.children"
@@ -473,5 +614,110 @@ function handleItemClick(item, event) {
     background: #ef4444;
     border-radius: 50%;
     border: 2px solid white;
+}
+</style>
+
+<!-- Global styles for popup (not scoped) -->
+<style>
+/* Popup Submenu Panel - позиционирование справа от collapsed сайдбара */
+.p-popover.popup-submenu-panel {
+    min-width: 200px !important;
+    max-width: 280px !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+    overflow: hidden !important;
+    /* Фиксированная позиция слева - справа от сайдбара 72px + 8px отступ */
+    left: 70px !important;
+    margin-top: -40px !important;
+    transform: none !important;
+}
+
+.p-popover.popup-submenu-panel::before,
+.p-popover.popup-submenu-panel::after {
+    display: none !important;
+}
+
+.popup-submenu-panel .p-popover-content {
+    padding: 0 !important;
+}
+
+.popup-submenu-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.popup-submenu-header i {
+    font-size: 1rem;
+}
+
+.popup-submenu-list {
+    list-style: none;
+    padding: 0.5rem;
+    margin: 0;
+}
+
+.popup-submenu-item {
+    margin-bottom: 2px;
+}
+
+.popup-submenu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.375rem;
+    color: #64748b;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    font-size: 0.8125rem;
+}
+
+.popup-submenu-link:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: #4f46e5;
+}
+
+.popup-submenu-item.active .popup-submenu-link {
+    background: rgba(99, 102, 241, 0.12);
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.popup-submenu-link .menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.popup-submenu-link .menu-label {
+    flex: 1;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.popup-submenu-link .menu-badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    min-width: 1.125rem;
+    height: 1.125rem;
+}
+
+.popup-submenu-link .external-icon {
+    font-size: 0.65rem;
+    opacity: 0.6;
+    margin-left: 0.25rem;
 }
 </style>
