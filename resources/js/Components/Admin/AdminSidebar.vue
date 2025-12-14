@@ -56,11 +56,9 @@ function getItemUrl(item) {
 function getPathFromUrl(url) {
     if (!url || url === '#') return '';
     try {
-        // Если это полный URL с протоколом - извлекаем pathname
         if (url.startsWith('http://') || url.startsWith('https://')) {
             return new URL(url).pathname;
         }
-        // Если это уже путь - возвращаем как есть
         return url;
     } catch (e) {
         return url;
@@ -74,11 +72,9 @@ function checkIsActive(item, path) {
 
     if (!url) return false;
 
-    // Нормализуем пути (убираем trailing slash)
     const normalizedPath = path.replace(/\/$/, '');
     const normalizedUrl = url.replace(/\/$/, '');
 
-    // Только точное совпадение URL
     return normalizedPath === normalizedUrl;
 }
 
@@ -99,7 +95,7 @@ function initExpandedState() {
 
 // Обновляем путь и состояние меню
 function updateCurrentPath(newPath) {
-    currentPath.value = newPath.split('?')[0]; // Убираем query params
+    currentPath.value = newPath.split('?')[0];
     nextTick(() => {
         initExpandedState();
     });
@@ -107,10 +103,8 @@ function updateCurrentPath(newPath) {
 
 // Слушаем события навигации Inertia
 onMounted(() => {
-    // Инициализация при первой загрузке
     updateCurrentPath(window.location.pathname);
 
-    // Подписка на события навигации Inertia
     router.on('navigate', (event) => {
         updateCurrentPath(event.detail.page.url);
     });
@@ -163,7 +157,6 @@ function showPopupSubmenu(event, item) {
 
     clearTimeout(hoverTimeout.value);
 
-    // Закрываем предыдущий popup, если он открыт
     if (activePopupItem.value && activePopupItem.value.id !== item.id) {
         const prevPanel = overlayPanelRefs.value[activePopupItem.value.id];
         if (prevPanel) {
@@ -173,7 +166,6 @@ function showPopupSubmenu(event, item) {
 
     activePopupItem.value = item;
 
-    // Получаем позицию элемента для правильного позиционирования popup
     const target = event.currentTarget;
     const rect = target.getBoundingClientRect();
 
@@ -182,7 +174,6 @@ function showPopupSubmenu(event, item) {
         if (panel) {
             panel.show(event);
 
-            // Позиционируем popup справа от сайдбара
             nextTick(() => {
                 const panelEl = panel.$el;
                 if (panelEl) {
@@ -219,7 +210,6 @@ function onPopupLeave(item) {
 }
 
 function handlePopupItemClick(child) {
-    // Закрываем popup после клика
     if (activePopupItem.value) {
         const panel = overlayPanelRefs.value[activePopupItem.value.id];
         if (panel) {
@@ -229,47 +219,70 @@ function handlePopupItemClick(child) {
     }
     emit('item-click', child);
 }
+
+// Computed classes
+const menuLinkClasses = computed(() => (item) => {
+    const base = 'flex items-center gap-3 py-3 px-4 rounded-lg text-slate-500 no-underline transition-all duration-200 cursor-pointer relative';
+    const hover = 'hover:bg-indigo-500/10 hover:text-indigo-600';
+
+    if (isActive(item)) {
+        return `${base} bg-linear-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/35`;
+    }
+    if (isGroupActive(item)) {
+        return `${base} ${hover} text-indigo-600 bg-indigo-500/10`;
+    }
+    return `${base} ${hover}`;
+});
+
+const submenuLinkClasses = computed(() => (child) => {
+    const base = 'flex items-center gap-3 py-2.5 pl-10 pr-4 rounded-md text-slate-500 no-underline transition-all duration-200 text-[13px]';
+    const hover = 'hover:bg-indigo-500/10 hover:text-indigo-600';
+
+    if (isActive(child)) {
+        return `${base} bg-indigo-500/15 text-indigo-600 font-semibold`;
+    }
+    return `${base} ${hover}`;
+});
 </script>
 
 <template>
-    <nav class="admin-sidebar" :class="{ 'collapsed': collapsed }">
-        <ul class="sidebar-menu">
+    <nav class="h-full overflow-y-auto overflow-x-hidden p-2 scrollbar-thin scrollbar-thumb-black/10 scrollbar-track-transparent">
+        <ul class="list-none p-0 m-0">
             <template v-for="item in filteredMenu" :key="item.id">
                 <!-- Divider -->
-                <li v-if="item.dividerBefore" class="menu-divider"></li>
+                <li v-if="item.dividerBefore" class="h-px bg-linear-to-r from-transparent via-black/10 to-transparent my-3 mx-2"></li>
 
                 <!-- Menu Item -->
-                <li
-                    class="menu-item"
-                    :class="{
-                        'active': isActive(item),
-                        'has-children': item.children && item.children.length > 0,
-                        'expanded': isExpanded(item.id),
-                        'group-active': isGroupActive(item)
-                    }"
-                >
+                <li class="mb-0.5">
                     <!-- Item with children (expandable) -->
                     <template v-if="item.children && item.children.length > 0">
                         <a
                             href="#"
-                            class="menu-link"
+                            :class="[
+                                menuLinkClasses(item),
+                                collapsed && 'justify-center p-3.5!'
+                            ]"
                             @click="handleItemClick(item, $event)"
                             @mouseenter="showPopupSubmenu($event, item)"
                             @mouseleave="hidePopupSubmenu(item)"
                         >
-                            <span class="menu-icon">
+                            <span :class="['flex items-center justify-center shrink-0', collapsed ? 'w-7 h-7 text-xl' : 'w-6 h-6 text-lg']">
                                 <i :class="item.icon"></i>
                             </span>
-                            <span class="menu-label" v-show="!collapsed">{{ item.label }}</span>
+                            <span v-show="!collapsed" class="flex-1 text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                {{ item.label }}
+                            </span>
                             <Badge
                                 v-if="getBadgeValue(item) && !collapsed"
                                 :value="getBadgeValue(item)"
                                 :severity="getBadgeSeverity(item)"
-                                class="menu-badge"
+                                class="ml-auto text-[11px] min-w-5 h-5"
                             />
-                            <span class="menu-arrow" v-show="!collapsed">
+                            <span v-show="!collapsed" class="flex items-center text-xs transition-transform duration-200">
                                 <i class="pi" :class="isExpanded(item.id) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
                             </span>
+                            <!-- Collapsed indicator dot -->
+                            <span v-if="collapsed" class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-current rounded-full opacity-50"></span>
                         </a>
 
                         <!-- Popup Submenu for collapsed mode -->
@@ -281,90 +294,82 @@ function handlePopupItemClick(child) {
                             @mouseenter="onPopupEnter"
                             @mouseleave="onPopupLeave(item)"
                         >
-                            <div class="popup-submenu-header">
-                                <i :class="item.icon"></i>
+                            <div class="flex items-center gap-2 px-4 py-3 bg-linear-to-br from-indigo-500 to-indigo-600 text-white font-semibold text-sm">
+                                <i :class="item.icon" class="text-base"></i>
                                 <span>{{ item.label }}</span>
                             </div>
-                            <ul class="popup-submenu-list">
-                                <li
-                                    v-for="child in item.children"
-                                    :key="child.id"
-                                    class="popup-submenu-item"
-                                    :class="{ 'active': isActive(child) }"
-                                >
+                            <ul class="list-none p-2 m-0">
+                                <li v-for="child in item.children" :key="child.id" class="mb-0.5">
                                     <Link
                                         v-if="!child.target"
                                         :href="getItemUrl(child)"
-                                        class="popup-submenu-link"
+                                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-500 no-underline transition-all duration-150 text-sm hover:bg-indigo-500/10 hover:text-indigo-600"
+                                        :class="{ 'bg-indigo-500/15 text-indigo-600 font-semibold': isActive(child) }"
                                         @click="handlePopupItemClick(child)"
                                     >
-                                        <span class="menu-icon">
+                                        <span class="flex items-center justify-center w-5 h-5 text-sm shrink-0">
                                             <i :class="child.icon"></i>
                                         </span>
-                                        <span class="menu-label">{{ child.label }}</span>
+                                        <span class="flex-1 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{{ child.label }}</span>
                                         <Badge
                                             v-if="getBadgeValue(child)"
                                             :value="getBadgeValue(child)"
                                             :severity="getBadgeSeverity(child)"
-                                            class="menu-badge"
+                                            class="ml-auto text-xs"
                                         />
                                     </Link>
                                     <a
                                         v-else
                                         :href="getItemUrl(child)"
                                         :target="child.target"
-                                        class="popup-submenu-link"
+                                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-500 no-underline transition-all duration-150 text-sm hover:bg-indigo-500/10 hover:text-indigo-600"
+                                        :class="{ 'bg-indigo-500/15 text-indigo-600 font-semibold': isActive(child) }"
                                         @click="handlePopupItemClick(child)"
                                     >
-                                        <span class="menu-icon">
+                                        <span class="flex items-center justify-center w-5 h-5 text-sm shrink-0">
                                             <i :class="child.icon"></i>
                                         </span>
-                                        <span class="menu-label">{{ child.label }}</span>
-                                        <i v-if="child.target === '_blank'" class="pi pi-external-link external-icon"></i>
+                                        <span class="flex-1 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{{ child.label }}</span>
+                                        <i v-if="child.target === '_blank'" class="pi pi-external-link text-xs opacity-60 ml-1"></i>
                                     </a>
                                 </li>
                             </ul>
                         </Popover>
 
                         <!-- Submenu (expanded mode) -->
-                        <ul v-show="isExpanded(item.id) && !collapsed" class="submenu">
-                                <li
-                                    v-for="child in item.children"
-                                    :key="child.id"
-                                    class="submenu-item"
-                                    :class="{ 'active': isActive(child) }"
+                        <ul v-show="isExpanded(item.id) && !collapsed" class="list-none py-1 m-0 overflow-hidden">
+                            <li v-for="child in item.children" :key="child.id" class="mb-px">
+                                <Link
+                                    v-if="!child.target"
+                                    :href="getItemUrl(child)"
+                                    :class="submenuLinkClasses(child)"
+                                    @click="emit('item-click', child)"
                                 >
-                                    <Link
-                                        v-if="!child.target"
-                                        :href="getItemUrl(child)"
-                                        class="submenu-link"
-                                        @click="emit('item-click', child)"
-                                    >
-                                        <span class="menu-icon">
-                                            <i :class="child.icon"></i>
-                                        </span>
-                                        <span class="menu-label">{{ child.label }}</span>
-                                        <Badge
-                                            v-if="getBadgeValue(child)"
-                                            :value="getBadgeValue(child)"
-                                            :severity="getBadgeSeverity(child)"
-                                            class="menu-badge"
-                                        />
-                                    </Link>
-                                    <a
-                                        v-else
-                                        :href="getItemUrl(child)"
-                                        :target="child.target"
-                                        class="submenu-link"
-                                    >
-                                        <span class="menu-icon">
-                                            <i :class="child.icon"></i>
-                                        </span>
-                                        <span class="menu-label">{{ child.label }}</span>
-                                        <i v-if="child.target === '_blank'" class="pi pi-external-link external-icon"></i>
-                                    </a>
-                                </li>
-                            </ul>
+                                    <span class="flex items-center justify-center w-5 h-5 text-sm shrink-0">
+                                        <i :class="child.icon"></i>
+                                    </span>
+                                    <span class="flex-1 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{{ child.label }}</span>
+                                    <Badge
+                                        v-if="getBadgeValue(child)"
+                                        :value="getBadgeValue(child)"
+                                        :severity="getBadgeSeverity(child)"
+                                        class="ml-auto text-[11px] min-w-5 h-5"
+                                    />
+                                </Link>
+                                <a
+                                    v-else
+                                    :href="getItemUrl(child)"
+                                    :target="child.target"
+                                    :class="submenuLinkClasses(child)"
+                                >
+                                    <span class="flex items-center justify-center w-5 h-5 text-sm shrink-0">
+                                        <i :class="child.icon"></i>
+                                    </span>
+                                    <span class="flex-1 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{{ child.label }}</span>
+                                    <i v-if="child.target === '_blank'" class="pi pi-external-link text-[11px] opacity-60 ml-1"></i>
+                                </a>
+                            </li>
+                        </ul>
                     </template>
 
                     <!-- Simple item (link) -->
@@ -372,262 +377,63 @@ function handlePopupItemClick(child) {
                         <Link
                             v-if="!item.target"
                             :href="getItemUrl(item)"
-                            class="menu-link"
-                            :class="{ 'active': isActive(item) }"
+                            :class="[
+                                menuLinkClasses(item),
+                                collapsed && 'justify-center p-3.5!'
+                            ]"
                             v-tooltip.right="collapsed ? item.tooltip || item.label : null"
                             @click="emit('item-click', item)"
                         >
-                            <span class="menu-icon">
+                            <span :class="['flex items-center justify-center shrink-0', collapsed ? 'w-7 h-7 text-xl' : 'w-6 h-6 text-lg']">
                                 <i :class="item.icon"></i>
                             </span>
-                            <span class="menu-label" v-show="!collapsed">{{ item.label }}</span>
+                            <span v-show="!collapsed" class="flex-1 text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                {{ item.label }}
+                            </span>
                             <Badge
                                 v-if="getBadgeValue(item) && !collapsed"
                                 :value="getBadgeValue(item)"
                                 :severity="getBadgeSeverity(item)"
-                                class="menu-badge"
+                                class="ml-auto text-[11px] min-w-5 h-5"
                             />
                         </Link>
                         <a
                             v-else
                             :href="getItemUrl(item)"
                             :target="item.target"
-                            class="menu-link"
+                            :class="[
+                                menuLinkClasses(item),
+                                collapsed && 'justify-center p-3.5!'
+                            ]"
                             v-tooltip.right="collapsed ? item.tooltip || item.label : null"
                         >
-                            <span class="menu-icon">
+                            <span :class="['flex items-center justify-center shrink-0', collapsed ? 'w-7 h-7 text-xl' : 'w-6 h-6 text-lg']">
                                 <i :class="item.icon"></i>
                             </span>
-                            <span class="menu-label" v-show="!collapsed">{{ item.label }}</span>
-                            <i v-if="item.target === '_blank' && !collapsed" class="pi pi-external-link external-icon"></i>
+                            <span v-show="!collapsed" class="flex-1 text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                {{ item.label }}
+                            </span>
+                            <i v-if="item.target === '_blank' && !collapsed" class="pi pi-external-link text-[11px] opacity-60 ml-1"></i>
                         </a>
                     </template>
                 </li>
 
                 <!-- Divider After -->
-                <li v-if="item.dividerAfter" class="menu-divider"></li>
+                <li v-if="item.dividerAfter" class="h-px bg-linear-to-r from-transparent via-black/10 to-transparent my-3 mx-2"></li>
             </template>
         </ul>
     </nav>
 </template>
 
-<style scoped>
-.admin-sidebar {
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0.5rem;
-}
-
-.admin-sidebar::-webkit-scrollbar {
-    width: 4px;
-}
-
-.admin-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.admin-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-}
-
-.admin-sidebar::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-.sidebar-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-/* Menu Divider */
-.menu-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent);
-    margin: 0.75rem 0.5rem;
-}
-
-/* Menu Item */
-.menu-item {
-    margin-bottom: 2px;
-}
-
-/* Menu Link */
-.menu-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    color: #64748b;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    position: relative;
-}
-
-.menu-link:hover {
-    background: rgba(99, 102, 241, 0.08);
-    color: #4f46e5;
-}
-
-.menu-link.active,
-.menu-item.active > .menu-link {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
-}
-
-.menu-item.group-active > .menu-link {
-    color: #4f46e5;
-    background: rgba(99, 102, 241, 0.08);
-}
-
-/* Menu Icon */
-.menu-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    font-size: 1.125rem;
-    flex-shrink: 0;
-}
-
-/* Menu Label */
-.menu-label {
-    flex: 1;
-    font-size: 0.875rem;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Menu Arrow */
-.menu-arrow {
-    display: flex;
-    align-items: center;
-    font-size: 0.75rem;
-    transition: transform 0.2s ease;
-}
-
-.menu-item.expanded .menu-arrow i {
-    transform: rotate(0deg);
-}
-
-/* Menu Badge */
-.menu-badge {
-    margin-left: auto;
-    font-size: 0.7rem;
-    min-width: 1.25rem;
-    height: 1.25rem;
-}
-
-/* External Link Icon */
-.external-icon {
-    font-size: 0.7rem;
-    opacity: 0.6;
-    margin-left: 0.25rem;
-}
-
-/* Submenu */
-.submenu {
-    list-style: none;
-    padding: 0.25rem 0 0.25rem 0;
-    margin: 0;
-    overflow: hidden;
-}
-
-.submenu-item {
-    margin-bottom: 1px;
-}
-
-.submenu-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 1rem 0.625rem 2.5rem;
-    border-radius: 0.375rem;
-    color: #64748b;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    font-size: 0.8125rem;
-}
-
-.submenu-link:hover {
-    background: rgba(99, 102, 241, 0.08);
-    color: #4f46e5;
-}
-
-.submenu-item.active .submenu-link {
-    background: rgba(99, 102, 241, 0.12);
-    color: #4f46e5;
-    font-weight: 600;
-}
-
-.submenu-item.active .submenu-link .menu-icon {
-    color: #4f46e5;
-}
-
-.submenu-link .menu-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    font-size: 0.875rem;
-}
-
-/* Collapsed State */
-.admin-sidebar.collapsed .menu-link {
-    justify-content: center;
-    padding: 0.875rem;
-}
-
-.admin-sidebar.collapsed .menu-icon {
-    width: 1.75rem;
-    height: 1.75rem;
-    font-size: 1.25rem;
-}
-
-.admin-sidebar.collapsed .menu-item.has-children > .menu-link::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    background: currentColor;
-    border-radius: 50%;
-    opacity: 0.5;
-}
-
-/* Collapsed badge indicator */
-.admin-sidebar.collapsed .menu-item:has(.menu-badge) > .menu-link::before {
-    content: '';
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 8px;
-    height: 8px;
-    background: #ef4444;
-    border-radius: 50%;
-    border: 2px solid white;
-}
-</style>
-
-<!-- Global styles for popup (not scoped) -->
+<!-- Global styles for Popover positioning (cannot use Tailwind here - renders to body) -->
 <style>
-/* Popup Submenu Panel - позиционирование справа от collapsed сайдбара */
 .p-popover.popup-submenu-panel {
     min-width: 200px !important;
     max-width: 280px !important;
     border-radius: 0.75rem !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     border: 1px solid #e2e8f0 !important;
     overflow: hidden !important;
-    /* Фиксированная позиция слева - справа от сайдбара 72px + 8px отступ */
     left: 70px !important;
     margin-top: -40px !important;
     transform: none !important;
@@ -640,84 +446,5 @@ function handlePopupItemClick(child) {
 
 .popup-submenu-panel .p-popover-content {
     padding: 0 !important;
-}
-
-.popup-submenu-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    color: white;
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.popup-submenu-header i {
-    font-size: 1rem;
-}
-
-.popup-submenu-list {
-    list-style: none;
-    padding: 0.5rem;
-    margin: 0;
-}
-
-.popup-submenu-item {
-    margin-bottom: 2px;
-}
-
-.popup-submenu-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 0.75rem;
-    border-radius: 0.375rem;
-    color: #64748b;
-    text-decoration: none;
-    transition: all 0.15s ease;
-    font-size: 0.8125rem;
-}
-
-.popup-submenu-link:hover {
-    background: rgba(99, 102, 241, 0.08);
-    color: #4f46e5;
-}
-
-.popup-submenu-item.active .popup-submenu-link {
-    background: rgba(99, 102, 241, 0.12);
-    color: #4f46e5;
-    font-weight: 600;
-}
-
-.popup-submenu-link .menu-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    font-size: 0.875rem;
-    flex-shrink: 0;
-}
-
-.popup-submenu-link .menu-label {
-    flex: 1;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.popup-submenu-link .menu-badge {
-    margin-left: auto;
-    font-size: 0.65rem;
-    min-width: 1.125rem;
-    height: 1.125rem;
-}
-
-.popup-submenu-link .external-icon {
-    font-size: 0.65rem;
-    opacity: 0.6;
-    margin-left: 0.25rem;
 }
 </style>

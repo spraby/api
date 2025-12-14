@@ -293,10 +293,20 @@ Configuration in `phpunit.xml`. Tests use array cache and database queue by defa
 
 **КРИТИЧЕСКОЕ ПРАВИЛО**: При разработке Vue.js компонентов ВСЕГДА использовать компоненты PrimeVue по максимуму.
 
+**⚠️ ОБЯЗАТЕЛЬНО**: Перед использованием любого компонента PrimeVue:
+1. Проверить актуальную документацию: https://primevue.org/
+2. Учитывать версию PrimeVue (в проекте используется **PrimeVue 4.x**)
+3. В PrimeVue 4 многие компоненты были переименованы или заменены:
+   - `OverlayPanel` → `Popover`
+   - `Dropdown` → `Select`
+   - `InputSwitch` → `ToggleSwitch`
+   - И другие изменения - всегда сверяться с документацией!
+
 - ✅ **Используем PrimeVue для всех UI элементов**: кнопки, формы, меню, таблицы, диалоги, и т.д.
 - ✅ **PrimeVue Theme**: Используется тема Aura
 - ✅ **PrimeIcons**: Используются иконки из пакета `primeicons`
 - ❌ **Избегаем кастомных компонентов**: Не создавать кастомные UI компоненты, если есть готовый PrimeVue аналог
+- ❌ **Не использовать устаревшие компоненты**: Всегда проверять документацию на актуальность
 
 **Установленные пакеты**:
 - `primevue` - основная библиотека компонентов
@@ -321,6 +331,40 @@ app.use(PrimeVue, {
     theme: {
         preset: Aura
     }
+});
+```
+
+### Tailwind CSS 4
+
+**КРИТИЧЕСКОЕ ПРАВИЛО**: В проекте используется **Tailwind CSS 4.x** - ВСЕГДА использовать Tailwind для стилизации.
+
+**⚠️ ОБЯЗАТЕЛЬНО**: Перед написанием стилей:
+1. Проверить актуальную документацию: https://tailwindcss.com/docs
+2. Учитывать изменения в Tailwind 4 по сравнению с v3:
+
+**Ключевые изменения синтаксиса v3 → v4**:
+- Градиенты: `bg-gradient-to-r` → `bg-linear-to-r`
+- !important: `!p-4` → `p-4!` (суффикс вместо префикса)
+- CSS переменные: `bg-[--color]` → `bg-(--color)` (круглые скобки)
+- Тени: `shadow-sm` → `shadow-xs`, `shadow` → `shadow-sm`
+- Кольца: `ring` → `ring-3` (ширина изменена с 3px на 1px)
+- Outline: `outline-none` → `outline-hidden`
+- Скругления: `rounded-sm` → `rounded-xs`
+- Порядок вариантов: `first:*:pt-0` → `*:first:pt-0` (left-to-right)
+
+**Правила стилизации**:
+- ✅ **Tailwind классы в template** - всегда предпочтительнее
+- ✅ **Computed функции для динамических классов** - когда нужна логика
+- ❌ **Избегать `<style scoped>`** - использовать только если Tailwind не подходит
+- ❌ **Не использовать `@apply` в global styles** - не работает для элементов вне компонента
+
+**Пример динамических классов**:
+```javascript
+const buttonClasses = computed(() => (isActive) => {
+    const base = 'flex items-center gap-2 px-4 py-2 rounded-lg transition-all';
+    return isActive
+        ? `${base} bg-indigo-600 text-white`
+        : `${base} bg-slate-100 hover:bg-slate-200`;
 });
 ```
 
