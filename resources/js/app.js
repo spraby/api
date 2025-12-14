@@ -12,6 +12,10 @@ import Aura from '@primevue/themes/aura';
 import Tooltip from 'primevue/tooltip';
 import 'primeicons/primeicons.css';
 
+// Theme initialization (prevents flash of unstyled content)
+import { initTheme } from './composables/useTheme';
+initTheme();
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
@@ -30,7 +34,13 @@ createInertiaApp({
                 theme: {
                     preset: Aura,
                     options: {
-                        darkModeSelector: false,
+                        // Enable dark mode with .dark class selector
+                        darkModeSelector: '.dark',
+                        // Use CSS layer for proper cascade
+                        cssLayer: {
+                            name: 'primevue',
+                            order: 'tailwind-base, primevue, tailwind-utilities'
+                        }
                     }
                 }
             });
@@ -41,6 +51,6 @@ createInertiaApp({
         return app.mount(el);
     },
     progress: {
-        color: '#4B5563',
+        color: '#6366f1',
     },
 });

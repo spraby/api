@@ -7,6 +7,7 @@ import Avatar from 'primevue/avatar';
 import Menu from 'primevue/menu';
 import Sidebar from 'primevue/sidebar';
 import AdminSidebar from '@/Components/Admin/AdminSidebar.vue';
+import ThemeToggle from '@/Components/Admin/ThemeToggle.vue';
 
 const STORAGE_KEY = 'admin_sidebar_collapsed';
 
@@ -197,6 +198,8 @@ const sidebarWidth = computed(() => {
                 </div>
 
                 <div class="header-right">
+                    <ThemeToggle />
+
                     <Button
                         @click="toggleUserMenu"
                         text
@@ -237,7 +240,7 @@ const sidebarWidth = computed(() => {
 <style scoped>
 .admin-layout {
     min-height: 100vh;
-    background: #f8fafc;
+    background: var(--app-background);
 }
 
 /* Desktop Sidebar */
@@ -247,13 +250,13 @@ const sidebarWidth = computed(() => {
     top: 0;
     bottom: 0;
     width: 280px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    border-right: 1px solid #e2e8f0;
+    background: var(--app-sidebar-bg);
+    border-right: 1px solid var(--app-border);
     display: flex;
     flex-direction: column;
     z-index: 100;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--shadow-sm);
 }
 
 .desktop-sidebar.collapsed {
@@ -263,7 +266,7 @@ const sidebarWidth = computed(() => {
 /* Sidebar Header */
 .sidebar-header {
     padding: 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--app-border);
 }
 
 .brand-link {
@@ -271,13 +274,13 @@ const sidebarWidth = computed(() => {
     align-items: center;
     gap: 0.75rem;
     text-decoration: none;
-    color: #1e293b;
+    color: var(--text-primary);
 }
 
 .brand-icon {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
     border-radius: 0.75rem;
     display: flex;
     align-items: center;
@@ -285,13 +288,13 @@ const sidebarWidth = computed(() => {
     color: white;
     font-size: 1.25rem;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    box-shadow: var(--shadow-primary);
 }
 
 .brand-text {
     font-size: 1.375rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -300,18 +303,18 @@ const sidebarWidth = computed(() => {
 /* Sidebar Footer */
 .sidebar-footer {
     padding: 0.75rem;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--app-border);
     display: flex;
     justify-content: center;
 }
 
 .collapse-btn {
-    color: #64748b;
+    color: var(--text-secondary);
     transition: all 0.2s;
 }
 
 .collapse-btn:hover {
-    color: #4f46e5;
+    color: var(--primary-500);
     background: rgba(99, 102, 241, 0.1);
 }
 
@@ -328,9 +331,9 @@ const sidebarWidth = computed(() => {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--app-header-bg);
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--app-border);
     padding: 0.75rem 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -347,12 +350,12 @@ const sidebarWidth = computed(() => {
 }
 
 .toggle-btn {
-    color: #64748b;
+    color: var(--text-secondary);
     flex-shrink: 0;
 }
 
 .toggle-btn:hover {
-    color: #4f46e5;
+    color: var(--primary-500);
     background: rgba(99, 102, 241, 0.1);
 }
 
@@ -376,7 +379,7 @@ const sidebarWidth = computed(() => {
     gap: 0.5rem;
     padding: 0.5rem;
     border-radius: 0.5rem;
-    color: #1e293b;
+    color: var(--text-primary);
 }
 
 .user-menu-btn:hover {
@@ -384,7 +387,7 @@ const sidebarWidth = computed(() => {
 }
 
 .user-avatar {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
     color: white;
     font-weight: 600;
 }
@@ -400,7 +403,7 @@ const sidebarWidth = computed(() => {
 
 .user-chevron {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--text-secondary);
 }
 
 /* Page Content */
@@ -415,12 +418,12 @@ const sidebarWidth = computed(() => {
 }
 
 :deep(.mobile-sidebar-root) {
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    background: var(--app-sidebar-bg);
 }
 
 :deep(.mobile-sidebar-header) {
     padding: 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--app-border);
 }
 
 :deep(.mobile-sidebar-content) {
@@ -435,7 +438,7 @@ const sidebarWidth = computed(() => {
 .mobile-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--overlay-bg);
     z-index: 90;
 }
 

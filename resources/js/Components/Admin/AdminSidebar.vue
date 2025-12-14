@@ -222,35 +222,35 @@ function handlePopupItemClick(child) {
 
 // Computed classes
 const menuLinkClasses = computed(() => (item) => {
-    const base = 'flex items-center gap-3 py-3 px-4 rounded-lg text-slate-500 no-underline transition-all duration-200 cursor-pointer relative';
-    const hover = 'hover:bg-indigo-500/10 hover:text-indigo-600';
+    const base = 'flex items-center gap-3 py-3 px-4 rounded-lg text-surface-500 dark:text-surface-400 no-underline transition-all duration-200 cursor-pointer relative';
+    const hover = 'hover:bg-primary-500/10 hover:text-primary-600 dark:hover:text-primary-400';
 
     if (isActive(item)) {
-        return `${base} bg-linear-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/35`;
+        return `${base} bg-linear-to-br from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/35`;
     }
     if (isGroupActive(item)) {
-        return `${base} ${hover} text-indigo-600 bg-indigo-500/10`;
+        return `${base} ${hover} text-primary-600 dark:text-primary-400 bg-primary-500/10`;
     }
     return `${base} ${hover}`;
 });
 
 const submenuLinkClasses = computed(() => (child) => {
-    const base = 'flex items-center gap-3 py-2.5 pl-10 pr-4 rounded-md text-slate-500 no-underline transition-all duration-200 text-[13px]';
-    const hover = 'hover:bg-indigo-500/10 hover:text-indigo-600';
+    const base = 'flex items-center gap-3 py-2.5 pl-10 pr-4 rounded-md text-surface-500 dark:text-surface-400 no-underline transition-all duration-200 text-[13px]';
+    const hover = 'hover:bg-primary-500/10 hover:text-primary-600 dark:hover:text-primary-400';
 
     if (isActive(child)) {
-        return `${base} bg-indigo-500/15 text-indigo-600 font-semibold`;
+        return `${base} bg-primary-500/15 text-primary-600 dark:text-primary-400 font-semibold`;
     }
     return `${base} ${hover}`;
 });
 </script>
 
 <template>
-    <nav class="h-full overflow-y-auto overflow-x-hidden p-2 scrollbar-thin scrollbar-thumb-black/10 scrollbar-track-transparent">
+    <nav class="h-full overflow-y-auto overflow-x-hidden p-2 scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 scrollbar-track-transparent">
         <ul class="list-none p-0 m-0">
             <template v-for="item in filteredMenu" :key="item.id">
                 <!-- Divider -->
-                <li v-if="item.dividerBefore" class="h-px bg-linear-to-r from-transparent via-black/10 to-transparent my-3 mx-2"></li>
+                <li v-if="item.dividerBefore" class="h-px bg-linear-to-r from-transparent via-black/10 dark:via-white/10 to-transparent my-3 mx-2"></li>
 
                 <!-- Menu Item -->
                 <li class="mb-0.5">
@@ -419,7 +419,7 @@ const submenuLinkClasses = computed(() => (child) => {
                 </li>
 
                 <!-- Divider After -->
-                <li v-if="item.dividerAfter" class="h-px bg-linear-to-r from-transparent via-black/10 to-transparent my-3 mx-2"></li>
+                <li v-if="item.dividerAfter" class="h-px bg-linear-to-r from-transparent via-black/10 dark:via-white/10 to-transparent my-3 mx-2"></li>
             </template>
         </ul>
     </nav>
@@ -431,8 +431,9 @@ const submenuLinkClasses = computed(() => (child) => {
     min-width: 200px !important;
     max-width: 280px !important;
     border-radius: 0.75rem !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    border: 1px solid #e2e8f0 !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid var(--app-border) !important;
+    background: var(--app-card-bg) !important;
     overflow: hidden !important;
     left: 70px !important;
     margin-top: -40px !important;
@@ -446,5 +447,15 @@ const submenuLinkClasses = computed(() => (child) => {
 
 .popup-submenu-panel .p-popover-content {
     padding: 0 !important;
+    background: transparent !important;
+}
+
+/* Popover menu items */
+.popup-submenu-panel a {
+    color: var(--text-secondary) !important;
+}
+
+.popup-submenu-panel a:hover {
+    color: var(--primary-500) !important;
 }
 </style>
