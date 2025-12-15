@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Api\BrandController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -91,6 +92,16 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware(['inertia'])->group(fun
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+        // API Routes (JSON responses)
+        Route::prefix('api')->name('api.')->group(function () {
+            // Brands
+            Route::get('/brands', [BrandController::class, 'index'])->name('brands.index');
+            Route::get('/brands/{brand}', [BrandController::class, 'show'])->name('brands.show');
+            Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
+            Route::put('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
+            Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
+        });
     });
 
     require __DIR__.'/auth.php';
