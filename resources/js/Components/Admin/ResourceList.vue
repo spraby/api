@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, useSlots } from 'vue'
+import { ref, computed, watch, useSlots } from 'vue'
 import { useConfirm } from 'primevue/useconfirm'
 // PrimeVue Components
 import DataTable from 'primevue/datatable'
@@ -32,6 +32,7 @@ import {
     type ColumnConfig,
     type FilterConfig,
     type ActionConfig,
+    type BulkActionConfig,
     type FetchFunction,
     type ActiveFilter
 } from '@/composables/useResourceList'
@@ -44,6 +45,7 @@ export interface ResourceListProps<T = any> {
     columns: ColumnConfig[]
     filters?: FilterConfig[]
     actions?: (ActionConfig | 'view' | 'edit' | 'delete')[]
+    bulkActions?: BulkActionConfig[]
     fetchFunction: FetchFunction<T>
     title?: string
     dataKey?: string
@@ -69,6 +71,7 @@ export interface ResourceListProps<T = any> {
 const props = withDefaults(defineProps<ResourceListProps>(), {
     filters: () => [],
     actions: () => ['view', 'edit', 'delete'],
+    bulkActions: () => [],
     title: '',
     dataKey: 'id',
     defaultPerPage: 10,
@@ -100,6 +103,7 @@ const emit = defineEmits<{
     edit: [row: any]
     delete: [row: any]
     action: [action: ActionConfig, row: any]
+    'bulk-action': [action: BulkActionConfig, selectedItems: any[]]
     'update:page': [page: number]
     'update:perPage': [perPage: number]
     'update:filters': [filters: Record<string, any>]
@@ -152,6 +156,12 @@ const {
 const confirm = useConfirm()
 
 // ============================================================================
+// BULK ACTIONS STATE
+// ============================================================================
+
+const selectedItems = ref<any[]>([])
+
+// ============================================================================
 // COMPUTED
 // ============================================================================
 
@@ -182,6 +192,16 @@ const sortOrder = computed({
     set: (value) => {
         sort.order = value === 1 ? 'asc' : value === -1 ? 'desc' : null
     }
+})
+
+const hasSelectedItems = computed(() => {
+    return selectedItems.value.length > 0
+})
+
+const visibleBulkActions = computed(() => {
+    return props.bulkActions.filter(action => {
+        return action.visible ? action.visible(selectedItems.value) : true
+    })
 })
 
 // ============================================================================
@@ -266,7 +286,62 @@ function handleRowClick(event: { data: any; originalEvent: Event }): void {
 }
 
 function handleSelectionChange(value: any): void {
+    selectedItems.value = Array.isArray(value) ? value : (value ? [value] : [])
     emit('update:selection', value)
+}
+
+function clearSelection(): void {
+    selectedItems.value = []
+    emit('update:selection', props.selectionMode === 'multiple' ? [] : null)
+}
+
+function handleBulkAction(action: BulkActionConfig): void {
+    if (selectedItems.value.length === 0) return
+
+    // Check if action is disabled
+    if (action.disabled && action.disabled(selectedItems.value)) {
+        return
+    }
+
+    // If confirmation required, show confirm dialog
+    if (action.requireConfirm) {
+        const message = typeof action.confirmMessage === 'function'
+            ? action.confirmMessage(selectedItems.value)
+            : action.confirmMessage || `Вы уверены, что хотите выполнить это действие для ${selectedItems.value.length} элемента(ов)?`
+
+        confirm.require({
+            message,
+            header: action.confirmHeader || 'Подтверждение действия',
+            icon: 'pi pi-exclamation-triangle',
+            rejectLabel: 'Отмена',
+            acceptLabel: 'Выполнить',
+            rejectProps: {
+                severity: 'secondary',
+                outlined: true
+            },
+            acceptProps: {
+                severity: action.severity || 'primary'
+            },
+            accept: () => {
+                executeBulkAction(action)
+            }
+        })
+    } else {
+        executeBulkAction(action)
+    }
+}
+
+async function executeBulkAction(action: BulkActionConfig): Promise<void> {
+    // Call custom handler if provided
+    if (action.handler) {
+        await action.handler(selectedItems.value)
+    }
+
+    // Emit bulk-action event
+    emit('bulk-action', action, [...selectedItems.value])
+
+    // Clear selection after action
+    clearSelection()
 }
 
 function formatCellValue(value: any, column: ColumnConfig, row: any): string {
@@ -499,6 +574,39 @@ defineExpose({
                 />
             </div>
 
+            <!-- Bulk Actions Toolbar -->
+            <div
+                v-if="hasSelectedItems && visibleBulkActions.length > 0"
+                class="flex items-center justify-between gap-4 mb-4 p-4 bg-primary-50 dark:bg-primary-950/30 border border-primary-200 dark:border-primary-800 rounded-lg"
+            >
+                <div class="flex items-center gap-3">
+                    <i class="pi pi-check-circle text-primary-600 dark:text-primary-400 text-xl"></i>
+                    <span class="text-sm font-medium text-primary-900 dark:text-primary-100">
+                        Выбрано: <strong>{{ selectedItems.length }}</strong>
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <template v-for="action in visibleBulkActions" :key="action.type">
+                        <Button
+                            :label="action.label"
+                            :icon="action.icon"
+                            :severity="action.severity || 'primary'"
+                            :disabled="action.disabled ? action.disabled(selectedItems) : false"
+                            size="small"
+                            @click="handleBulkAction(action)"
+                        />
+                    </template>
+                    <Button
+                        label="Снять выделение"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        outlined
+                        size="small"
+                        @click="clearSelection"
+                    />
+                </div>
+            </div>
+
             <!-- Error Message -->
             <Message v-if="error" severity="error" :closable="false" class="mb-4">
                 <template #messageicon>
@@ -518,12 +626,12 @@ defineExpose({
 
             <!-- Data Table -->
             <DataTable
+                v-model:selection="selectedItems"
                 :value="data"
                 :loading="loading"
                 :data-key="dataKey"
                 :striped-rows="stripedRows"
                 :size="size"
-                :selection="selection"
                 :selection-mode="selectionMode"
                 :sort-field="sortField"
                 :sort-order="sortOrder"

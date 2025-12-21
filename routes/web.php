@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\BrandController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\CategoryController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -106,6 +108,16 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware(['inertia'])->group(fun
             Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
             Route::put('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
             Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
+
+            // Products
+            Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+            Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+            Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+            Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+            Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+            // Categories (simple list)
+            Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         });
     });
 

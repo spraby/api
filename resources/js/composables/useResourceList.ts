@@ -119,6 +119,28 @@ export interface ActionConfig {
 }
 
 /**
+ * Bulk action configuration
+ */
+export interface BulkActionConfig {
+  type: string
+  label: string
+  icon?: string
+  severity?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'danger' | 'help' | 'contrast'
+  /** Require confirmation before executing */
+  requireConfirm?: boolean
+  /** Confirmation message (can be a function that receives selected items) */
+  confirmMessage?: string | ((selectedItems: any[]) => string)
+  /** Confirmation header */
+  confirmHeader?: string
+  /** Condition function to show/hide bulk action based on selected items */
+  visible?: (selectedItems: any[]) => boolean
+  /** Condition function to enable/disable bulk action based on selected items */
+  disabled?: (selectedItems: any[]) => boolean
+  /** Handler for bulk action */
+  handler?: (selectedItems: any[]) => void | Promise<void>
+}
+
+/**
  * Sort state
  */
 export interface SortState {
