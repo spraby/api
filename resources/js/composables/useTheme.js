@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, getCurrentInstance } from 'vue';
 import { useLocalStorage, usePreferredDark } from '@vueuse/core';
 
 const THEME_KEY = 'spraby_admin_theme';
@@ -11,6 +11,9 @@ const isDark = ref(false);
 
 // System preference
 const prefersDark = usePreferredDark();
+
+// PrimeVue instance (will be set when composable is used)
+let primevueInstance = null;
 
 /**
  * Composable for managing theme (light/dark mode)

@@ -50,17 +50,17 @@ const SprabyPreset = definePreset(Aura, {
             },
             dark: {
                 surface: {
-                    0: '{slate.900}',
-                    50: '{slate.800}',
-                    100: '{slate.700}',
-                    200: '{slate.600}',
-                    300: '{slate.500}',
-                    400: '{slate.400}',
-                    500: '{slate.300}',
-                    600: '{slate.200}',
-                    700: '{slate.100}',
-                    800: '{slate.50}',
-                    900: '#ffffff',
+                    0: '{slate.950}',
+                    50: '{slate.900}',
+                    100: '{slate.800}',
+                    200: '{slate.700}',
+                    300: '{slate.600}',
+                    400: '{slate.500}',
+                    500: '{slate.400}',
+                    600: '{slate.300}',
+                    700: '{slate.200}',
+                    800: '{slate.100}',
+                    900: '{slate.50}',
                     950: '#ffffff'
                 }
             }

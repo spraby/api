@@ -190,7 +190,7 @@ const filters: FilterConfig[] = [
     {
         key: 'category_id',
         label: 'Категория',
-        type: 'select',
+        type: 'multiselect',
         placeholder: 'Все категории',
         width: '200px',
         options: computed(() => categories.value.map(c => ({ label: c.name, value: c.id })))
@@ -198,7 +198,7 @@ const filters: FilterConfig[] = [
     {
         key: 'enabled',
         label: 'Статус',
-        type: 'select',
+        type: 'multiselect',
         placeholder: 'Все',
         width: '150px',
         options: [
