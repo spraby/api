@@ -75,6 +75,11 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware(['inertia'])->group(fun
             return Inertia::render('Admin/Customers/Index');
         })->name('customers.index');
 
+        // Brands
+        Route::get('/brands', function () {
+            return Inertia::render('Admin/Brands/Index');
+        })->name('brands.index');
+
         // Settings
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/general', function () {

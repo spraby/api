@@ -334,12 +334,12 @@ defineExpose({
 </script>
 
 <template>
-    <Card class="shadow-none border border-surface-200 dark:border-surface-700">
+    <Card class="shadow-none border border-app">
         <!-- Header with Toolbar -->
         <template #header>
             <Toolbar class="border-0 bg-transparent px-4 pt-4">
                 <template #start>
-                    <h2 v-if="title" class="text-xl font-semibold text-surface-800 dark:text-surface-100 m-0">
+                    <h2 v-if="title" class="text-xl font-semibold text-app-primary m-0">
                         {{ title }}
                     </h2>
                     <slot name="header-start" />
@@ -460,7 +460,7 @@ defineExpose({
                                 />
                                 <label
                                     :for="`filter-${filter.key}`"
-                                    class="cursor-pointer text-surface-700 dark:text-surface-200"
+                                    class="cursor-pointer text-app-primary"
                                 >
                                     {{ filter.label }}
                                 </label>
@@ -481,14 +481,14 @@ defineExpose({
                 </div>
 
                 <!-- Total Info -->
-                <div v-if="showTotalInfo" class="text-sm text-surface-500 dark:text-surface-400">
-                    Всего: <span class="font-semibold text-surface-700 dark:text-surface-200">{{ totalRecords }}</span> записей
+                <div v-if="showTotalInfo" class="text-sm text-app-secondary">
+                    Всего: <span class="font-semibold text-app-primary">{{ totalRecords }}</span> записей
                 </div>
             </div>
 
             <!-- Active Filters Tags -->
             <div v-if="activeFilters.length > 0" class="flex flex-wrap items-center gap-2 mb-4">
-                <span class="text-sm text-surface-500 dark:text-surface-400">Фильтры:</span>
+                <span class="text-sm text-app-secondary">Фильтры:</span>
                 <Chip
                     v-for="filter in activeFilters"
                     :key="filter.key"
@@ -604,7 +604,7 @@ defineExpose({
                             :href="row[column.field]"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="text-primary hover:underline"
+                            class="text-primary-600 dark:text-primary-400 hover:underline"
                         >
                             {{ row[column.field] }}
                         </a>
@@ -614,7 +614,7 @@ defineExpose({
                         <i
                             v-else-if="column.type === 'boolean'"
                             :class="[
-                                row[column.field] ? 'pi pi-check-circle text-green-500' : 'pi pi-times-circle text-red-500'
+                                row[column.field] ? 'pi pi-check-circle text-emerald-500' : 'pi pi-times-circle text-rose-500'
                             ]"
                         />
 
@@ -661,11 +661,11 @@ defineExpose({
                 :total-records="totalRecords"
                 :rows-per-page-options="perPageOptions"
                 :template="paginatorTemplate"
-                class="border-t border-surface-200 dark:border-surface-700 pt-4 mt-4"
+                class="border-t border-app pt-4 mt-4"
                 @page="handlePageChange"
             >
                 <template #start>
-                    <span class="text-sm text-surface-500 dark:text-surface-400">
+                    <span class="text-sm text-app-secondary">
                         Показано {{ pagination.from || 0 }}–{{ pagination.to || 0 }} из {{ totalRecords }}
                     </span>
                 </template>

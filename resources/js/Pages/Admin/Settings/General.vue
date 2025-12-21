@@ -9,12 +9,12 @@ import Card from 'primevue/card';
 
     <AdminLayout>
         <template #header>
-            <h1 class="text-2xl font-semibold text-gray-800">General Settings</h1>
+            <h1 class="text-2xl font-semibold text-app-primary">General Settings</h1>
         </template>
 
         <Card>
             <template #content>
-                <p class="text-gray-600">General settings page - Coming soon...</p>
+                <p class="text-app-secondary">General settings page - Coming soon...</p>
             </template>
         </Card>
     </AdminLayout>

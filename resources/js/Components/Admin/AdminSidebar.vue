@@ -222,26 +222,28 @@ function handlePopupItemClick(child) {
 
 // Computed classes
 const menuLinkClasses = computed(() => (item) => {
-    const base = 'flex items-center gap-3 py-3 px-4 rounded-lg text-surface-500 dark:text-surface-400 no-underline transition-all duration-200 cursor-pointer relative';
-    const hover = 'hover:bg-primary-500/10 hover:text-primary-600 dark:hover:text-primary-400';
+    const base = 'flex items-center gap-3 py-3 px-4 rounded-lg no-underline transition-all duration-200 cursor-pointer relative';
+    const inactive = 'text-app-secondary';
+    const hover = 'hover:bg-primary-500/10 hover:text-primary-500';
 
     if (isActive(item)) {
         return `${base} bg-linear-to-br from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/35`;
     }
     if (isGroupActive(item)) {
-        return `${base} ${hover} text-primary-600 dark:text-primary-400 bg-primary-500/10`;
+        return `${base} ${hover} text-primary-500 bg-primary-500/10`;
     }
-    return `${base} ${hover}`;
+    return `${base} ${inactive} ${hover}`;
 });
 
 const submenuLinkClasses = computed(() => (child) => {
-    const base = 'flex items-center gap-3 py-2.5 pl-10 pr-4 rounded-md text-surface-500 dark:text-surface-400 no-underline transition-all duration-200 text-[13px]';
-    const hover = 'hover:bg-primary-500/10 hover:text-primary-600 dark:hover:text-primary-400';
+    const base = 'flex items-center gap-3 py-2.5 pl-10 pr-4 rounded-md no-underline transition-all duration-200 text-[13px]';
+    const inactive = 'text-app-secondary';
+    const hover = 'hover:bg-primary-500/10 hover:text-primary-500';
 
     if (isActive(child)) {
-        return `${base} bg-primary-500/15 text-primary-600 dark:text-primary-400 font-semibold`;
+        return `${base} bg-primary-500/15 text-primary-500 font-semibold`;
     }
-    return `${base} ${hover}`;
+    return `${base} ${inactive} ${hover}`;
 });
 </script>
 
@@ -294,7 +296,7 @@ const submenuLinkClasses = computed(() => (child) => {
                             @mouseenter="onPopupEnter"
                             @mouseleave="onPopupLeave(item)"
                         >
-                            <div class="flex items-center gap-2 px-4 py-3 bg-linear-to-br from-indigo-500 to-indigo-600 text-white font-semibold text-sm">
+                            <div class="flex items-center gap-2 px-4 py-3 bg-linear-to-br from-primary-500 to-primary-600 text-white font-semibold text-sm">
                                 <i :class="item.icon" class="text-base"></i>
                                 <span>{{ item.label }}</span>
                             </div>
@@ -303,8 +305,8 @@ const submenuLinkClasses = computed(() => (child) => {
                                     <Link
                                         v-if="!child.target"
                                         :href="getItemUrl(child)"
-                                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-500 no-underline transition-all duration-150 text-sm hover:bg-indigo-500/10 hover:text-indigo-600"
-                                        :class="{ 'bg-indigo-500/15 text-indigo-600 font-semibold': isActive(child) }"
+                                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-app-secondary no-underline transition-all duration-150 text-sm hover:bg-primary-500/10 hover:text-primary-500"
+                                        :class="{ 'bg-primary-500/15 text-primary-500 font-semibold': isActive(child) }"
                                         @click="handlePopupItemClick(child)"
                                     >
                                         <span class="flex items-center justify-center w-5 h-5 text-sm shrink-0">
@@ -322,8 +324,8 @@ const submenuLinkClasses = computed(() => (child) => {
                                         v-else
                                         :href="getItemUrl(child)"
                                         :target="child.target"
-                                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-500 no-underline transition-all duration-150 text-sm hover:bg-indigo-500/10 hover:text-indigo-600"
-                                        :class="{ 'bg-indigo-500/15 text-indigo-600 font-semibold': isActive(child) }"
+                                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-app-secondary no-underline transition-all duration-150 text-sm hover:bg-primary-500/10 hover:text-primary-500"
+                                        :class="{ 'bg-primary-500/15 text-primary-500 font-semibold': isActive(child) }"
                                         @click="handlePopupItemClick(child)"
                                     >
                                         <span class="flex items-center justify-center w-5 h-5 text-sm shrink-0">
@@ -450,12 +452,24 @@ const submenuLinkClasses = computed(() => (child) => {
     background: transparent !important;
 }
 
-/* Popover menu items */
+/* Popover menu items - unified color scheme */
 .popup-submenu-panel a {
     color: var(--text-secondary) !important;
 }
 
 .popup-submenu-panel a:hover {
-    color: var(--primary-500) !important;
+    color: #6366f1 !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Active item in popup */
+.popup-submenu-panel a.bg-primary-500\/15 {
+    color: #6366f1 !important;
+    background: rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Header gradient in popup */
+.popup-submenu-panel .bg-linear-to-br {
+    background: linear-gradient(to bottom right, #6366f1, #4f46e5) !important;
 }
 </style>

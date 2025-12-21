@@ -28,37 +28,28 @@ export const sidebarMenuConfig = [
         tooltip: 'Dashboard'
     },
     {
+        id: 'brands',
+        label: 'Brands',
+        icon: 'pi pi-bookmark',
+        route: 'sb.admin.brands.index'
+    },
+    {
         id: 'products',
         label: 'Products',
-        icon: 'pi pi-shopping-bag',
-        tooltip: 'Products',
-        dividerBefore: true,
-        children: [
-            {
-                id: 'all-products',
-                label: 'All Products',
-                icon: 'pi pi-box',
-                route: 'sb.admin.products.index'
-            },
-            {
-                id: 'add-product',
-                label: 'Add Product',
-                icon: 'pi pi-plus',
-                route: 'sb.admin.products.create'
-            },
-            {
-                id: 'categories',
-                label: 'Categories',
-                icon: 'pi pi-tags',
-                route: 'sb.admin.categories.index'
-            },
-            {
-                id: 'collections',
-                label: 'Collections',
-                icon: 'pi pi-objects-column',
-                route: 'sb.admin.collections.index'
-            }
-        ]
+        icon: 'pi pi-box',
+        route: 'sb.admin.products.index'
+    },
+    {
+        id: 'categories',
+        label: 'Categories',
+        icon: 'pi pi-tags',
+        route: 'sb.admin.categories.index'
+    },
+    {
+        id: 'collections',
+        label: 'Collections',
+        icon: 'pi pi-objects-column',
+        route: 'sb.admin.collections.index'
     },
     {
         id: 'orders',
@@ -108,12 +99,6 @@ export const sidebarMenuConfig = [
                 label: 'General',
                 icon: 'pi pi-sliders-h',
                 route: 'sb.admin.settings.general'
-            },
-            {
-                id: 'brands-settings',
-                label: 'Brands',
-                icon: 'pi pi-bookmark',
-                route: 'sb.admin.settings.brands'
             },
             {
                 id: 'users-settings',

@@ -305,7 +305,7 @@ function handleDialogHide() {
 
     <AdminLayout>
         <template #header>
-            <h1 class="text-2xl font-semibold text-slate-800">Бренды</h1>
+            <h1 class="text-2xl font-semibold text-app-primary">Бренды</h1>
         </template>
 
         <Toast />
@@ -340,7 +340,7 @@ function handleDialogHide() {
             <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
                 <!-- Name -->
                 <div class="flex flex-col gap-2">
-                    <label for="brand-name" class="font-medium text-slate-700">
+                    <label for="brand-name" class="font-medium text-app-primary">
                         Название <span class="text-red-500">*</span>
                     </label>
                     <InputText
@@ -357,7 +357,7 @@ function handleDialogHide() {
 
                 <!-- Description -->
                 <div class="flex flex-col gap-2">
-                    <label for="brand-description" class="font-medium text-slate-700">
+                    <label for="brand-description" class="font-medium text-app-primary">
                         Описание
                     </label>
                     <Textarea

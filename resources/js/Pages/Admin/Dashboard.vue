@@ -10,7 +10,7 @@ import Button from 'primevue/button';
 
     <AdminLayout>
         <template #header>
-            <h1 class="text-xl md:text-2xl font-semibold text-gray-800 truncate">Dashboard</h1>
+            <h1 class="text-xl md:text-2xl font-semibold text-app-primary truncate">Dashboard</h1>
         </template>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -20,7 +20,7 @@ import Button from 'primevue/button';
                     <span class="text-lg md:text-xl">Welcome to Admin Panel</span>
                 </template>
                 <template #content>
-                    <p class="text-sm md:text-base text-gray-600">
+                    <p class="text-sm md:text-base text-app-secondary">
                         This is your admin dashboard. Use the sidebar to navigate between different sections.
                     </p>
                 </template>

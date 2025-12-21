@@ -265,7 +265,7 @@ const sidebarWidth = computed(() => {
 
 /* Sidebar Header */
 .sidebar-header {
-    padding: 1.25rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--app-border);
 }
 
@@ -334,7 +334,7 @@ const sidebarWidth = computed(() => {
     background: var(--app-header-bg);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--app-border);
-    padding: 0.75rem 1.5rem;
+    padding: 11px 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
