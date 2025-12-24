@@ -3,7 +3,7 @@
 return [
     'pages' => [
         'dashboard' => [
-            'title' => 'Dashboard',
+            'title' => 'Spraby Dashboard',
         ],
     ],
 

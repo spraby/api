@@ -9,6 +9,12 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
+use App\Filament\Widgets\AdvancedStats;
+use App\Filament\Widgets\BrandAlerts;
+use App\Filament\Widgets\BrandOverview;
+use App\Filament\Widgets\PopularProducts;
+use App\Filament\Widgets\RecentOrders;
+use App\Filament\Widgets\SalesChart;
 use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
@@ -54,7 +60,12 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                AdvancedStats::class,
+                SalesChart::class,
+                PopularProducts::class,
+                RecentOrders::class,
+                BrandAlerts::class,
+                BrandOverview::class,
             ])
             ->assets([
                 Css::make('custom-stylesheet', Vite::asset('resources/css/app.css')),

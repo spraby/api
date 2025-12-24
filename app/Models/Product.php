@@ -144,6 +144,14 @@ class Product extends Model
     }
 
     /**
+     * @return string|null
+     */
+    public function getMainImageUrlAttribute(): ?string
+    {
+        return $this->mainImage?->image?->url;
+    }
+
+    /**
      * @return string
      */
     public function getExternalUrlAttribute(): string

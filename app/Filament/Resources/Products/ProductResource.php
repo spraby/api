@@ -29,7 +29,8 @@ class ProductResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()
+            ->with(['images.image']);
 
         /**
          * @var User $user

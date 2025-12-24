@@ -11,11 +11,12 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
@@ -29,7 +30,7 @@ class ProductsTable
     {
         return $table
             ->columns([
-                ImageColumn::make('main_image.image.src')
+                ImageColumn::make('main_image_url')
                     ->label('Image')
                     ->imageHeight(50)
                     ->imageWidth(50)
@@ -39,23 +40,39 @@ class ProductsTable
                     ]),
 
                 TextColumn::make('title')
+                    ->extraAttributes(['class' => 'text-sm'])
                     ->copyable()
                     ->description(fn(Product $p): Htmlable => new HtmlString("<a class='flex gap-[2px] items-center' href='{$p->externalUrl}' target='_blank'>Preview" . ProductsTable::getHeroIconPreview() . "</a><div class='text-gray-400 text-[10px]'>{$p?->category?->name}<span/>"))
                     ->searchable(),
 
                 TextColumn::make('final_price')
                     ->label('Price')
+                    ->extraAttributes(['class' => 'text-sm'])
                     ->state(fn(Product $p): string => Brand::toMoney($p->final_price))
                     ->description(fn(Product $p): Htmlable => $p->final_price !== $p->price ? new HtmlString("<s class='text-[10px]'>" . Brand::toMoney($p->final_price) . "</s> <span class='text-green-500'>{$p->discount}%</span>") : new HtmlString(''))
                     ->sortable(),
 
-                IconColumn::make('enabled')
-                    ->boolean(),
+                ToggleColumn::make('enabled')
+                    ->label('Enabled')
+                    ->onColor('success')
+                    ->offColor('gray')
+                    ->extraAttributes(['class' => 'text-sm'])
+                    ->afterStateUpdated(function (bool $state, Product $record) {
+                        $record->enabled = $state;
+                        $record->save();
+
+                        Notification::make()
+                            ->title(__('Status changed'))
+                            ->success()
+                            ->send();
+                    }),
 
                 TextColumn::make('created_at')
+                    ->extraAttributes(['class' => 'text-sm'])
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('updated_at')
+                    ->extraAttributes(['class' => 'text-sm'])
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

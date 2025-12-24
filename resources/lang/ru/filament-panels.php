@@ -3,7 +3,7 @@
 return [
     'pages' => [
         'dashboard' => [
-            'title' => 'Панель управления',
+            'title' => 'Spraby Dashboard',
         ],
     ],
 
