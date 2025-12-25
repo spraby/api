@@ -15,6 +15,7 @@ use App\Filament\Widgets\BrandOverview;
 use App\Filament\Widgets\PopularProducts;
 use App\Filament\Widgets\RecentOrders;
 use App\Filament\Widgets\SalesChart;
+use App\Filament\Widgets\ViewsChart;
 use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
@@ -62,6 +63,7 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
                 AdvancedStats::class,
                 SalesChart::class,
+                ViewsChart::class,
                 PopularProducts::class,
                 RecentOrders::class,
                 BrandAlerts::class,

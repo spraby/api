@@ -14,7 +14,7 @@ class PopularProducts extends Widget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
     protected function getViewData(): array
     {

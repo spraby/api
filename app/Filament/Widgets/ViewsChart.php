@@ -2,19 +2,20 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductStatistics;
 use App\Models\User;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-class SalesChart extends ChartWidget
+class ViewsChart extends ChartWidget
 {
-    protected ?string $heading = 'Продажи за последние 30 дней';
+    protected ?string $heading = 'Просмотры за последние 30 дней';
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 2;
 
     protected ?string $maxHeight = '250px';
 
@@ -24,42 +25,48 @@ class SalesChart extends ChartWidget
         $brand = $user?->getBrand();
         $isAdmin = $user?->hasRole(User::ROLES['ADMIN']) ?? false;
 
-        $query = Order::query()
-            ->where('created_at', '>=', now()->subDays(30))
-            ->orderBy('created_at');
+        $productQuery = Product::query();
 
         if ($brand && !$isAdmin) {
-            $query->where('brand_id', $brand->id);
+            $productQuery->where('brand_id', $brand->id);
         }
 
-        $orders = $query->get();
+        $productIds = $productQuery->pluck('id');
 
-        // Группировка заказов по дням
-        $dailyOrders = [];
+        $query = ProductStatistics::query()
+            ->where('type', 'view')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->whereIn('product_id', $productIds)
+            ->orderBy('created_at');
+
+        $views = $query->get();
+
+        // Группировка просмотров по дням
+        $dailyViews = [];
         for ($i = 29; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
-            $dailyOrders[$date] = 0;
+            $dailyViews[$date] = 0;
         }
 
-        foreach ($orders as $order) {
-            $date = $order->created_at->format('Y-m-d');
-            if (isset($dailyOrders[$date])) {
-                $dailyOrders[$date]++;
+        foreach ($views as $view) {
+            $date = $view->created_at->format('Y-m-d');
+            if (isset($dailyViews[$date])) {
+                $dailyViews[$date]++;
             }
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Заказы',
-                    'data' => array_values($dailyOrders),
-                    'borderColor' => 'rgb(139, 92, 246)',
-                    'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
+                    'label' => 'Просмотры',
+                    'data' => array_values($dailyViews),
+                    'borderColor' => 'rgb(34, 197, 94)',
+                    'backgroundColor' => 'rgba(34, 197, 94, 0.1)',
                     'fill' => true,
                     'tension' => 0.4,
                 ],
             ],
-            'labels' => collect(array_keys($dailyOrders))->map(function ($date) {
+            'labels' => collect(array_keys($dailyViews))->map(function ($date) {
                 return Carbon::parse($date)->format('d.m');
             })->toArray(),
         ];
