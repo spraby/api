@@ -15,6 +15,19 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /**
+     * Determine the root view.
+     */
+    public function rootView(Request $request): string
+    {
+        // Use react-admin view for /sb/admin routes
+        if ($request->is('sb/admin*')) {
+            return 'admin';
+        }
+
+        return $this->rootView;
+    }
+
+    /**
      * Determine the current asset version.
      */
     public function version(Request $request): ?string

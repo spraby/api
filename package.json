@@ -11,6 +11,12 @@
         "@tailwindcss/forms": "^0.5.3",
         "@tailwindcss/postcss": "^4.1.17",
         "@tailwindcss/vite": "^4.0.0",
+        "@types/node": "^25.0.3",
+        "@types/react": "^19.2.7",
+        "@types/react-dom": "^19.2.3",
+        "@typescript-eslint/eslint-plugin": "^8.50.1",
+        "@typescript-eslint/parser": "^8.50.1",
+        "@vitejs/plugin-react": "^5.1.2",
         "@vitejs/plugin-vue": "^5.0.0",
         "autoprefixer": "^10.4.12",
         "axios": "^1.8.2",
@@ -18,14 +24,23 @@
         "laravel-vite-plugin": "^1.2.0",
         "postcss": "^8.4.31",
         "tailwindcss": "^4.0.0",
+        "typescript": "^5.9.3",
         "vite": "^6.0.11",
         "vue": "^3.4.0"
     },
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
+        "@inertiajs/react": "^2.3.4",
         "@primevue/themes": "^4.5.2",
         "@vueuse/core": "^14.1.0",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.562.0",
         "primeicons": "^7.0.0",
-        "primevue": "^4.5.2"
+        "primevue": "^4.5.2",
+        "react": "^19.2.3",
+        "react-dom": "^19.2.3",
+        "react-router-dom": "^7.11.0",
+        "tailwind-merge": "^3.4.0"
     }
 }

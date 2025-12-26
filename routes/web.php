@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -18,19 +17,37 @@ Route::get('/set-locale/{locale}', function ($locale) {
     return redirect()->back();
 })->name('set-locale');
 
-Route::prefix('sb/admin')->name('sb.admin.')->middleware(['inertia'])->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Welcome', [
-            'canLogin' => Route::has('sb.admin.login'),
-            'canRegister' => Route::has('sb.admin.register'),
-            'laravelVersion' => Application::VERSION,
-            'phpVersion' => PHP_VERSION,
-        ]);
+// React Admin routes with Inertia
+Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(function () {
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', function () {
+            return Inertia::render('Auth/Login');
+        })->name('login');
+
+        Route::get('/register', function () {
+            return Inertia::render('Auth/Register');
+        })->name('register');
+
+        Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login']);
+        Route::post('/register', [App\Http\Controllers\Api\AuthController::class, 'register']);
     });
 
-    Route::middleware(['auth', 'verified'])->group(function () {
+    Route::middleware('auth')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Dashboard');
+        })->name('dashboard');
 
+        Route::get('/dashboard', function () {
+            return Inertia::render('Dashboard');
+        });
+
+        Route::get('/users', function () {
+            $users = \App\Models\User::paginate(15);
+            return Inertia::render('Users', [
+                'users' => $users
+            ]);
+        })->name('users');
+
+        Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
     });
-
-    require __DIR__.'/auth.php';
 });
