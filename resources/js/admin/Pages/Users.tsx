@@ -1,5 +1,8 @@
 import { Link } from '@inertiajs/react';
 
+import { PageProps } from '@/types/inertia';
+import { User } from '@/types/models.ts';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.tsx';
 import {
   Table,
@@ -11,8 +14,6 @@ import {
 } from '../components/ui/table.tsx';
 import AdminLayout from '../layouts/AdminLayout.tsx';
 
-import { PageProps } from '@/types/inertia';
-import { User } from '@/types/models.ts';
 
 interface PaginationLink {
   url: string | null;

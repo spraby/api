@@ -27,7 +27,7 @@ export interface Brand extends BaseModel {
 
 export interface BrandSettings extends BaseModel {
   brand_id: number;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
 }
 
 // Product
