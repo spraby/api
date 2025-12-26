@@ -1,9 +1,10 @@
 import { useForm, Head, Link } from '@inertiajs/react';
+import { FormEventHandler } from 'react';
+
 import { Button } from '../../components/ui/button.tsx';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.tsx';
 import { Input } from '../../components/ui/input.tsx';
 import { Label } from '../../components/ui/label.tsx';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.tsx';
-import { FormEventHandler } from 'react';
 
 interface RegisterFormData {
   name: string;

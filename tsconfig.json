@@ -24,7 +24,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./resources/js/admin/*"],
-      "@/types/*": ["./resources/js/types/*"]
+      "@/types/*": ["./resources/js/admin/types/*"]
     },
 
     /* Type definitions */

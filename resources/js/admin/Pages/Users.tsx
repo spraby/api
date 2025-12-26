@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import AdminLayout from '../layouts/AdminLayout.tsx';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.tsx';
 import {
   Table,
@@ -9,6 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from '../components/ui/table.tsx';
+import AdminLayout from '../layouts/AdminLayout.tsx';
+
 import { PageProps } from '@/types/inertia';
 import { User } from '@/types/models.ts';
 

@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
-import Sidebar from '../components/Sidebar.tsx';
 import { ReactNode } from 'react';
+
+import Sidebar from '../components/Sidebar.tsx';
 
 interface AdminLayoutProps {
   children: ReactNode;

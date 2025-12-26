@@ -1,6 +1,8 @@
 import { usePage } from '@inertiajs/react';
-import AdminLayout from '../layouts/AdminLayout.tsx';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.tsx';
+import AdminLayout from '../layouts/AdminLayout.tsx';
+
 import { PageProps } from '@/types/inertia';
 
 export default function Dashboard() {
