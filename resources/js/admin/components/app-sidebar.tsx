@@ -13,6 +13,7 @@ import {
   ListIcon,
   SearchIcon,
   SettingsIcon,
+  UserIcon,
   UsersIcon,
 } from "lucide-react"
 import * as React from "react"
@@ -40,8 +41,13 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/sb/admin/dashboard",
       icon: LayoutDashboardIcon,
+    },
+    {
+      title: "Users",
+      url: "/sb/admin/users",
+      icon: UserIcon,
     },
     {
       title: "Lifecycle",
