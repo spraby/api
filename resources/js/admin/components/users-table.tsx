@@ -303,8 +303,8 @@ export function UsersTable({ data }: { data: User[] }) {
     <div className="flex w-full flex-col gap-4">
       {/* Bulk Actions Bar */}
       {selectedRows.length > 0 && (
-        <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">
                 {selectedRows.length} selected
@@ -318,13 +318,13 @@ export function UsersTable({ data }: { data: User[] }) {
                 <XIcon className="size-4" />
               </Button>
             </div>
-            <div className="h-4 w-px bg-border" />
-            <div className="flex items-center gap-2">
+            <div className="hidden h-4 w-px bg-border sm:block" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Select
                 value={selectedRole}
                 onValueChange={setSelectedRole}
               >
-                <SelectTrigger className="h-9 w-40">
+                <SelectTrigger className="h-9 w-full sm:w-40">
                   <SelectValue placeholder="Change role..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,10 +337,10 @@ export function UsersTable({ data }: { data: User[] }) {
                 size="sm"
                 onClick={handleBulkRoleChange}
                 disabled={!selectedRole}
-                className="h-9"
+                className="h-9 w-full sm:w-auto"
               >
                 <UserCogIcon className="size-4" />
-                Update Role
+                <span className="sm:inline">Update Role</span>
               </Button>
             </div>
           </div>
@@ -349,18 +349,18 @@ export function UsersTable({ data }: { data: User[] }) {
             size="sm"
             onClick={handleBulkDelete}
             disabled={isDeleting}
-            className="h-9"
+            className="h-9 w-full sm:w-auto"
           >
             <Trash2Icon className="size-4" />
-            Delete Selected
+            <span>Delete Selected</span>
           </Button>
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-1 items-center gap-2">
-          <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex flex-col gap-2 sm:flex-1 sm:flex-row sm:items-center sm:gap-2">
+          <div className="relative flex-1 sm:max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by name or email..."
@@ -377,7 +377,7 @@ export function UsersTable({ data }: { data: User[] }) {
               table.getColumn("role")?.setFilterValue(value === "all" ? "" : value)
             }
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="All roles" />
             </SelectTrigger>
             <SelectContent>
@@ -390,7 +390,7 @@ export function UsersTable({ data }: { data: User[] }) {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
               <ColumnsIcon />
               <span>Columns</span>
               <ChevronDownIcon />
@@ -421,65 +421,67 @@ export function UsersTable({ data }: { data: User[] }) {
 
       {/* Table */}
       <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No users found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="flex-1 text-sm text-muted-foreground">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
-        <div className="flex items-center gap-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 lg:gap-8">
           <div className="flex items-center gap-2">
-            <Label htmlFor="rows-per-page" className="text-sm font-medium">
+            <Label htmlFor="rows-per-page" className="text-sm font-medium whitespace-nowrap">
               Rows per page
             </Label>
             <Select
@@ -500,51 +502,53 @@ export function UsersTable({ data }: { data: User[] }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex w-fit items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="hidden size-8 lg:flex"
-              size="icon"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to first page</span>
-              <ChevronsLeftIcon />
-            </Button>
-            <Button
-              variant="outline"
-              className="size-8"
-              size="icon"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to previous page</span>
-              <ChevronLeftIcon />
-            </Button>
-            <Button
-              variant="outline"
-              className="size-8"
-              size="icon"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to next page</span>
-              <ChevronRightIcon />
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden size-8 lg:flex"
-              size="icon"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to last page</span>
-              <ChevronsRightIcon />
-            </Button>
+          <div className="flex items-center justify-between gap-2 sm:justify-center">
+            <div className="flex w-fit items-center justify-center text-sm font-medium sm:min-w-24">
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="hidden size-8 lg:flex"
+                size="icon"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Go to first page</span>
+                <ChevronsLeftIcon />
+              </Button>
+              <Button
+                variant="outline"
+                className="size-8"
+                size="icon"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeftIcon />
+              </Button>
+              <Button
+                variant="outline"
+                className="size-8"
+                size="icon"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRightIcon />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden size-8 lg:flex"
+                size="icon"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Go to last page</span>
+                <ChevronsRightIcon />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
