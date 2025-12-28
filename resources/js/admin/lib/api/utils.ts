@@ -9,7 +9,7 @@
 
 import { toast } from 'sonner';
 
-import type { ApiError } from './client';
+import type { ApiError } from './fetch-client';
 
 // ============================================
 // ERROR HANDLING

@@ -19,6 +19,7 @@ import {
   deleteUser,
   updateUser,
 } from '@/lib/api/endpoints/users';
+import type { ApiError } from '@/lib/api/fetch-client';
 import { userKeys } from '@/lib/api/query-keys';
 import type {
   BulkDeleteUsersRequest,
@@ -28,7 +29,6 @@ import type {
   User,
 } from '@/types/api';
 
-import type { ApiError } from '@/lib/api/client';
 
 // ============================================
 // CREATE USER
@@ -43,14 +43,18 @@ export function useCreateUser(
   const queryClient = useQueryClient();
 
   return useMutation({
+    ...options,
     mutationFn: createUser,
     onSuccess: (data, variables, context) => {
       // Invalidate users list to refetch
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       toast.success('User created successfully');
-      options?.onSuccess?.(data, variables, context);
+      // Call user's custom onSuccess if provided
+      if (options?.onSuccess) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (options.onSuccess as any)(data, variables, context);
+      }
     },
-    ...options,
   });
 }
 
@@ -72,15 +76,19 @@ export function useUpdateUser(
   const queryClient = useQueryClient();
 
   return useMutation({
+    ...options,
     mutationFn: ({ id, data }) => updateUser(id, data),
     onSuccess: (data, variables, context) => {
       // Invalidate both list and specific user detail
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
       toast.success('User updated successfully');
-      options?.onSuccess?.(data, variables, context);
+      // Call user's custom onSuccess if provided
+      if (options?.onSuccess) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (options.onSuccess as any)(data, variables, context);
+      }
     },
-    ...options,
   });
 }
 
@@ -94,6 +102,7 @@ export function useDeleteUser(
   const queryClient = useQueryClient();
 
   return useMutation({
+    ...options,
     mutationFn: deleteUser,
     onSuccess: (data, variables, context) => {
       // Invalidate users list
@@ -101,9 +110,12 @@ export function useDeleteUser(
       // Remove the specific user from cache
       queryClient.removeQueries({ queryKey: userKeys.detail(variables) });
       toast.success('User deleted successfully');
-      options?.onSuccess?.(data, variables, context);
+      // Call user's custom onSuccess if provided
+      if (options?.onSuccess) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (options.onSuccess as any)(data, variables, context);
+      }
     },
-    ...options,
   });
 }
 
@@ -120,6 +132,7 @@ export function useBulkDeleteUsers(
   const queryClient = useQueryClient();
 
   return useMutation({
+    ...options,
     mutationFn: bulkDeleteUsers,
     onSuccess: (data, variables, context) => {
       // Invalidate users list
@@ -129,9 +142,12 @@ export function useBulkDeleteUsers(
         queryClient.removeQueries({ queryKey: userKeys.detail(id) });
       });
       toast.success(`Successfully deleted ${variables.user_ids.length} user(s)`);
-      options?.onSuccess?.(data, variables, context);
+      // Call user's custom onSuccess if provided
+      if (options?.onSuccess) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (options.onSuccess as any)(data, variables, context);
+      }
     },
-    ...options,
   });
 }
 
@@ -148,6 +164,7 @@ export function useBulkUpdateUserRoles(
   const queryClient = useQueryClient();
 
   return useMutation({
+    ...options,
     mutationFn: bulkUpdateUserRoles,
     onSuccess: (data, variables, context) => {
       // Invalidate users list
@@ -157,8 +174,11 @@ export function useBulkUpdateUserRoles(
         queryClient.invalidateQueries({ queryKey: userKeys.detail(id) });
       });
       toast.success(`Successfully updated ${variables.user_ids.length} user(s)`);
-      options?.onSuccess?.(data, variables, context);
+      // Call user's custom onSuccess if provided
+      if (options?.onSuccess) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (options.onSuccess as any)(data, variables, context);
+      }
     },
-    ...options,
   });
 }

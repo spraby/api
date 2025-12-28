@@ -7,10 +7,10 @@
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 
 import { getUser, getUsers } from '@/lib/api/endpoints/users';
+import type { ApiError } from '@/lib/api/fetch-client';
 import { userKeys } from '@/lib/api/query-keys';
 import type { User, UserFilters } from '@/types/api';
 
-import type { ApiError } from '@/lib/api/client';
 
 // ============================================
 // QUERY HOOKS
@@ -26,7 +26,7 @@ export function useUsers(
   options?: Omit<UseQueryOptions<User[], ApiError>, 'queryKey' | 'queryFn'>
 ): UseQueryResult<User[], ApiError> {
   return useQuery({
-    queryKey: userKeys.list(filters),
+    queryKey: userKeys.list(filters as Record<string, unknown>),
     queryFn: () => getUsers(filters),
     ...options,
   });

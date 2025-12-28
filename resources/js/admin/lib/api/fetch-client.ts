@@ -5,11 +5,20 @@
  * Compatible with TanStack Query and Inertia.js
  */
 
-import type { ApiError, LaravelErrorResponse } from './client';
-
 // ============================================
 // TYPES
 // ============================================
+
+export interface ApiError {
+  message: string;
+  errors?: Record<string, string[]>;
+  status?: number;
+}
+
+export interface LaravelErrorResponse {
+  message?: string;
+  errors?: Record<string, string[]>;
+}
 
 interface FetchResponse<T> {
   data: T;
@@ -29,7 +38,7 @@ interface FetchRequestConfig {
  * Get CSRF token from meta tag (set by Laravel)
  */
 function getCsrfToken(): string | null {
-  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? null;
 }
 
 /**
@@ -103,16 +112,15 @@ async function makeFetchRequest<T>(
 ): Promise<T> {
   const csrfToken = getCsrfToken();
 
-  const headers: HeadersInit = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
-    ...options.headers,
-  };
+  // Build headers using Headers API for type safety
+  const headers = new Headers(options.headers);
+  headers.set('Accept', 'application/json');
+  headers.set('Content-Type', 'application/json');
+  headers.set('X-Requested-With', 'XMLHttpRequest');
 
   // Add CSRF token if available
   if (csrfToken) {
-    headers['X-CSRF-TOKEN'] = csrfToken;
+    headers.set('X-CSRF-TOKEN', csrfToken);
   }
 
   const response = await fetch(url, {

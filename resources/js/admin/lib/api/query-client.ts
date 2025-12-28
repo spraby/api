@@ -11,7 +11,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { ApiError } from './client';
+import type { ApiError } from './fetch-client';
 
 // ============================================
 // QUERY CLIENT CONFIGURATION

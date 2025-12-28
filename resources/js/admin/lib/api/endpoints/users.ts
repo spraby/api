@@ -28,7 +28,7 @@ import fetchClient from '../fetch-client';
  */
 export async function getUsers(filters?: UserFilters): Promise<User[]> {
   const response = await fetchClient.get<User[]>('/sb/admin/users/api', {
-    params: filters,
+    params: filters as Record<string, string | number>,
   });
   return response.data;
 }
