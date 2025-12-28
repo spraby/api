@@ -11,7 +11,7 @@ import {
 import { PageProps } from '@/types/inertia';
 
 export default function Page({children}: { children: React.ReactNode, title?: string }) {
-    const { flash } = usePage<PageProps>().props;
+    const { flash, auth } = usePage<PageProps>().props;
 
     useEffect(() => {
         if (flash?.success) {
@@ -30,7 +30,7 @@ export default function Page({children}: { children: React.ReactNode, title?: st
 
     return (
         <SidebarProvider>
-            <AppSidebar variant={'inset'}/>
+            <AppSidebar variant={'inset'} user={auth?.user}/>
             <SidebarInset>
                 <SiteHeader/>
                 <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
