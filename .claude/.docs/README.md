@@ -77,50 +77,40 @@ composer dev         # Запустить server, queue, logs, vite
    - Troubleshooting
    - Code style
 
-7. **[Vue Sidebar Menu](07-vue-sidebar.md)**
-   - Обзор и архитектура компонентов
-   - Конфигурация меню
-   - Доступные иконки (Heroicons)
-   - Интеграция с Inertia.js
-   - Анимации и transitions
-   - Responsive design
-   - Troubleshooting
-
-8. **[Vue Users List](08-vue-users-list.md)** ⭐ NEW
-   - Users List с поиском и пагинацией
-   - API endpoints для Vue компонентов
-   - Row-level security
-   - Sortable table columns
-   - Responsive design
-
-9. **[PrimeVue UI Library](09-primevue.md)**
-   - Полная документация PrimeVue для Vue 3
-   - 80+ UI компонентов
-   - Формы, таблицы, диалоги, меню
-   - Tailwind CSS интеграция
-   - Система тем и иконок
-   - Внешние ссылки:
-     - https://primevue.org/llms/llms.txt - краткая LLM документация
-     - https://primevue.org/llms/llms-full.txt - полная LLM документация
-
-10. **[PrimeVue Sidebar Integration](10-primevue-sidebar.md)** ⭐ NEW
-    - Интеграция PrimeVue в проект
-    - Sidebar на основе PrimeVue PanelMenu
-    - Конфигурация и настройка тем
-    - Маппинг иконок Heroicons → PrimeIcons
-    - Кастомизация стилей через passThrough API
-    - Примеры использования других компонентов
+9. **[React Admin Panel - shadcn/ui + Inertia.js](09-react-admin.md)** ⭐ UPDATED 2025-12-28
+   - React 19 + Inertia.js 2 + TypeScript
+   - shadcn/ui компоненты (40+ компонентов)
+   - Tailwind CSS 4 синтаксис и изменения
+   - Роутинг с Ziggy (TypeScript-safe)
+   - Localization (i18n) с useLang hook
+   - Toast notifications (Sonner)
+   - Data tables (@tanstack/react-table)
+   - Dark mode (next-themes)
+   - Best practices для React разработки
 
 ## Быстрые ссылки
 
 ### Часто используемые файлы
 
+**Backend**:
 - **Models**: `app/Models/Product.php`, `app/Models/User.php`, `app/Models/Order.php`
 - **Filament Resources**: `app/Filament/Resources/Products/ProductResource.php`
 - **Migrations**: `database/migrations/`
 - **Seeders**: `database/seeders/DatabaseSeeder.php`
 - **Config**: `config/filesystems.php`, `config/filament.php`
 - **Observers**: `app/Observers/ProductImageObserver.php`
+- **Routes**: `routes/web.php`
+
+**React Admin** (`/sb/admin`):
+- **Entry Point**: `resources/js/admin/app.tsx`
+- **Pages**: `resources/js/admin/Pages/`
+- **Components**: `resources/js/admin/components/`
+- **UI Components**: `resources/js/admin/components/ui/`
+- **Layouts**: `resources/js/admin/layouts/AdminLayout.tsx`
+- **Types**: `resources/js/admin/types/models.ts`, `resources/js/admin/types/inertia.d.ts`
+- **Utils**: `resources/js/admin/lib/utils.ts`, `resources/js/admin/lib/lang.ts`
+- **Styles**: `resources/css/admin.css`
+- **Translations**: `resources/lang/en/admin.php`, `resources/lang/ru/admin.php`
 
 ### Docker команды
 
@@ -164,6 +154,7 @@ php artisan view:cache
 
 ## Ключевые концепции
 
+**Backend**:
 - ✅ **Filament 4.0** - современная админ-панель на Livewire
 - ✅ **Shared Database** - та же PostgreSQL БД используется Next.js Store
 - ✅ **AWS S3** - все изображения хранятся в S3
@@ -171,7 +162,15 @@ php artisan view:cache
 - ✅ **Row Level Security** - менеджеры видят только данные своего бренда
 - ✅ **BigInt IDs** - autoincrement BigInt как primary keys
 - ✅ **Observer Pattern** - автоматизация через lifecycle hooks
-- ✅ **No REST API** - фронтенд подключается напрямую к БД через Prisma
+
+**React Admin Panel** (`/sb/admin`):
+- ✅ **React 19 + Inertia.js** - SPA-навигация без REST API
+- ✅ **shadcn/ui** - готовые компоненты на Radix UI
+- ✅ **TypeScript** - полная типизация
+- ✅ **Tailwind CSS 4** - современная утилитарная CSS
+- ✅ **next-themes** - dark mode из коробки
+- ✅ **Ziggy** - type-safe Laravel routes
+- ✅ **i18n** - поддержка en/ru локализации
 
 ## Важные примечания
 
@@ -195,17 +194,21 @@ php artisan view:cache
 
 1. Начните с [Архитектуры](01-architecture.md) для понимания общей структуры
 2. Изучите [Laravel Models](02-models.md) для понимания доменной модели
-3. Просмотрите [Filament Admin](03-filament.md) для понимания админ-панели
+3. Просмотрите [Filament Admin](03-filament.md) для понимания админ-панели на Livewire
 4. Изучите [Database Schema](04-database.md) для понимания структуры БД
 5. Познакомьтесь с [Configuration](05-configuration.md)
 6. Используйте [Development Guide](06-development-guide.md) для практических задач
+7. Изучите [React Admin Panel](09-react-admin.md) для работы с React/Inertia админкой
 
 ## Версия
 
-**Дата последнего обновления**: 2025-12-08
-**Версия документации**: 2.2
+**Дата последнего обновления**: 2025-12-28
+**Версия документации**: 3.0
 **Laravel**: 12.x
 **Filament**: 4.0
 **PHP**: 8.2+
 **PostgreSQL**: 15
-**PrimeVue**: 4.x
+**React**: 19.x
+**Inertia.js**: 2.x
+**shadcn/ui**: Latest
+**Tailwind CSS**: 4.x

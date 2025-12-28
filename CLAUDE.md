@@ -74,11 +74,17 @@ vendor/bin/phpunit --filter TestName  # Run specific test
 
 **Frontend (Admin UI at `/resources/js/admin/`):**
 - **React**: 19.x
-- **Inertia.js**: 2.x (React adapter)
+- **Inertia.js**: 2.x (React adapter) - SPA-like navigation
 - **TypeScript**: 5.x
-- **shadcn/ui**: Component library based on Radix UI
+- **shadcn/ui**: Component library based on Radix UI primitives
 - **Tailwind CSS**: 4.x
 - **Vite**: 6.x
+- **next-themes**: Dark mode management
+- **@tanstack/react-table**: Table component (used in data-table.tsx)
+- **sonner**: Toast notifications
+- **lucide-react**: Icon library
+- **Ziggy**: TypeScript-safe Laravel route helpers
+- **zod**: Schema validation
 
 ### Docker Setup
 
@@ -102,12 +108,21 @@ resources/
 │   ├── app.tsx            # Inertia entry point
 │   ├── Pages/             # Page components
 │   ├── layouts/           # Layout components
-│   ├── components/ui/     # shadcn/ui components
-│   ├── lib/               # Utilities (utils.ts)
+│   ├── components/        # React components
+│   │   ├── ui/            # shadcn/ui components
+│   │   └── *.tsx          # Custom components
+│   ├── lib/               # Utilities (utils.ts, lang.ts)
 │   └── types/             # TypeScript types
-└── css/
-    ├── admin.css          # Admin UI styles (Tailwind 4)
-    └── app.css            # Filament styles
+├── css/
+│   ├── admin.css          # Admin UI styles (Tailwind 4)
+│   └── app.css            # Filament styles
+└── lang/                  # Localization files
+    ├── en/                # English
+    │   ├── admin.php      # Admin UI translations
+    │   └── filament-*.php # Filament translations
+    └── ru/                # Russian
+        ├── admin.php      # Admin UI translations
+        └── filament-*.php # Filament translations
 
 database/
 ├── migrations/            # 32 database migrations
@@ -286,16 +301,42 @@ The admin UI is built with React 19 + Inertia.js in `resources/js/admin/`.
 - Inertia provides SPA-like navigation without API endpoints
 - Server-side state passed as Inertia props from Laravel controllers
 
+**Routing Structure** (`routes/web.php`):
+
+All React admin routes are prefixed with `/sb/admin` and use the `inertia` middleware:
+
+```php
+Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(function () {
+    // Guest routes (login, register)
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', fn() => Inertia::render('Auth/Login'))->name('login');
+    });
+
+    // Authenticated routes
+    Route::middleware('auth')->group(function () {
+        Route::get('/', fn() => Inertia::render('Dashboard'))->name('dashboard');
+        Route::get('/users', [UserController::class, 'index'])->name('users');
+    });
+});
+```
+
 **Creating a new page:**
 1. Create component in `resources/js/admin/Pages/YourPage.tsx`
-2. Add route in `routes/web.php`:
+2. Add route in `routes/web.php` inside the `sb/admin` group:
    ```php
-   Route::get('/admin/your-page', function () {
+   Route::get('/your-page', function () {
        return Inertia::render('YourPage', [
            'data' => YourModel::all(),
        ]);
-   });
+   })->name('your-page');
    ```
+3. URL will be: `http://localhost:8000/sb/admin/your-page`
+
+**Important Routes**:
+- `/sb/admin` - Dashboard (requires auth)
+- `/sb/admin/login` - Login page (guest only)
+- `/sb/admin/users` - User management
+- `/set-locale/{locale}` - Language switcher (en/ru)
 
 ### shadcn/ui Components
 
@@ -372,6 +413,28 @@ import { cn } from '@/lib/utils';
 )} />
 ```
 
+### Utility Functions
+
+**`lib/utils.ts`** - Core utilities:
+```tsx
+import { cn } from '@/lib/utils';
+
+// Merge Tailwind classes with conflict resolution
+cn("px-2 py-1", "px-4") // Result: "py-1 px-4"
+
+// Conditional classes
+cn("base-class", condition && "conditional-class")
+```
+
+**`lib/lang.ts`** - Localization hook:
+```tsx
+import { useLang } from '@/lib/lang';
+
+const { t, lang } = useLang();
+// t() - translation function
+// lang - current locale ('en' | 'ru')
+```
+
 ### TypeScript Types
 
 Type definitions in `resources/js/admin/types/`:
@@ -394,6 +457,135 @@ export default function Dashboard({ auth, stats }: DashboardProps) {
   // Component logic
 }
 ```
+
+### Localization (i18n)
+
+The admin UI supports English (`en`) and Russian (`ru`) locales.
+
+**Translation Files**:
+- `resources/lang/{locale}/admin.php` - Admin UI translations
+- `resources/lang/{locale}/filament-*.php` - Filament panel translations
+
+**Using translations in React**:
+```tsx
+import { useLang } from '@/lib/lang';
+
+export default function MyComponent() {
+  const { t, lang } = useLang();
+
+  return (
+    <h1>{t('admin.welcome')}</h1>
+  );
+}
+```
+
+**Adding new translation keys**:
+1. Add key to `resources/lang/en/admin.php`
+2. Add corresponding translation to `resources/lang/ru/admin.php`
+3. Use via `t('admin.your_key')` in components
+
+**Important**: The `useLang()` hook uses Laravel's lang sync package (`erag/laravel-lang-sync-inertia`) to inject translations into Inertia props. Translations are automatically available on the client without additional requests.
+
+### Route Helpers (Ziggy)
+
+The project uses **Ziggy** (`tightenco/ziggy`) to generate TypeScript-safe route helpers from Laravel routes.
+
+**Usage in React components**:
+```tsx
+import { route } from 'ziggy-js';
+
+export default function MyComponent() {
+  const handleClick = () => {
+    // Navigate using named routes
+    window.location.href = route('sb.admin.users');
+
+    // With parameters
+    window.location.href = route('sb.admin.users.edit', { id: 1 });
+  };
+
+  return <button onClick={handleClick}>Go to Users</button>;
+}
+```
+
+**With Inertia router**:
+```tsx
+import { router } from '@inertiajs/react';
+import { route } from 'ziggy-js';
+
+// Navigate with Inertia (SPA-style, no page reload)
+router.visit(route('sb.admin.users'));
+router.get(route('sb.admin.users.edit', { id: 1 }));
+```
+
+### Controllers
+
+**Admin Controllers** (`app/Http/Controllers/Admin/`):
+- `UserController.php` - User management (CRUD, bulk operations)
+
+**API Controllers** (`app/Http/Controllers/Api/`):
+- `AuthController.php` - Authentication (login, register, logout)
+- `ProductController.php` - Product API endpoints
+- `CategoryController.php` - Category API endpoints
+- `BrandController.php` - Brand API endpoints
+
+**Auth Controllers** (`app/Http/Controllers/Auth/`):
+- Standard Laravel authentication controllers (Breeze-style)
+
+### Middleware
+
+**Custom Middleware** (`app/Http/Middleware/`):
+
+1. **`HandleInertiaRequests.php`**
+   - Shares common data with all Inertia pages
+   - Injects auth user, flash messages, errors
+   - Used automatically by Inertia
+
+2. **`SetLocale.php`**
+   - Sets application locale from session
+   - Applied globally to all requests
+   - Supports `en` and `ru` locales
+
+3. **`Authenticate.php`**
+   - Standard Laravel authentication middleware
+   - Redirects unauthenticated users to login
+
+**Usage in routes**:
+```php
+Route::middleware('auth')->group(function () {
+    // Protected routes
+});
+
+Route::middleware('inertia')->group(function () {
+    // Inertia routes with shared data
+});
+```
+
+## Build Configuration
+
+### Vite Setup (`vite.config.js`)
+
+The project uses Vite 6 with the following plugins:
+- **laravel-vite-plugin**: Laravel integration, handles CSS/JS bundling
+- **@vitejs/plugin-react**: React support with automatic JSX runtime
+- **@vitejs/plugin-vue**: Vue support (for Filament components)
+- **@tailwindcss/vite**: Tailwind CSS 4 processing
+- **@nabla/vite-plugin-eslint**: ESLint integration (admin directory only)
+
+**Path alias**: `@` → `resources/js/admin/`
+
+**Entry points**:
+- `resources/css/app.css` - Filament styles
+- `resources/css/admin.css` - Admin UI styles
+- `resources/js/admin/app.tsx` - React/Inertia app
+
+**Development server**: Hot Module Replacement (HMR) enabled for `.tsx` files
+
+### ESLint Configuration
+
+Linting is configured for TypeScript/React code in `resources/js/admin/`:
+- **Run lint**: `npm run lint`
+- **Auto-fix**: `npm run lint:fix`
+- Configured rules: TypeScript, React, React Hooks, Import order
 
 ## Testing
 
@@ -432,9 +624,62 @@ Configuration in `phpunit.xml`. Tests use array cache and database queue by defa
 ## Important Notes
 
 - **No Soft Deletes**: All deletions are hard deletes
-- **No REST API**: The frontend connects directly to the database via Prisma, not through Laravel API endpoints
+- **No REST API**: The Next.js frontend apps (admin/store) connect directly to the database via Prisma
+- **React Admin Uses Inertia**: The React admin (`/sb/admin`) uses Inertia.js for SPA-like navigation
 - **Localization**: Supports English (en) and Russian (ru)
 - **Queue System**: Uses database driver for background jobs
 - **Observer Pattern**: Used for lifecycle hooks (e.g., S3 cleanup on image deletion)
-- **shadcn/ui First**: Always prefer shadcn/ui components over custom solutions
-- **Type Safety**: Always use TypeScript types for components and data
+
+## Development Best Practices
+
+### React Admin UI
+
+**Component Development**:
+- ✅ **Always use shadcn/ui components** - Never build UI primitives from scratch
+- ✅ **TypeScript for all components** - Type props, state, and data
+- ✅ **Use `cn()` for class merging** - From `@/lib/utils`
+- ✅ **Follow Tailwind 4 syntax** - Use `()` for CSS vars, `bg-linear-*` for gradients
+- ❌ **No inline styles** - Use Tailwind classes exclusively
+- ❌ **No hardcoded colors** - Use theme CSS variables
+
+**State Management**:
+- ✅ **Server state in Inertia props** - Pass data from controllers
+- ✅ **Client state in React hooks** - `useState`, `useReducer`
+- ✅ **Form handling with controlled components**
+- ✅ **Use Inertia router for navigation** - No window.location redirects
+
+**Styling**:
+- ✅ **Dark mode support** - Always add `dark:` variants
+- ✅ **Responsive design** - Use mobile-first breakpoints
+- ✅ **Accessibility** - Use semantic HTML and ARIA attributes
+- ✅ **Theme colors** - `background`, `foreground`, `primary`, `secondary`, etc.
+
+**File Organization**:
+- `Pages/` - Page components (route targets)
+- `components/` - Reusable components
+- `components/ui/` - shadcn/ui components (don't modify)
+- `layouts/` - Layout wrappers
+- `lib/` - Utility functions and hooks
+- `types/` - TypeScript type definitions
+
+### Backend Development
+
+**Laravel Best Practices**:
+- ✅ **Use Eloquent ORM** - No raw SQL queries
+- ✅ **Type hint parameters** - Modern PHP type safety
+- ✅ **Resource controllers** - RESTful naming conventions
+- ✅ **Route groups** - Organize by middleware and prefix
+- ✅ **Validation requests** - Use Form Request classes
+- ✅ **Database transactions** - For multi-step operations
+
+**Inertia Integration**:
+- ✅ **Return Inertia responses** - `Inertia::render('Page', $data)`
+- ✅ **Share common data** - Use `HandleInertiaRequests` middleware
+- ✅ **Flash messages** - `session()->flash()` for notifications
+- ✅ **Named routes** - Always name routes for Ziggy
+
+**Security**:
+- ✅ **Middleware protection** - `auth` for protected routes
+- ✅ **CSRF protection** - Enabled by default
+- ✅ **Input validation** - Validate all user input
+- ✅ **Mass assignment protection** - Use `$fillable` arrays
