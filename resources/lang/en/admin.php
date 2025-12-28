@@ -54,6 +54,7 @@ return [
             'change_role' => 'Change role...',
             'update_role' => 'Update Role',
             'delete_selected' => 'Delete Selected',
+            'clear_selection' => 'Clear selection',
         ],
         'filters' => [
             'search_placeholder' => 'Search by name or email...',

@@ -54,6 +54,7 @@ return [
             'change_role' => 'Изменить роль...',
             'update_role' => 'Обновить роль',
             'delete_selected' => 'Удалить выбранные',
+            'clear_selection' => 'Очистить выбор',
         ],
         'filters' => [
             'search_placeholder' => 'Поиск по имени или email...',
