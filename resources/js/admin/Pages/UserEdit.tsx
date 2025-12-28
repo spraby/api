@@ -1,8 +1,8 @@
-import { router, useForm, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { ArrowLeftIcon } from 'lucide-react';
-import { FormEventHandler } from 'react';
-import { toast } from 'sonner';
+import { FormEventHandler, useEffect, useState } from 'react';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,53 +13,94 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useUser } from '@/lib/hooks/api/useUsers';
+import { useUpdateUser } from '@/lib/hooks/mutations/useUserMutations';
 import { useLang } from '@/lib/lang';
-import { PageProps } from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout';
 
-interface User {
-  id: number;
-  first_name: string | null;
-  last_name: string | null;
-  email: string;
-  role: string | null;
+interface UserEditProps {
+  userId: number;
 }
 
-interface UserEditPageProps extends PageProps {
-  user: User;
-}
-
-export default function UserEdit() {
-  const { user } = usePage<UserEditPageProps>().props;
+export default function UserEdit({ userId }: UserEditProps) {
   const { __ } = useLang();
 
-  const { data, setData, errors, processing } = useForm({
-    first_name: user.first_name || '',
-    last_name: user.last_name || '',
-    email: user.email,
-    role: user.role || '',
+  // API Hooks
+  const { data: user, isLoading, error } = useUser(userId);
+  const updateUser = useUpdateUser();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    role: '',
   });
+
+  // Update form when user data loads
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        email: user.email,
+        role: user.role || '',
+      });
+    }
+  }, [user]);
 
   const handleSubmit: FormEventHandler = (e) => {
     e.preventDefault();
 
-    router.put(`/sb/admin/users/${user.id}`, data, {
-      onError: (errors) => {
-        // Show validation errors in toast
-        if (errors && typeof errors === 'object') {
-          Object.entries(errors).forEach(([_field, messages]) => {
-            const errorMessages = Array.isArray(messages) ? messages : [messages];
-            errorMessages.forEach((message) => {
-              toast.error(String(message));
-            });
-          });
-        } else {
-          toast.error(__('admin.users_edit.messages.update_failed'));
-        }
+    updateUser.mutate(
+      {
+        id: userId,
+        data: formData,
       },
-    });
+      {
+        onSuccess: () => {
+          // Redirect to users list on success
+          router.visit('/sb/admin/users');
+        },
+      }
+    );
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <AdminLayout title={__('admin.users_edit.title')}>
+        <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <AdminLayout title={__('admin.users_edit.title')}>
+        <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
+          <Alert variant="destructive">
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+          <Button variant="outline" onClick={() => router.visit('/sb/admin/users')}>
+            <ArrowLeftIcon className="mr-2 size-4" />
+            {__('admin.users_edit.actions.back')}
+          </Button>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout title={__('admin.users_edit.title')}>
@@ -96,15 +137,12 @@ export default function UserEdit() {
                 <Input
                   id="first_name"
                   type="text"
-                  value={data.first_name}
-                  onChange={(e) => setData('first_name', e.target.value)}
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                   placeholder={__('admin.users_edit.placeholders.first_name')}
                   required
-                  className={errors.first_name ? 'border-destructive' : ''}
+                  disabled={updateUser.isPending}
                 />
-                {errors.first_name && (
-                  <p className="text-sm text-destructive">{errors.first_name}</p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -112,14 +150,11 @@ export default function UserEdit() {
                 <Input
                   id="last_name"
                   type="text"
-                  value={data.last_name}
-                  onChange={(e) => setData('last_name', e.target.value)}
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                   placeholder={__('admin.users_edit.placeholders.last_name')}
-                  className={errors.last_name ? 'border-destructive' : ''}
+                  disabled={updateUser.isPending}
                 />
-                {errors.last_name && (
-                  <p className="text-sm text-destructive">{errors.last_name}</p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -130,24 +165,22 @@ export default function UserEdit() {
                 <Input
                   id="email"
                   type="email"
-                  value={data.email}
-                  onChange={(e) => setData('email', e.target.value)}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder={__('admin.users_edit.placeholders.email')}
                   required
-                  className={errors.email ? 'border-destructive' : ''}
+                  disabled={updateUser.isPending}
                 />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="role">{__('admin.users_edit.fields.role')}</Label>
                 <Select
-                  value={data.role || 'none'}
-                  onValueChange={(value) => setData('role', value === 'none' ? '' : value)}
+                  value={formData.role || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, role: value === 'none' ? '' : value })}
+                  disabled={updateUser.isPending}
                 >
-                  <SelectTrigger id="role" className={errors.role ? 'border-destructive' : ''}>
+                  <SelectTrigger id="role">
                     <SelectValue placeholder={__('admin.users_edit.placeholders.role')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -156,9 +189,6 @@ export default function UserEdit() {
                     <SelectItem value="manager">{__('admin.users_edit.roles.manager')}</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.role && (
-                  <p className="text-sm text-destructive">{errors.role}</p>
-                )}
               </div>
             </div>
 
@@ -171,12 +201,14 @@ export default function UserEdit() {
                   type="button"
                   variant="outline"
                   onClick={() => router.visit('/sb/admin/users')}
-                  disabled={processing}
+                  disabled={updateUser.isPending}
                 >
                   {__('admin.users_edit.actions.cancel')}
                 </Button>
-                <Button type="submit" disabled={processing}>
-                  {processing ? __('admin.users_edit.actions.saving') : __('admin.users_edit.actions.save')}
+                <Button type="submit" disabled={updateUser.isPending}>
+                  {updateUser.isPending
+                    ? __('admin.users_edit.actions.saving')
+                    : __('admin.users_edit.actions.save')}
                 </Button>
               </div>
             </div>

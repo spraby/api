@@ -1,10 +1,10 @@
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreVerticalIcon, Trash2Icon, UserCogIcon } from "lucide-react"
 import * as React from "react"
-import { toast } from "sonner"
 
 import { ResourceList } from '@/components/resource-list';
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,34 +22,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useUsers } from '@/lib/hooks/api/useUsers';
+import { useBulkDeleteUsers, useBulkUpdateUserRoles, useDeleteUser } from '@/lib/hooks/mutations/useUserMutations';
 import { useLang } from '@/lib/lang';
-import { PageProps } from '@/types/inertia';
+import type { User } from '@/types/api';
 import { BulkAction, Filter, ResourceListTranslations } from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
 
 // ============================================
-// TYPES
-// ============================================
-
-export interface User {
-  id: number
-  first_name: string | null
-  last_name: string | null
-  email: string
-  role: string | null
-  created_at: string
-}
-
-interface UsersPageProps extends PageProps {
-  users: User[];
-}
-
-// ============================================
 // COLUMN DEFINITIONS
 // ============================================
 
-const createUserColumns = (__: (key: string) => string): ColumnDef<User>[] => [
+const createUserColumns = (
+  __: (key: string) => string,
+  deleteUser: ReturnType<typeof useDeleteUser>
+): ColumnDef<User>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -177,29 +166,7 @@ const createUserColumns = (__: (key: string) => string): ColumnDef<User>[] => [
           return
         }
 
-        router.post(
-          '/sb/admin/users/bulk-delete',
-          { user_ids: [user.id] },
-          {
-            preserveState: false,
-            preserveScroll: true,
-            onSuccess: () => {
-              toast.success(__('admin.users_table.messages.deleted_success'))
-            },
-            onError: (errors) => {
-              if (errors && typeof errors === 'object') {
-                Object.entries(errors).forEach(([_field, messages]) => {
-                  const errorMessages = Array.isArray(messages) ? messages : [messages]
-                  errorMessages.forEach((message) => {
-                    toast.error(String(message))
-                  })
-                })
-              } else {
-                toast.error(__('admin.users_table.messages.deleted_failed'))
-              }
-            }
-          }
-        )
+        deleteUser.mutate(user.id);
       }
 
       return (
@@ -210,6 +177,7 @@ const createUserColumns = (__: (key: string) => string): ColumnDef<User>[] => [
                 variant="ghost"
                 className="size-8 text-muted-foreground data-[state=open]:bg-muted"
                 size="icon"
+                disabled={deleteUser.isPending}
               >
                 <MoreVerticalIcon className="size-4" />
                 <span className="sr-only">{__('admin.users_table.actions.open_menu')}</span>
@@ -234,8 +202,13 @@ const createUserColumns = (__: (key: string) => string): ColumnDef<User>[] => [
 // ============================================
 
 export default function Users() {
-  const { users } = usePage<UsersPageProps>().props;
   const { __ } = useLang();
+
+  // API Hooks
+  const { data: users, isLoading, error } = useUsers();
+  const bulkDelete = useBulkDeleteUsers();
+  const bulkUpdateRoles = useBulkUpdateUserRoles();
+  const deleteUser = useDeleteUser();
 
   // State for bulk role change
   const [selectedRole, setSelectedRole] = React.useState<string>("")
@@ -244,7 +217,10 @@ export default function Users() {
   // COLUMNS
   // ============================================
 
-  const columns = React.useMemo(() => createUserColumns(__), [__]);
+  const columns = React.useMemo(
+    () => createUserColumns(__, deleteUser),
+    [__, deleteUser]
+  );
 
   // ============================================
   // BULK ACTIONS
@@ -261,33 +237,14 @@ export default function Users() {
       action: async (selectedUsers: User[]) => {
         const userIds = selectedUsers.map(u => u.id)
 
-        router.post(
-          '/sb/admin/users/bulk-update-role',
-          {
-            user_ids: userIds,
-            role: selectedRole
-          },
-          {
-            preserveState: false,
-            preserveScroll: true,
-            onSuccess: () => {
-              toast.success(`${__('admin.users_table.messages.role_updated_success')} ${userIds.length} ${__('admin.users_table.messages.role_updated_users')}`)
-              setSelectedRole("")
-            },
-            onError: (errors) => {
-              if (errors && typeof errors === 'object') {
-                Object.entries(errors).forEach(([_field, messages]) => {
-                  const errorMessages = Array.isArray(messages) ? messages : [messages]
-                  errorMessages.forEach((message) => {
-                    toast.error(String(message))
-                  })
-                })
-              } else {
-                toast.error(__('admin.users_table.messages.role_updated_failed'))
-              }
-            }
+        bulkUpdateRoles.mutate({
+          user_ids: userIds,
+          role: selectedRole
+        }, {
+          onSuccess: () => {
+            setSelectedRole("")
           }
-        )
+        });
       },
     },
     // Bulk Delete
@@ -300,33 +257,10 @@ export default function Users() {
         `${__('admin.users_table.confirm.delete_many')} ${selectedUsers.length} ${__('admin.users_table.confirm.users')}`,
       action: async (selectedUsers: User[]) => {
         const userIds = selectedUsers.map(u => u.id)
-
-        router.post(
-          '/sb/admin/users/bulk-delete',
-          { user_ids: userIds },
-          {
-            preserveState: false,
-            preserveScroll: true,
-            onSuccess: () => {
-              toast.success(`${__('admin.users_table.messages.deleted_many_success')} ${userIds.length} ${__('admin.users_table.messages.deleted_many_users')}`)
-            },
-            onError: (errors) => {
-              if (errors && typeof errors === 'object') {
-                Object.entries(errors).forEach(([_field, messages]) => {
-                  const errorMessages = Array.isArray(messages) ? messages : [messages]
-                  errorMessages.forEach((message) => {
-                    toast.error(String(message))
-                  })
-                })
-              } else {
-                toast.error(__('admin.users_table.messages.deleted_many_failed'))
-              }
-            }
-          }
-        )
+        bulkDelete.mutate({ user_ids: userIds });
       },
     },
-  ], [__, selectedRole]);
+  ], [__, selectedRole, bulkDelete, bulkUpdateRoles]);
 
   // ============================================
   // FILTERS
@@ -383,6 +317,38 @@ export default function Users() {
   }), [__]);
 
   // ============================================
+  // LOADING & ERROR STATES
+  // ============================================
+
+  if (isLoading) {
+    return (
+      <AdminLayout title={__('admin.users.title')}>
+        <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout title={__('admin.users.title')}>
+        <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
+          <Alert variant="destructive">
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  // ============================================
   // RENDER
   // ============================================
 
@@ -399,7 +365,7 @@ export default function Users() {
         </div>
 
         <ResourceList
-          data={users}
+          data={users || []}
           columns={columns}
           getRowId={(row) => row.id.toString()}
           translations={translations}

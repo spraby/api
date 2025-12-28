@@ -41,11 +41,19 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
             return Inertia::render('Dashboard');
         });
 
-        Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users');
+        // Inertia routes (page rendering only)
+        Route::get('/users', function () {
+            return Inertia::render('Users');
+        })->name('users');
         Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
-        Route::post('/users/bulk-delete', [App\Http\Controllers\Admin\UserController::class, 'bulkDelete'])->name('users.bulk-delete');
-        Route::post('/users/bulk-update-role', [App\Http\Controllers\Admin\UserController::class, 'bulkUpdateRole'])->name('users.bulk-update-role');
+
+        // API routes (JSON only, for TanStack Query)
+        Route::get('/users/api', [App\Http\Controllers\Admin\UserController::class, 'apiIndex'])->name('users.api.index');
+        Route::get('/users/{id}/api', [App\Http\Controllers\Admin\UserController::class, 'apiShow'])->name('users.api.show');
+        Route::put('/users/{id}/api', [App\Http\Controllers\Admin\UserController::class, 'apiUpdate'])->name('users.api.update');
+        Route::delete('/users/{id}/api', [App\Http\Controllers\Admin\UserController::class, 'apiDestroy'])->name('users.api.destroy');
+        Route::post('/users/bulk-delete/api', [App\Http\Controllers\Admin\UserController::class, 'apiBulkDelete'])->name('users.api.bulk-delete');
+        Route::post('/users/bulk-update-role/api', [App\Http\Controllers\Admin\UserController::class, 'apiBulkUpdateRole'])->name('users.api.bulk-update-role');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
     });
