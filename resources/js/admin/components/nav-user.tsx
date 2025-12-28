@@ -1,3 +1,4 @@
+import { router } from "@inertiajs/react"
 import {
   LogOutIcon,
   MoreVerticalIcon,
@@ -35,6 +36,10 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
 
+  const handleLogout = () => {
+    router.post('/sb/admin/logout')
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -70,7 +75,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>
