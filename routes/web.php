@@ -42,6 +42,8 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         });
 
         Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users');
+        Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
         Route::post('/users/bulk-delete', [App\Http\Controllers\Admin\UserController::class, 'bulkDelete'])->name('users.bulk-delete');
         Route::post('/users/bulk-update-role', [App\Http\Controllers\Admin\UserController::class, 'bulkUpdateRole'])->name('users.bulk-update-role');
 

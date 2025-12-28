@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -80,5 +81,64 @@ class UserController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    /**
+     * Show the form for editing the specified user.
+     */
+    public function edit(int $id): Response
+    {
+        $user = User::with('roles')->findOrFail($id);
+
+        return Inertia::render('UserEdit', [
+            'user' => [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'role' => $user->roles->first()?->name ?? null,
+            ]
+        ]);
+    }
+
+    /**
+     * Update the specified user in storage.
+     */
+    public function update(UpdateUserRequest $request, int $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            $validated = $request->validated();
+
+            // Update user basic info
+            $user->update([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+            ]);
+
+            // Update role if provided
+            if (isset($validated['role'])) {
+                if ($validated['role'] === '') {
+                    // Remove all roles
+                    $user->syncRoles([]);
+                } else {
+                    // Sync to new role
+                    $user->syncRoles([$validated['role']]);
+                }
+            } else {
+                // If role is not in request, remove all roles
+                $user->syncRoles([]);
+            }
+
+            return redirect()
+                ->back()
+                ->with('success', 'User updated successfully');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to update user: ' . $e->getMessage());
+        }
     }
 }

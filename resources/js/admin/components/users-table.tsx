@@ -116,7 +116,7 @@ const columns: ColumnDef<User>[] = [
         </div>
       )
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, _id, value) => {
       const user = row.original
       const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ").toLowerCase()
       const email = user.email.toLowerCase()
@@ -175,7 +175,45 @@ const columns: ColumnDef<User>[] = [
   },
   {
     id: "actions",
-    cell: () => {
+    cell: ({ row }) => {
+      const user = row.original
+
+      const handleEdit = () => {
+        router.visit(`/sb/admin/users/${user.id}/edit`)
+      }
+
+      const handleDelete = () => {
+        // eslint-disable-next-line no-alert
+        if (!confirm(`Are you sure you want to delete ${user.first_name || user.email}?`)) {
+          return
+        }
+
+        router.post(
+          '/sb/admin/users/bulk-delete',
+          { user_ids: [user.id] },
+          {
+            preserveState: false,
+            preserveScroll: true,
+            onSuccess: () => {
+              toast.success('User deleted successfully')
+            },
+            onError: (errors) => {
+              // Show validation errors in toast
+              if (errors && typeof errors === 'object') {
+                Object.entries(errors).forEach(([_field, messages]) => {
+                  const errorMessages = Array.isArray(messages) ? messages : [messages]
+                  errorMessages.forEach((message) => {
+                    toast.error(String(message))
+                  })
+                })
+              } else {
+                toast.error('Failed to delete user')
+              }
+            }
+          }
+        )
+      }
+
       return (
         <div className="flex justify-end">
           <DropdownMenu>
@@ -190,10 +228,9 @@ const columns: ColumnDef<User>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem>View details</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -264,8 +301,17 @@ export function UsersTable({ data }: { data: User[] }) {
           setRowSelection({})
         },
         onError: (errors) => {
-          toast.error('Failed to delete users')
-          console.error(errors)
+          // Show validation errors in toast
+          if (errors && typeof errors === 'object') {
+            Object.entries(errors).forEach(([_field, messages]) => {
+              const errorMessages = Array.isArray(messages) ? messages : [messages]
+              errorMessages.forEach((message) => {
+                toast.error(String(message))
+              })
+            })
+          } else {
+            toast.error('Failed to delete users')
+          }
         },
         onFinish: () => {
           setIsDeleting(false)
@@ -292,8 +338,17 @@ export function UsersTable({ data }: { data: User[] }) {
           setSelectedRole("")
         },
         onError: (errors) => {
-          toast.error('Failed to update roles')
-          console.error(errors)
+          // Show validation errors in toast
+          if (errors && typeof errors === 'object') {
+            Object.entries(errors).forEach(([_field, messages]) => {
+              const errorMessages = Array.isArray(messages) ? messages : [messages]
+              errorMessages.forEach((message) => {
+                toast.error(String(message))
+              })
+            })
+          } else {
+            toast.error('Failed to update roles')
+          }
         }
       }
     )
