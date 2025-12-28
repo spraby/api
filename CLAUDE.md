@@ -15,9 +15,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Laravel 12 backend API with Filament 4.0 admin panel for an e-commerce platform. The project uses Docker for containerization and PostgreSQL 15 as the database.
+Laravel 12 backend API with Filament 4.0 admin panel and React/Inertia admin UI for an e-commerce platform. Uses Docker for containerization and PostgreSQL 15 as database.
 
-**Key Architecture Point**: This API shares a PostgreSQL database with Next.js frontend applications (admin and store). The frontend apps access the database directly via Prisma, while this Laravel API provides the Filament admin panel for content management.
+**Key Architecture Point**: This API shares a PostgreSQL database with Next.js frontend applications (admin and store). The frontend apps access the database directly via Prisma, while this Laravel API provides the Filament admin panel for content management and a React/Inertia admin interface.
 
 ## Development Commands
 
@@ -47,6 +47,8 @@ php artisan db:seed  # Seed the database
 php artisan pail     # View logs in real-time
 npm run dev          # Run Vite for asset compilation
 npm run build        # Build assets for production
+npm run lint         # Lint admin frontend code
+npm run lint:fix     # Auto-fix linting issues
 ```
 
 ### Testing
@@ -62,13 +64,21 @@ vendor/bin/phpunit --filter TestName  # Run specific test
 
 ### Technology Stack
 
+**Backend:**
 - **Laravel**: 12.x
 - **PHP**: 8.2+
 - **Filament**: 4.0 (Admin Panel)
 - **PostgreSQL**: 15 (port 5435)
 - **Spatie Laravel Permission**: Role-based access control
 - **AWS S3**: Image storage via league/flysystem-aws-s3-v3
-- **PrimeVue**: UI component library for Vue.js components (используем по максимуму для всех UI элементов)
+
+**Frontend (Admin UI at `/resources/js/admin/`):**
+- **React**: 19.x
+- **Inertia.js**: 2.x (React adapter)
+- **TypeScript**: 5.x
+- **shadcn/ui**: Component library based on Radix UI
+- **Tailwind CSS**: 4.x
+- **Vite**: 6.x
 
 ### Docker Setup
 
@@ -87,13 +97,23 @@ app/
 ├── Livewire/              # Custom Livewire components
 └── Http/                  # Controllers and middleware
 
+resources/
+├── js/admin/              # React/Inertia admin UI
+│   ├── app.tsx            # Inertia entry point
+│   ├── Pages/             # Page components
+│   ├── layouts/           # Layout components
+│   ├── components/ui/     # shadcn/ui components
+│   ├── lib/               # Utilities (utils.ts)
+│   └── types/             # TypeScript types
+└── css/
+    ├── admin.css          # Admin UI styles (Tailwind 4)
+    └── app.css            # Filament styles
+
 database/
 ├── migrations/            # 32 database migrations
 └── seeders/               # 19 seeders (orchestrated via DatabaseSeeder)
 
-routes/web.php             # Minimal routes (mainly for Filament)
-.claude/
-└── .tasks/                # Task management files (created by Claude)
+routes/web.php             # Routes (Filament + React admin pages)
 ```
 
 ### Key Domain Models
@@ -253,6 +273,128 @@ php artisan view:clear
 php artisan route:clear
 ```
 
+## Frontend Development Guidelines
+
+### React/Inertia Admin UI
+
+The admin UI is built with React 19 + Inertia.js in `resources/js/admin/`.
+
+**Key Points:**
+- Entry point: `resources/js/admin/app.tsx`
+- Pages auto-loaded from `resources/js/admin/Pages/`
+- Uses TypeScript for type safety
+- Inertia provides SPA-like navigation without API endpoints
+- Server-side state passed as Inertia props from Laravel controllers
+
+**Creating a new page:**
+1. Create component in `resources/js/admin/Pages/YourPage.tsx`
+2. Add route in `routes/web.php`:
+   ```php
+   Route::get('/admin/your-page', function () {
+       return Inertia::render('YourPage', [
+           'data' => YourModel::all(),
+       ]);
+   });
+   ```
+
+### shadcn/ui Components
+
+**КРИТИЧЕСКОЕ ПРАВИЛО**: При разработке UI ВСЕГДА использовать компоненты shadcn/ui.
+
+Components are located in `resources/js/admin/components/ui/`. Available components include:
+- **Layout**: `sidebar`, `card`, `separator`, `accordion`
+- **Forms**: `select`, `input`, `checkbox`, `switch`, `label`
+- **Buttons**: `button`, `toggle`, `toggle-group`
+- **Overlays**: `dialog`, `dropdown-menu`, `tooltip`, `alert-dialog`
+- **Data Display**: `badge`, `avatar`, `tabs`, `table` (@tanstack/react-table)
+- **Feedback**: `sonner` (toast notifications)
+
+**Installing new shadcn components:**
+```bash
+npx shadcn@latest add component-name
+```
+
+**Usage example:**
+```tsx
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
+export default function Dashboard() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Dashboard</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Button variant="default">Click me</Button>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Tailwind CSS 4
+
+**КРИТИЧЕСКОЕ ПРАВИЛО**: В проекте используется **Tailwind CSS 4.x** - ВСЕГДА использовать Tailwind для стилизации.
+
+**⚠️ ОБЯЗАТЕЛЬНО**: Перед написанием стилей проверить документацию: https://tailwindcss.com/docs
+
+**Ключевые изменения синтаксиса v3 → v4**:
+- Градиенты: `bg-gradient-to-r` → `bg-linear-to-r`
+- !important: `!p-4` → `p-4!` (суффикс вместо префикса)
+- CSS переменные: `bg-[--color]` → `bg-(--color)` (круглые скобки)
+- Тени: `shadow-sm` → `shadow-xs`, `shadow` → `shadow-sm`
+- Кольца: `ring` → `ring-3` (ширина изменена с 3px на 1px)
+- Outline: `outline-none` → `outline-hidden`
+- Скругления: `rounded-sm` → `rounded-xs`
+- Порядок вариантов: `first:*:pt-0` → `*:first:pt-0` (left-to-right)
+
+**Theme Configuration** (`resources/css/admin.css`):
+- Uses `@theme inline` block for custom CSS variables
+- Dark mode via `.dark` class on `<html>` element
+- Custom color palette: `background`, `foreground`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`, `chart-*`, `sidebar-*`
+- Managed by `next-themes` package
+
+**Правила стилизации**:
+- ✅ **Tailwind классы в JSX** - всегда предпочтительнее
+- ✅ **cn() utility** для условных классов (from `lib/utils.ts`)
+- ✅ **CSS переменные темы** - использовать color palette вместо жёстко заданных цветов
+- ❌ **Избегать inline styles** - использовать Tailwind классы
+
+**Пример использования cn():**
+```tsx
+import { cn } from '@/lib/utils';
+
+<div className={cn(
+  "flex items-center gap-2 px-4 py-2 rounded-lg transition-all",
+  isActive && "bg-primary text-primary-foreground",
+  !isActive && "bg-muted hover:bg-muted/80"
+)} />
+```
+
+### TypeScript Types
+
+Type definitions in `resources/js/admin/types/`:
+- `models.ts` - Domain model types (User, Product, etc.)
+- `inertia.d.ts` - Inertia page props types
+- `global.d.ts` - Global type augmentations
+
+Always type your components and props:
+```tsx
+import { PageProps } from '@/types/inertia';
+
+interface DashboardProps extends PageProps {
+  stats: {
+    totalProducts: number;
+    totalOrders: number;
+  };
+}
+
+export default function Dashboard({ auth, stats }: DashboardProps) {
+  // Component logic
+}
+```
+
 ## Testing
 
 Configuration in `phpunit.xml`. Tests use array cache and database queue by default.
@@ -287,90 +429,6 @@ Configuration in `phpunit.xml`. Tests use array cache and database queue by defa
   - [ ] Подпункт 3.1
 ```
 
-## Frontend Development Guidelines
-
-### PrimeVue Usage
-
-**КРИТИЧЕСКОЕ ПРАВИЛО**: При разработке Vue.js компонентов ВСЕГДА использовать компоненты PrimeVue по максимуму.
-
-**⚠️ ОБЯЗАТЕЛЬНО**: Перед использованием любого компонента PrimeVue:
-1. Проверить актуальную документацию: https://primevue.org/
-2. Учитывать версию PrimeVue (в проекте используется **PrimeVue 4.x**)
-3. В PrimeVue 4 многие компоненты были переименованы или заменены:
-   - `OverlayPanel` → `Popover`
-   - `Dropdown` → `Select`
-   - `InputSwitch` → `ToggleSwitch`
-   - И другие изменения - всегда сверяться с документацией!
-
-- ✅ **Используем PrimeVue для всех UI элементов**: кнопки, формы, меню, таблицы, диалоги, и т.д.
-- ✅ **PrimeVue Theme**: Используется тема Aura
-- ✅ **PrimeIcons**: Используются иконки из пакета `primeicons`
-- ✅ **Минимум кастомных стилей**: Использовать встроенные стили PrimeVue и Tailwind классы. Избегать `<style scoped>` где возможно
-- ✅ **PrimeVue PassThrough (PT)**: Для кастомизации использовать PT API вместо CSS переопределений
-- ❌ **Избегаем кастомных компонентов**: Не создавать кастомные UI компоненты, если есть готовый PrimeVue аналог
-- ❌ **Не использовать устаревшие компоненты**: Всегда проверять документацию на актуальность
-- ❌ **Избегать `<style scoped>`**: Стилизация через Tailwind классы в template или PT API PrimeVue
-
-**Установленные пакеты**:
-- `primevue` - основная библиотека компонентов
-- `primeicons` - набор иконок
-- `@primevue/themes` - система тем
-
-**Примеры компонентов PrimeVue**:
-- Навигация: `Menu`, `PanelMenu`, `TieredMenu`, `Menubar`, `MegaMenu`
-- Формы: `InputText`, `InputNumber`, `Dropdown`, `Calendar`, `Checkbox`, `RadioButton`
-- Кнопки: `Button`, `SplitButton`, `ToggleButton`
-- Данные: `DataTable`, `Tree`, `TreeTable`, `Paginator`
-- Диалоги: `Dialog`, `ConfirmDialog`, `Toast`
-- Панели: `Panel`, `Accordion`, `TabView`, `Card`
-
-**Конфигурация** (в `resources/js/app.js`):
-```javascript
-import PrimeVue from 'primevue/config';
-import Aura from '@primevue/themes/aura';
-import 'primeicons/primeicons.css';
-
-app.use(PrimeVue, {
-    theme: {
-        preset: Aura
-    }
-});
-```
-
-### Tailwind CSS 4
-
-**КРИТИЧЕСКОЕ ПРАВИЛО**: В проекте используется **Tailwind CSS 4.x** - ВСЕГДА использовать Tailwind для стилизации.
-
-**⚠️ ОБЯЗАТЕЛЬНО**: Перед написанием стилей:
-1. Проверить актуальную документацию: https://tailwindcss.com/docs
-2. Учитывать изменения в Tailwind 4 по сравнению с v3:
-
-**Ключевые изменения синтаксиса v3 → v4**:
-- Градиенты: `bg-gradient-to-r` → `bg-linear-to-r`
-- !important: `!p-4` → `p-4!` (суффикс вместо префикса)
-- CSS переменные: `bg-[--color]` → `bg-(--color)` (круглые скобки)
-- Тени: `shadow-sm` → `shadow-xs`, `shadow` → `shadow-sm`
-- Кольца: `ring` → `ring-3` (ширина изменена с 3px на 1px)
-- Outline: `outline-none` → `outline-hidden`
-- Скругления: `rounded-sm` → `rounded-xs`
-- Порядок вариантов: `first:*:pt-0` → `*:first:pt-0` (left-to-right)
-
-**Правила стилизации**:
-- ✅ **Tailwind классы в template** - всегда предпочтительнее
-- ✅ **Computed функции для динамических классов** - когда нужна логика
-- ❌ **Избегать `<style scoped>`** - использовать только если Tailwind не подходит
-- ❌ **Не использовать `@apply` в global styles** - не работает для элементов вне компонента
-
-**Пример динамических классов**:
-```javascript
-const buttonClasses = computed(() => (isActive) => {
-    const base = 'flex items-center gap-2 px-4 py-2 rounded-lg transition-all';
-    return isActive
-        ? `${base} bg-indigo-600 text-white`
-        : `${base} bg-slate-100 hover:bg-slate-200`;
-});
-```
-
 ## Important Notes
 
 - **No Soft Deletes**: All deletions are hard deletes
@@ -378,4 +436,5 @@ const buttonClasses = computed(() => (isActive) => {
 - **Localization**: Supports English (en) and Russian (ru)
 - **Queue System**: Uses database driver for background jobs
 - **Observer Pattern**: Used for lifecycle hooks (e.g., S3 cleanup on image deletion)
-- **PrimeVue First**: Always prefer PrimeVue components over custom solutions
+- **shadcn/ui First**: Always prefer shadcn/ui components over custom solutions
+- **Type Safety**: Always use TypeScript types for components and data
