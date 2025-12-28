@@ -1,5 +1,4 @@
 import {
-  ArrowUpCircleIcon,
   CameraIcon,
   ClipboardListIcon,
   DatabaseIcon,
@@ -171,8 +170,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <button type="button">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">SPRABY</span>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
