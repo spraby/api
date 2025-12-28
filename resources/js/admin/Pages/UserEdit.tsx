@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLang } from '@/lib/lang';
 import { PageProps } from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -31,6 +32,7 @@ interface UserEditPageProps extends PageProps {
 
 export default function UserEdit() {
   const { user } = usePage<UserEditPageProps>().props;
+  const { __ } = useLang();
 
   const { data, setData, errors, processing } = useForm({
     first_name: user.first_name || '',
@@ -53,14 +55,14 @@ export default function UserEdit() {
             });
           });
         } else {
-          toast.error('Failed to update user. Please check the form for errors.');
+          toast.error(__('admin.users_edit.messages.update_failed'));
         }
       },
     });
   };
 
   return (
-    <AdminLayout title={`Edit User #${user.id}`}>
+    <AdminLayout title={__('admin.users_edit.title')}>
       <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
@@ -74,11 +76,11 @@ export default function UserEdit() {
                 <ArrowLeftIcon className="size-4" />
               </Button>
               <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-                Edit User
+                {__('admin.users_edit.title')}
               </h1>
             </div>
             <p className="pl-10 text-sm text-muted-foreground">
-              Update user information and permissions
+              {__('admin.users_edit.description')}
             </p>
           </div>
         </div>
@@ -88,7 +90,7 @@ export default function UserEdit() {
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="first_name" className="flex items-center gap-1">
-                  First Name
+                  {__('admin.users_edit.fields.first_name')}
                   <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -96,7 +98,7 @@ export default function UserEdit() {
                   type="text"
                   value={data.first_name}
                   onChange={(e) => setData('first_name', e.target.value)}
-                  placeholder="Enter first name"
+                  placeholder={__('admin.users_edit.placeholders.first_name')}
                   required
                   className={errors.first_name ? 'border-destructive' : ''}
                 />
@@ -106,13 +108,13 @@ export default function UserEdit() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name</Label>
+                <Label htmlFor="last_name">{__('admin.users_edit.fields.last_name')}</Label>
                 <Input
                   id="last_name"
                   type="text"
                   value={data.last_name}
                   onChange={(e) => setData('last_name', e.target.value)}
-                  placeholder="Enter last name"
+                  placeholder={__('admin.users_edit.placeholders.last_name')}
                   className={errors.last_name ? 'border-destructive' : ''}
                 />
                 {errors.last_name && (
@@ -122,7 +124,7 @@ export default function UserEdit() {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-1">
-                  Email
+                  {__('admin.users_edit.fields.email')}
                   <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -130,7 +132,7 @@ export default function UserEdit() {
                   type="email"
                   value={data.email}
                   onChange={(e) => setData('email', e.target.value)}
-                  placeholder="user@example.com"
+                  placeholder={__('admin.users_edit.placeholders.email')}
                   required
                   className={errors.email ? 'border-destructive' : ''}
                 />
@@ -140,18 +142,18 @@ export default function UserEdit() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role">{__('admin.users_edit.fields.role')}</Label>
                 <Select
                   value={data.role || 'none'}
                   onValueChange={(value) => setData('role', value === 'none' ? '' : value)}
                 >
                   <SelectTrigger id="role" className={errors.role ? 'border-destructive' : ''}>
-                    <SelectValue placeholder="Select role" />
+                    <SelectValue placeholder={__('admin.users_edit.placeholders.role')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">User (No role)</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="none">{__('admin.users_edit.roles.none')}</SelectItem>
+                    <SelectItem value="admin">{__('admin.users_edit.roles.admin')}</SelectItem>
+                    <SelectItem value="manager">{__('admin.users_edit.roles.manager')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.role && (
@@ -162,7 +164,7 @@ export default function UserEdit() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                <span className="text-destructive">*</span> Required fields
+                <span className="text-destructive">*</span> {__('admin.users_edit.required_fields')}
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
@@ -171,10 +173,10 @@ export default function UserEdit() {
                   onClick={() => router.visit('/sb/admin/users')}
                   disabled={processing}
                 >
-                  Cancel
+                  {__('admin.users_edit.actions.cancel')}
                 </Button>
                 <Button type="submit" disabled={processing}>
-                  {processing ? 'Saving...' : 'Save Changes'}
+                  {processing ? __('admin.users_edit.actions.saving') : __('admin.users_edit.actions.save')}
                 </Button>
               </div>
             </div>

@@ -57,6 +57,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useLang } from "@/lib/lang"
 
 export interface User {
   id: number
@@ -67,7 +68,8 @@ export interface User {
   created_at: string
 }
 
-const columns: ColumnDef<User>[] = [
+// Column definitions - using a factory function to access translations
+const createColumns = (__: (key: string) => string): ColumnDef<User>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -96,7 +98,7 @@ const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "id",
-    header: "ID",
+    header: __('admin.users_table.columns.id'),
     cell: ({ row }) => (
       <div className="w-16 font-medium text-muted-foreground">
         #{row.getValue("id")}
@@ -105,7 +107,7 @@ const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: __('admin.users_table.columns.name'),
     cell: ({ row }) => {
       const user = row.original
       const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ")
@@ -128,7 +130,7 @@ const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "role",
-    header: "Role",
+    header: __('admin.users_table.columns.role'),
     cell: ({ row }) => {
       const role = row.getValue("role") as string | null
 
@@ -138,15 +140,22 @@ const columns: ColumnDef<User>[] = [
       }
 
       if (!role) {
-        return <Badge variant="outline" className="text-muted-foreground">User</Badge>
+        return <Badge variant="outline" className="text-muted-foreground">{__('admin.users_table.roles.user')}</Badge>
       }
+
+      const roleKey = role.toLowerCase();
+      const roleLabel = roleKey === 'admin'
+        ? __('admin.users_table.roles.admin')
+        : roleKey === 'manager'
+        ? __('admin.users_table.roles.manager')
+        : role;
 
       return (
         <Badge
           variant="outline"
-          className={roleColors[role.toLowerCase()] || ""}
+          className={roleColors[roleKey] || ""}
         >
-          {role}
+          {roleLabel}
         </Badge>
       )
     },
@@ -159,7 +168,7 @@ const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "created_at",
-    header: "Created",
+    header: __('admin.users_table.columns.created'),
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"))
       return (
@@ -184,7 +193,7 @@ const columns: ColumnDef<User>[] = [
 
       const handleDelete = () => {
         // eslint-disable-next-line no-alert
-        if (!confirm(`Are you sure you want to delete ${user.first_name || user.email}?`)) {
+        if (!confirm(`${__('admin.users_table.confirm.delete_one')} ${user.first_name || user.email}?`)) {
           return
         }
 
@@ -195,7 +204,7 @@ const columns: ColumnDef<User>[] = [
             preserveState: false,
             preserveScroll: true,
             onSuccess: () => {
-              toast.success('User deleted successfully')
+              toast.success(__('admin.users_table.messages.deleted_success'))
             },
             onError: (errors) => {
               // Show validation errors in toast
@@ -207,7 +216,7 @@ const columns: ColumnDef<User>[] = [
                   })
                 })
               } else {
-                toast.error('Failed to delete user')
+                toast.error(__('admin.users_table.messages.deleted_failed'))
               }
             }
           }
@@ -224,14 +233,14 @@ const columns: ColumnDef<User>[] = [
                 size="icon"
               >
                 <MoreVerticalIcon className="size-4" />
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{__('admin.users_table.actions.open_menu')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEdit}>{__('admin.users_table.actions.edit')}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                Delete
+                {__('admin.users_table.actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -242,6 +251,9 @@ const columns: ColumnDef<User>[] = [
 ]
 
 export function UsersTable({ data }: { data: User[] }) {
+  const { __ } = useLang();
+  const columns = React.useMemo(() => createColumns(__), [__]);
+
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -285,7 +297,7 @@ export function UsersTable({ data }: { data: User[] }) {
     if (!selectedUserIds.length) return
 
     // eslint-disable-next-line no-alert
-    if (!confirm(`Are you sure you want to delete ${selectedUserIds.length} user(s)?`)) {
+    if (!confirm(`${__('admin.users_table.confirm.delete_many')} ${selectedUserIds.length} ${__('admin.users_table.confirm.users')}`)) {
       return
     }
 
@@ -297,7 +309,7 @@ export function UsersTable({ data }: { data: User[] }) {
         preserveState: false,
         preserveScroll: true,
         onSuccess: () => {
-          toast.success(`Successfully deleted ${selectedUserIds.length} user(s)`)
+          toast.success(`${__('admin.users_table.messages.deleted_many_success')} ${selectedUserIds.length} ${__('admin.users_table.messages.deleted_many_users')}`)
           setRowSelection({})
         },
         onError: (errors) => {
@@ -310,7 +322,7 @@ export function UsersTable({ data }: { data: User[] }) {
               })
             })
           } else {
-            toast.error('Failed to delete users')
+            toast.error(__('admin.users_table.messages.deleted_many_failed'))
           }
         },
         onFinish: () => {
@@ -333,7 +345,7 @@ export function UsersTable({ data }: { data: User[] }) {
         preserveState: false,
         preserveScroll: true,
         onSuccess: () => {
-          toast.success(`Successfully updated role for ${selectedUserIds.length} user(s)`)
+          toast.success(`${__('admin.users_table.messages.role_updated_success')} ${selectedUserIds.length} ${__('admin.users_table.messages.role_updated_users')}`)
           setRowSelection({})
           setSelectedRole("")
         },
@@ -347,7 +359,7 @@ export function UsersTable({ data }: { data: User[] }) {
               })
             })
           } else {
-            toast.error('Failed to update roles')
+            toast.error(__('admin.users_table.messages.role_updated_failed'))
           }
         }
       }
@@ -362,7 +374,7 @@ export function UsersTable({ data }: { data: User[] }) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">
-                {selectedRows.length} selected
+                {selectedRows.length} {__('admin.users_table.bulk.selected')}
               </span>
               <Button
                 variant="ghost"
@@ -380,11 +392,11 @@ export function UsersTable({ data }: { data: User[] }) {
                 onValueChange={setSelectedRole}
               >
                 <SelectTrigger className="h-9 w-full sm:w-40">
-                  <SelectValue placeholder="Change role..." />
+                  <SelectValue placeholder={__('admin.users_table.bulk.change_role')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="admin">{__('admin.users_table.roles.admin')}</SelectItem>
+                  <SelectItem value="manager">{__('admin.users_table.roles.manager')}</SelectItem>
                 </SelectContent>
               </Select>
               <Button
@@ -395,7 +407,7 @@ export function UsersTable({ data }: { data: User[] }) {
                 className="h-9 w-full sm:w-auto"
               >
                 <UserCogIcon className="size-4" />
-                <span className="sm:inline">Update Role</span>
+                <span className="sm:inline">{__('admin.users_table.bulk.update_role')}</span>
               </Button>
             </div>
           </div>
@@ -407,7 +419,7 @@ export function UsersTable({ data }: { data: User[] }) {
             className="h-9 w-full sm:w-auto"
           >
             <Trash2Icon className="size-4" />
-            <span>Delete Selected</span>
+            <span>{__('admin.users_table.bulk.delete_selected')}</span>
           </Button>
         </div>
       )}
@@ -418,7 +430,7 @@ export function UsersTable({ data }: { data: User[] }) {
           <div className="relative flex-1 sm:max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder={__('admin.users_table.filters.search_placeholder')}
               value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
                 table.getColumn("name")?.setFilterValue(event.target.value)
@@ -433,13 +445,13 @@ export function UsersTable({ data }: { data: User[] }) {
             }
           >
             <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="All roles" />
+              <SelectValue placeholder={__('admin.users_table.filters.all_roles')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All roles</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="manager">Manager</SelectItem>
-              <SelectItem value="user">User</SelectItem>
+              <SelectItem value="all">{__('admin.users_table.filters.all_roles')}</SelectItem>
+              <SelectItem value="admin">{__('admin.users_table.roles.admin')}</SelectItem>
+              <SelectItem value="manager">{__('admin.users_table.roles.manager')}</SelectItem>
+              <SelectItem value="user">{__('admin.users_table.roles.user')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -447,7 +459,7 @@ export function UsersTable({ data }: { data: User[] }) {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="w-full sm:w-auto">
               <ColumnsIcon />
-              <span>Columns</span>
+              <span>{__('admin.users_table.filters.columns')}</span>
               <ChevronDownIcon />
             </Button>
           </DropdownMenuTrigger>
@@ -466,7 +478,7 @@ export function UsersTable({ data }: { data: User[] }) {
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) => column.toggleVisibility(!!value)}
                   >
-                    {column.id}
+                    {__(`admin.users_table.columns.${column.id}`)}
                   </DropdownMenuCheckboxItem>
                 )
               })}
@@ -519,7 +531,7 @@ export function UsersTable({ data }: { data: User[] }) {
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No users found.
+                    {__('admin.users_table.empty')}
                   </TableCell>
                 </TableRow>
               )}
@@ -531,13 +543,13 @@ export function UsersTable({ data }: { data: User[] }) {
       {/* Pagination */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} {__('admin.users_table.pagination.rows_selected')}{" "}
+          {table.getFilteredRowModel().rows.length} {__('admin.users_table.pagination.row')}
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 lg:gap-8">
           <div className="flex items-center gap-2">
             <Label htmlFor="rows-per-page" className="text-sm font-medium whitespace-nowrap">
-              Rows per page
+              {__('admin.users_table.pagination.rows_per_page')}
             </Label>
             <Select
               value={`${table.getState().pagination.pageSize}`}
@@ -559,7 +571,7 @@ export function UsersTable({ data }: { data: User[] }) {
           </div>
           <div className="flex items-center justify-between gap-2 sm:justify-center">
             <div className="flex w-fit items-center justify-center text-sm font-medium sm:min-w-24">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {__('admin.users_table.pagination.page')} {table.getState().pagination.pageIndex + 1} {__('admin.users_table.pagination.of')}{" "}
               {table.getPageCount()}
             </div>
             <div className="flex items-center gap-2">
@@ -570,7 +582,7 @@ export function UsersTable({ data }: { data: User[] }) {
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to first page</span>
+                <span className="sr-only">{__('admin.users_table.pagination.go_first')}</span>
                 <ChevronsLeftIcon />
               </Button>
               <Button
@@ -580,7 +592,7 @@ export function UsersTable({ data }: { data: User[] }) {
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to previous page</span>
+                <span className="sr-only">{__('admin.users_table.pagination.go_previous')}</span>
                 <ChevronLeftIcon />
               </Button>
               <Button
@@ -590,7 +602,7 @@ export function UsersTable({ data }: { data: User[] }) {
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to next page</span>
+                <span className="sr-only">{__('admin.users_table.pagination.go_next')}</span>
                 <ChevronRightIcon />
               </Button>
               <Button
@@ -600,7 +612,7 @@ export function UsersTable({ data }: { data: User[] }) {
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to last page</span>
+                <span className="sr-only">{__('admin.users_table.pagination.go_last')}</span>
                 <ChevronsRightIcon />
               </Button>
             </div>
