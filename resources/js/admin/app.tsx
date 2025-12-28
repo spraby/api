@@ -1,4 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { ThemeProvider } from 'next-themes';
 import { ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -15,10 +16,10 @@ createInertiaApp({
   },
   setup({ el, App, props }) {
     createRoot(el).render(
-      <>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <App {...props} />
         <Toaster />
-      </>
+      </ThemeProvider>
     );
   },
   progress: {
