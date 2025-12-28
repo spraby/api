@@ -24,6 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useLang } from "@/lib/lang"
 
 export function NavUser({
   user,
@@ -35,6 +36,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { __ } = useLang()
 
   const handleLogout = () => {
     router.post('/sb/admin/logout')
@@ -71,13 +73,13 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <UserCircleIcon />
-                Account
+                {__('admin.user.account')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon />
-              Log out
+              {__('admin.user.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

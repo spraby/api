@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "848001f35d3a1af897e293f4629abb17",
+    "content-hash": "627fe636be8f4ac5a2de7a57379499bb",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -1499,6 +1499,96 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "erag/laravel-lang-sync-inertia",
+            "version": "v1.8.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/eramitgupta/laravel-lang-sync-inertia.git",
+                "reference": "413fc9b8e0a1324e3b2fabaf5f6b0c1a8f5769f3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/eramitgupta/laravel-lang-sync-inertia/zipball/413fc9b8e0a1324e3b2fabaf5f6b0c1a8f5769f3",
+                "reference": "413fc9b8e0a1324e3b2fabaf5f6b0c1a8f5769f3",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/filesystem": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "inertiajs/inertia-laravel": "^1.3|^2.0",
+                "laravel/pint": "^1.13",
+                "php": ">=8.1.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Lang": "LaravelLangSyncInertia\\Facades\\Lang"
+                    },
+                    "providers": [
+                        "LaravelLangSyncInertia\\LangSyncInertiaServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/LangHelpers.php"
+                ],
+                "psr-4": {
+                    "LaravelLangSyncInertia\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Er Amit Gupta",
+                    "email": "info.eramitgupta@gmail.com",
+                    "homepage": "https://github.com/eramitgupta"
+                }
+            ],
+            "description": "A powerful Laravel package for syncing and managing language translations across backend and Inertia.js (Vue/React) frontends, offering effortless localization, auto-sync features, and smooth multi-language support for modern Laravel applications.",
+            "keywords": [
+                "dynamic-translations",
+                "i18n",
+                "inertia",
+                "inertia-lang",
+                "inertiajs",
+                "lang-manager",
+                "lang-sync",
+                "language-manager",
+                "language-sync",
+                "laravel",
+                "laravel-i18n",
+                "laravel-inertia",
+                "laravel-l10n",
+                "localization",
+                "multi-language",
+                "react i18n",
+                "translation-helper",
+                "translation-sync",
+                "translations",
+                "vue i18n"
+            ],
+            "support": {
+                "issues": "https://github.com/eramitgupta/laravel-lang-sync-inertia/issues",
+                "source": "https://github.com/eramitgupta/laravel-lang-sync-inertia/tree/v1.8.0"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/paypalme/teamdevgeek",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/eramitgupta",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-12-17T17:05:30+00:00"
         },
         {
             "name": "fakerphp/faker",

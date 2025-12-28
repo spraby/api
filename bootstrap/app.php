@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Filament has its own middleware stack
         $middleware->alias([
             'inertia' => \App\Http\Middleware\HandleInertiaRequests::class,
+            'setlocale' => \App\Http\Middleware\SetLocale::class,
+        ]);
+
+        // Apply SetLocale middleware globally to web routes
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
         ]);
 
         // Redirect unauthenticated users to appropriate login page

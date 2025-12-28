@@ -17,16 +17,22 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $availableLocales = ['en', 'ru'];
+
         if ($request->has('locale')) {
             $locale = $request->get('locale');
-            Session::put('locale', $locale);
+            if (in_array($locale, $availableLocales)) {
+                Session::put('locale', $locale);
+            }
         } elseif (Session::has('locale')) {
             $locale = Session::get('locale');
         } else {
             $locale = config('app.locale');
         }
 
-        App::setLocale($locale);
+        if (in_array($locale, $availableLocales)) {
+            App::setLocale($locale);
+        }
 
         return $next($request);
     }
