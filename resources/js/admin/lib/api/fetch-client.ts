@@ -50,6 +50,7 @@ function buildUrl(baseUrl: string, params?: Record<string, string | number>): st
   }
 
   const searchParams = new URLSearchParams();
+
   Object.entries(params).forEach(([key, value]) => {
     searchParams.append(key, String(value));
   });
@@ -89,7 +90,7 @@ async function handleFetchError(response: Response): Promise<never> {
         apiError.message = 'Resource not found.';
         break;
       case 422:
-        apiError.message = data?.message || 'Validation failed.';
+        apiError.message = data?.message ?? 'Validation failed.';
         break;
       case 500:
         apiError.message = 'Server error. Please try again later.';
@@ -97,10 +98,14 @@ async function handleFetchError(response: Response): Promise<never> {
     }
   } catch {
     // If response is not JSON, use status text
-    apiError.message = response.statusText || 'An error occurred';
+    apiError.message = response.statusText ?? 'An error occurred';
   }
 
-  throw apiError;
+  const error = new Error(apiError.message);
+
+  Object.assign(error, apiError);
+
+  throw error;
 }
 
 /**
@@ -114,6 +119,7 @@ async function makeFetchRequest<T>(
 
   // Build headers using Headers API for type safety
   const headers = new Headers(options.headers);
+
   headers.set('Accept', 'application/json');
   headers.set('Content-Type', 'application/json');
   headers.set('X-Requested-With', 'XMLHttpRequest');
@@ -147,6 +153,7 @@ export const fetchClient = {
       method: 'GET',
       headers: config?.headers,
     });
+
     return { data, status: 200 };
   },
 
@@ -161,6 +168,7 @@ export const fetchClient = {
       headers: config?.headers,
       body: JSON.stringify(body),
     });
+
     return { data, status: 200 };
   },
 
@@ -175,6 +183,7 @@ export const fetchClient = {
       headers: config?.headers,
       body: JSON.stringify(body),
     });
+
     return { data, status: 200 };
   },
 
@@ -189,6 +198,7 @@ export const fetchClient = {
       headers: config?.headers,
       body: JSON.stringify(body),
     });
+
     return { data, status: 200 };
   },
 
@@ -198,6 +208,7 @@ export const fetchClient = {
       method: 'DELETE',
       headers: config?.headers,
     });
+
     return { data, status: 200 };
   },
 };

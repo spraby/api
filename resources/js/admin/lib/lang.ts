@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/react';
 
-import { PageProps } from '@/types/inertia';
+import type { PageProps } from '@/types/inertia';
 
 /**
  * Hook для доступа к переводам из Laravel
@@ -10,14 +10,14 @@ export function useLang() {
 
   /**
    * Получить перевод по ключу
-   * @example __('admin.nav.dashboard')
+   * @example t('admin.nav.dashboard')
    */
-  const __ = (key: string): string => {
+  const t = (key: string): string => {
     const keys = key.split('.');
     let value: unknown = lang;
 
     for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
+      if (value !== null && value !== undefined && typeof value === 'object' && k in value) {
         value = (value as Record<string, unknown>)[k];
       } else {
         return key;
@@ -32,7 +32,7 @@ export function useLang() {
    * @example trans('admin.welcome', { name: 'John' })
    */
   const trans = (key: string, replacements?: Record<string, string | number>): string => {
-    let translation = __(key);
+    let translation = t(key);
 
     if (replacements) {
       Object.entries(replacements).forEach(([placeholder, value]) => {
@@ -44,5 +44,5 @@ export function useLang() {
     return translation;
   };
 
-  return { __, trans, locale };
+  return { t, trans, locale };
 }

@@ -4,6 +4,7 @@ return [
     'nav' => [
         'dashboard' => 'Dashboard',
         'users' => 'Users',
+        'products' => 'Products',
         'settings' => 'Settings',
         'documents' => 'Documents',
     ],
@@ -118,6 +119,103 @@ return [
         ],
         'messages' => [
             'update_failed' => 'Failed to update user. Please check the form for errors.',
+        ],
+    ],
+
+    'products' => [
+        'title' => 'Products',
+        'description' => 'Manage your product catalog',
+    ],
+
+    'products_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'image' => 'Image',
+            'title' => 'Title',
+            'price' => 'Price',
+            'status' => 'Status',
+            'brand' => 'Brand',
+            'created' => 'Created',
+        ],
+        'status' => [
+            'enabled' => 'Active',
+            'disabled' => 'Inactive',
+        ],
+        'actions' => [
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+            'open_menu' => 'Open menu',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'change_status' => 'Change status...',
+            'update_status' => 'Update Status',
+            'delete_selected' => 'Delete Selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Search by title...',
+            'all_statuses' => 'All statuses',
+            'columns' => 'Columns',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'row(s)',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No products found.',
+        'confirm' => [
+            'delete_one' => 'Are you sure you want to delete',
+            'delete_many' => 'Are you sure you want to delete',
+            'products' => 'product(s)?',
+        ],
+    ],
+
+    'products_edit' => [
+        'title' => 'Edit Product',
+        'description' => 'Update product information and variants',
+        'sections' => [
+            'product_info' => 'Product Information',
+            'variants' => 'Product Variants',
+        ],
+        'fields' => [
+            'title' => 'Title',
+            'description' => 'Description',
+            'category' => 'Category',
+            'price' => 'Price',
+            'final_price' => 'Final Price',
+            'enabled' => 'Product Enabled',
+            'variant_title' => 'Variant Title',
+            'variant_enabled' => 'Variant Enabled',
+        ],
+        'placeholders' => [
+            'title' => 'Enter product title',
+            'description' => 'Enter product description...',
+            'category' => 'Select category',
+            'price' => '0.00',
+            'final_price' => '0.00',
+            'variant_title' => 'e.g., Small, Medium, Red, etc.',
+        ],
+        'category' => [
+            'none' => 'No category',
+        ],
+        'variant' => 'Variant',
+        'required_fields' => 'Required fields',
+        'actions' => [
+            'back' => 'Back to Products',
+            'add_variant' => 'Add Variant',
+            'cancel' => 'Cancel',
+            'save' => 'Save Changes',
+            'saving' => 'Saving...',
+        ],
+        'errors' => [
+            'at_least_one_variant' => 'Product must have at least one variant',
         ],
     ],
 ];

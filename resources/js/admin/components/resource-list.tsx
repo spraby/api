@@ -1,7 +1,6 @@
+import * as React from "react"
+
 import {
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -21,7 +20,6 @@ import {
   SearchIcon,
   XIcon,
 } from "lucide-react"
-import * as React from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -49,13 +47,18 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
-import {
+import type {
   BulkAction,
   BulkActionState,
   ResourceListProps,
   SearchFilter,
   SelectFilter,
 } from "@/types/resource-list"
+
+import type {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState} from "@tanstack/react-table";
 
 /**
  * Universal ResourceList Component
@@ -173,8 +176,8 @@ export function ResourceList<TData>({
 
   const handleBulkAction = React.useCallback(
     async (action: BulkAction<TData>) => {
-      if (!selectedData.length) return
-      if (action.disabled?.(selectedData)) return
+      if (!selectedData.length) {return}
+      if (action.disabled?.(selectedData)) {return}
 
       // Show confirmation if required
       if (action.confirmMessage) {
@@ -229,12 +232,12 @@ export function ResourceList<TData>({
         <div key={filter.columnId} className="relative flex-1 sm:max-w-sm">
           <Icon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            className={cn("pl-9", filter.className)}
             placeholder={filter.placeholder}
             value={(table.getColumn(filter.columnId)?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn(filter.columnId)?.setFilterValue(event.target.value)
             }
-            className={cn("pl-9", filter.className)}
           />
         </div>
       )
@@ -250,6 +253,7 @@ export function ResourceList<TData>({
           value={(table.getColumn(filter.columnId)?.getFilterValue() as string) ?? filter.defaultValue ?? ""}
           onValueChange={(value) => {
             const column = table.getColumn(filter.columnId)
+
             if (value === filter.defaultValue) {
               column?.setFilterValue("")
             } else {
@@ -295,7 +299,7 @@ export function ResourceList<TData>({
   return (
     <div className={cn("flex w-full flex-col gap-4", className)}>
       {/* Bulk Actions Bar */}
-      {enableRowSelection && selectedRows.length > 0 && (bulkActions.length > 0 || bulkActionsSlot) && (
+      {!!enableRowSelection && selectedRows.length > 0 && !!(bulkActions.length > 0 || bulkActionsSlot) && (
         <div className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="flex items-center gap-2">
@@ -303,23 +307,21 @@ export function ResourceList<TData>({
                 {selectedRows.length} {translations.selected}
               </span>
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearSelection}
                 className="h-8 px-2"
+                size="sm"
+                variant="ghost"
+                onClick={clearSelection}
               >
                 <XIcon className="size-4" />
               </Button>
             </div>
 
-            {bulkActionsSlot && (
-              <>
+            {!!bulkActionsSlot && <>
                 <div className="hidden h-4 w-px bg-border sm:block" />
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   {bulkActionsSlot(selectedData)}
                 </div>
-              </>
-            )}
+              </>}
           </div>
 
           {bulkActions.length > 0 && (
@@ -337,13 +339,13 @@ export function ResourceList<TData>({
                 return (
                   <Button
                     key={action.id}
-                    variant={action.variant || "outline"}
-                    size={action.size || "sm"}
-                    onClick={() => handleBulkAction(action)}
-                    disabled={isDisabled || isLoading}
                     className={cn("h-9", action.className)}
+                    disabled={isDisabled || isLoading}
+                    size={action.size || "sm"}
+                    variant={action.variant || "outline"}
+                    onClick={async () => handleBulkAction(action)}
                   >
-                    {Icon && <Icon className="size-4" />}
+                    {!!Icon && <Icon className="size-4" />}
                     <span>{action.label}</span>
                   </Button>
                 )
@@ -360,19 +362,20 @@ export function ResourceList<TData>({
             {filters.map((filter) => {
               if (filter.type === "search") {
                 return renderSearchFilter(filter)
-              } else if (filter.type === "select") {
+              } if (filter.type === "select") {
                 return renderSelectFilter(filter)
-              } else if (filter.type === "custom") {
+              } if (filter.type === "custom") {
                 return renderCustomFilter(filter)
               }
+
               return null
             })}
           </div>
 
-          {enableColumnVisibility && (
+          {!!enableColumnVisibility && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto" size="sm" variant="outline">
                   <ColumnsIcon />
                   <span>{translations.columns}</span>
                   <ChevronDownIcon />
@@ -389,9 +392,9 @@ export function ResourceList<TData>({
                     return (
                       <DropdownMenuCheckboxItem
                         key={column.id}
-                        className="capitalize"
                         checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                        className="capitalize"
+                        onCheckedChange={(value) => { column.toggleVisibility(!!value); }}
                       >
                         {column.id}
                       </DropdownMenuCheckboxItem>
@@ -426,39 +429,49 @@ export function ResourceList<TData>({
               ))}
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              {(() => {
+                if (loading) {
+                  return (
+                    <TableRow>
+                      <TableCell className="h-24 text-center" colSpan={columns.length}>
+                        Loading...
                       </TableCell>
-                    ))}
+                    </TableRow>
+                  );
+                }
+
+                const { rows } = table.getRowModel();
+
+                if (rows?.length) {
+                  return rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ));
+                }
+
+                return (
+                  <TableRow>
+                    <TableCell className="h-24 text-center" colSpan={columns.length}>
+                      {renderEmpty ? renderEmpty() : emptyMessage ?? translations.empty}
+                    </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    {renderEmpty ? renderEmpty() : emptyMessage || translations.empty}
-                  </TableCell>
-                </TableRow>
-              )}
+                );
+              })()}
             </TableBody>
           </Table>
         </div>
       </div>
 
       {/* Pagination */}
-      {enablePagination && (
+      {!!enablePagination && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-muted-foreground">
             {table.getFilteredSelectedRowModel().rows.length}{" "}
@@ -468,8 +481,8 @@ export function ResourceList<TData>({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 lg:gap-8">
             <div className="flex items-center gap-2">
               <Label
-                htmlFor="rows-per-page"
                 className="whitespace-nowrap text-sm font-medium"
+                htmlFor="rows-per-page"
               >
                 {translations.rowsPerPage}
               </Label>
@@ -498,41 +511,41 @@ export function ResourceList<TData>({
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
                   className="hidden size-8 lg:flex"
-                  size="icon"
-                  onClick={() => table.setPageIndex(0)}
                   disabled={!table.getCanPreviousPage()}
+                  size="icon"
+                  variant="outline"
+                  onClick={() => { table.setPageIndex(0); }}
                 >
                   <span className="sr-only">{translations.goFirst}</span>
                   <ChevronsLeftIcon />
                 </Button>
                 <Button
-                  variant="outline"
                   className="size-8"
-                  size="icon"
-                  onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
+                  size="icon"
+                  variant="outline"
+                  onClick={() => { table.previousPage(); }}
                 >
                   <span className="sr-only">{translations.goPrevious}</span>
                   <ChevronLeftIcon />
                 </Button>
                 <Button
-                  variant="outline"
                   className="size-8"
-                  size="icon"
-                  onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
+                  size="icon"
+                  variant="outline"
+                  onClick={() => { table.nextPage(); }}
                 >
                   <span className="sr-only">{translations.goNext}</span>
                   <ChevronRightIcon />
                 </Button>
                 <Button
-                  variant="outline"
                   className="hidden size-8 lg:flex"
-                  size="icon"
-                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                   disabled={!table.getCanNextPage()}
+                  size="icon"
+                  variant="outline"
+                  onClick={() => { table.setPageIndex(table.getPageCount() - 1); }}
                 >
                   <span className="sr-only">{translations.goLast}</span>
                   <ChevronsRightIcon />

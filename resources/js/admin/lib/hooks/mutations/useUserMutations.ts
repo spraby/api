@@ -6,8 +6,6 @@
 
 import {
   useMutation,
-  UseMutationOptions,
-  UseMutationResult,
   useQueryClient,
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -29,6 +27,10 @@ import type {
   User,
 } from '@/types/api';
 
+import type {
+  UseMutationOptions,
+  UseMutationResult} from '@tanstack/react-query';
+
 
 // ============================================
 // CREATE USER
@@ -47,7 +49,7 @@ export function useCreateUser(
     mutationFn: createUser,
     onSuccess: (data, variables, context) => {
       // Invalidate users list to refetch
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       toast.success('User created successfully');
       // Call user's custom onSuccess if provided
       if (options?.onSuccess) {
@@ -77,11 +79,11 @@ export function useUpdateUser(
 
   return useMutation({
     ...options,
-    mutationFn: ({ id, data }) => updateUser(id, data),
+    mutationFn: async ({ id, data }) => updateUser(id, data),
     onSuccess: (data, variables, context) => {
       // Invalidate both list and specific user detail
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
+      void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
       toast.success('User updated successfully');
       // Call user's custom onSuccess if provided
       if (options?.onSuccess) {
@@ -106,7 +108,7 @@ export function useDeleteUser(
     mutationFn: deleteUser,
     onSuccess: (data, variables, context) => {
       // Invalidate users list
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       // Remove the specific user from cache
       queryClient.removeQueries({ queryKey: userKeys.detail(variables) });
       toast.success('User deleted successfully');
@@ -136,7 +138,7 @@ export function useBulkDeleteUsers(
     mutationFn: bulkDeleteUsers,
     onSuccess: (data, variables, context) => {
       // Invalidate users list
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       // Remove deleted users from cache
       variables.user_ids.forEach((id) => {
         queryClient.removeQueries({ queryKey: userKeys.detail(id) });
@@ -168,10 +170,10 @@ export function useBulkUpdateUserRoles(
     mutationFn: bulkUpdateUserRoles,
     onSuccess: (data, variables, context) => {
       // Invalidate users list
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       // Invalidate updated users
       variables.user_ids.forEach((id) => {
-        queryClient.invalidateQueries({ queryKey: userKeys.detail(id) });
+        void queryClient.invalidateQueries({ queryKey: userKeys.detail(id) });
       });
       toast.success(`Successfully updated ${variables.user_ids.length} user(s)`);
       // Call user's custom onSuccess if provided

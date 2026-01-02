@@ -30,9 +30,11 @@ export const queryClient = new QueryClient({
       retry: (failureCount, error) => {
         // Не повторяем запросы с ошибками валидации (422) или авторизации (401, 403)
         const apiError = error as ApiError;
+
         if (apiError.status && [401, 403, 422].includes(apiError.status)) {
           return false;
         }
+
         // Максимум 2 повтора для других ошибок
         return failureCount < 2;
       },
@@ -62,7 +64,7 @@ export const queryClient = new QueryClient({
           });
         } else {
           // Показываем общую ошибку
-          toast.error(apiError.message || 'An error occurred');
+          toast.error(apiError.message ?? 'An error occurred');
         }
       },
     },

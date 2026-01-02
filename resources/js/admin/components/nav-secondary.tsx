@@ -1,6 +1,5 @@
 "use client"
 
-import { LucideIcon } from "lucide-react"
 import * as React from "react"
 
 import {
@@ -10,6 +9,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+
+import type { LucideIcon } from "lucide-react"
+
 
 export function NavSecondary({
   items,

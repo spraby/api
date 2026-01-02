@@ -1,7 +1,7 @@
-import { router } from '@inertiajs/react';
-import { ColumnDef } from "@tanstack/react-table"
-import { MoreVerticalIcon, Trash2Icon, UserCogIcon } from "lucide-react"
 import * as React from "react"
+
+import { router } from '@inertiajs/react';
+import { MoreVerticalIcon, Trash2Icon, UserCogIcon } from "lucide-react"
 
 import { ResourceList } from '@/components/resource-list';
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -27,16 +27,18 @@ import { useUsers } from '@/lib/hooks/api/useUsers';
 import { useBulkDeleteUsers, useBulkUpdateUserRoles, useDeleteUser } from '@/lib/hooks/mutations/useUserMutations';
 import { useLang } from '@/lib/lang';
 import type { User } from '@/types/api';
-import { BulkAction, Filter, ResourceListTranslations } from '@/types/resource-list';
+import type { BulkAction, Filter, ResourceListTranslations } from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
+
+import type { ColumnDef } from "@tanstack/react-table"
 
 // ============================================
 // COLUMN DEFINITIONS
 // ============================================
 
 const createUserColumns = (
-  __: (key: string) => string,
+  t: (key: string) => string,
   deleteUser: ReturnType<typeof useDeleteUser>
 ): ColumnDef<User>[] => [
   {
@@ -44,21 +46,21 @@ const createUserColumns = (
     header: ({ table }) => (
       <div className="flex items-center justify-center">
         <Checkbox
+          aria-label="Select all"
           checked={
             table.getIsAllPageRowsSelected() ||
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          onCheckedChange={(value) => { table.toggleAllPageRowsSelected(!!value); }}
         />
       </div>
     ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
         <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => { row.toggleSelected(!!value); }}
         />
       </div>
     ),
@@ -67,7 +69,7 @@ const createUserColumns = (
   },
   {
     accessorKey: "id",
-    header: __('admin.users_table.columns.id'),
+    header: t('admin.users_table.columns.id'),
     cell: ({ row }) => (
       <div className="w-16 font-medium text-muted-foreground">
         #{row.getValue("id")}
@@ -76,10 +78,11 @@ const createUserColumns = (
   },
   {
     accessorKey: "name",
-    header: __('admin.users_table.columns.name'),
+    header: t('admin.users_table.columns.name'),
     cell: ({ row }) => {
       const user = row.original
       const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ")
+
       return (
         <div className="flex flex-col">
           <span className="font-medium">{fullName || "—"}</span>
@@ -99,9 +102,9 @@ const createUserColumns = (
   },
   {
     accessorKey: "role",
-    header: __('admin.users_table.columns.role'),
+    header: t('admin.users_table.columns.role'),
     cell: ({ row }) => {
-      const role = row.getValue("role") as string | null
+      const role = row.getValue("role")
 
       const roleColors: Record<string, string> = {
         admin: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
@@ -109,37 +112,42 @@ const createUserColumns = (
       }
 
       if (!role) {
-        return <Badge variant="outline" className="text-muted-foreground">{__('admin.users_table.roles.user')}</Badge>
+        return <Badge className="text-muted-foreground" variant="outline">{t('admin.users_table.roles.user')}</Badge>
       }
 
       const roleKey = role.toLowerCase();
-      const roleLabel = roleKey === 'admin'
-        ? __('admin.users_table.roles.admin')
-        : roleKey === 'manager'
-        ? __('admin.users_table.roles.manager')
-        : role;
+      let roleLabel = role;
+
+      if (roleKey === 'admin') {
+        roleLabel = t('admin.users_table.roles.admin');
+      } else if (roleKey === 'manager') {
+        roleLabel = t('admin.users_table.roles.manager');
+      }
 
       return (
         <Badge
+          className={roleColors[roleKey] ?? ""}
           variant="outline"
-          className={roleColors[roleKey] || ""}
         >
           {roleLabel}
         </Badge>
       )
     },
     filterFn: (row, id, value) => {
-      const rowValue = row.getValue(id) as string | null
-      if (value === "all") return true
-      if (value === "user" && !rowValue) return true
+      const rowValue = row.getValue(id)
+
+      if (value === "all") {return true}
+      if (value === "user" && !rowValue) {return true}
+
       return rowValue?.toLowerCase() === value
     },
   },
   {
     accessorKey: "created_at",
-    header: __('admin.users_table.columns.created'),
+    header: t('admin.users_table.columns.created'),
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"))
+
       return (
         <div className="text-sm text-muted-foreground">
           {date.toLocaleDateString("en-US", {
@@ -162,7 +170,7 @@ const createUserColumns = (
 
       const handleDelete = () => {
         // eslint-disable-next-line no-alert
-        if (!confirm(`${__('admin.users_table.confirm.delete_one')} ${user.first_name || user.email}?`)) {
+        if (!confirm(`${t('admin.users_table.confirm.delete_one')} ${user.first_name || user.email}?`)) {
           return
         }
 
@@ -174,20 +182,20 @@ const createUserColumns = (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
                 className="size-8 text-muted-foreground data-[state=open]:bg-muted"
-                size="icon"
                 disabled={deleteUser.isPending}
+                size="icon"
+                variant="ghost"
               >
                 <MoreVerticalIcon className="size-4" />
-                <span className="sr-only">{__('admin.users_table.actions.open_menu')}</span>
+                <span className="sr-only">{t('admin.users_table.actions.open_menu')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem onClick={handleEdit}>{__('admin.users_table.actions.edit')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEdit}>{t('admin.users_table.actions.edit')}</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                {__('admin.users_table.actions.delete')}
+              <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
+                {t('admin.users_table.actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -201,8 +209,29 @@ const createUserColumns = (
 // MAIN COMPONENT
 // ============================================
 
+// Bulk Actions Select Component
+interface BulkRoleSelectProps {
+  selectedRole: string;
+  setSelectedRole: (value: string) => void;
+  t: (key: string) => string;
+}
+
+function BulkRoleSelect({ selectedRole, setSelectedRole, t }: BulkRoleSelectProps) {
+  return (
+    <Select value={selectedRole} onValueChange={setSelectedRole}>
+      <SelectTrigger className="h-9 w-full sm:w-40">
+        <SelectValue placeholder={t('admin.users_table.bulk.change_role')} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="admin">{t('admin.users_table.roles.admin')}</SelectItem>
+        <SelectItem value="manager">{t('admin.users_table.roles.manager')}</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
 export default function Users() {
-  const { __ } = useLang();
+  const { t } = useLang();
 
   // API Hooks
   const { data: users, isLoading, error } = useUsers();
@@ -213,13 +242,22 @@ export default function Users() {
   // State for bulk role change
   const [selectedRole, setSelectedRole] = React.useState<string>("")
 
+  // Bulk actions slot renderer
+  const renderBulkActionsSlot = React.useCallback(() => (
+    <BulkRoleSelect
+      selectedRole={selectedRole}
+      setSelectedRole={setSelectedRole}
+      t={t}
+    />
+  ), [selectedRole, t]);
+
   // ============================================
   // COLUMNS
   // ============================================
 
   const columns = React.useMemo(
-    () => createUserColumns(__, deleteUser),
-    [__, deleteUser]
+    () => createUserColumns(t, deleteUser),
+    [t, deleteUser]
   );
 
   // ============================================
@@ -230,7 +268,7 @@ export default function Users() {
     // Bulk Role Change
     {
       id: "change-role",
-      label: __('admin.users_table.bulk.update_role'),
+      label: t('admin.users_table.bulk.update_role'),
       icon: UserCogIcon,
       variant: "outline",
       disabled: () => !selectedRole,
@@ -250,17 +288,18 @@ export default function Users() {
     // Bulk Delete
     {
       id: "delete",
-      label: __('admin.users_table.bulk.delete_selected'),
+      label: t('admin.users_table.bulk.delete_selected'),
       icon: Trash2Icon,
       variant: "destructive",
       confirmMessage: (selectedUsers: User[]) =>
-        `${__('admin.users_table.confirm.delete_many')} ${selectedUsers.length} ${__('admin.users_table.confirm.users')}`,
+        `${t('admin.users_table.confirm.delete_many')} ${selectedUsers.length} ${t('admin.users_table.confirm.users')}`,
       action: async (selectedUsers: User[]) => {
         const userIds = selectedUsers.map(u => u.id)
+
         bulkDelete.mutate({ user_ids: userIds });
       },
     },
-  ], [__, selectedRole, bulkDelete, bulkUpdateRoles]);
+  ], [t, selectedRole, bulkDelete, bulkUpdateRoles]);
 
   // ============================================
   // FILTERS
@@ -271,7 +310,7 @@ export default function Users() {
     {
       type: "search",
       columnId: "name",
-      placeholder: __('admin.users_table.filters.search_placeholder'),
+      placeholder: t('admin.users_table.filters.search_placeholder'),
     },
     // Role filter with custom render for the dropdown
     {
@@ -280,41 +319,41 @@ export default function Users() {
       render: ({ value, onChange }) => (
         <Select
           value={value || "all"}
-          onValueChange={(newValue) => onChange(newValue === "all" ? "" : newValue)}
+          onValueChange={(newValue) => { onChange(newValue === "all" ? "" : newValue); }}
         >
           <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder={__('admin.users_table.filters.all_roles')} />
+            <SelectValue placeholder={t('admin.users_table.filters.all_roles')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{__('admin.users_table.filters.all_roles')}</SelectItem>
-            <SelectItem value="admin">{__('admin.users_table.roles.admin')}</SelectItem>
-            <SelectItem value="manager">{__('admin.users_table.roles.manager')}</SelectItem>
-            <SelectItem value="user">{__('admin.users_table.roles.user')}</SelectItem>
+            <SelectItem value="all">{t('admin.users_table.filters.all_roles')}</SelectItem>
+            <SelectItem value="admin">{t('admin.users_table.roles.admin')}</SelectItem>
+            <SelectItem value="manager">{t('admin.users_table.roles.manager')}</SelectItem>
+            <SelectItem value="user">{t('admin.users_table.roles.user')}</SelectItem>
           </SelectContent>
         </Select>
       ),
     },
-  ], [__]);
+  ], [t]);
 
   // ============================================
   // TRANSLATIONS
   // ============================================
 
   const translations: ResourceListTranslations = React.useMemo(() => ({
-    empty: __('admin.users_table.empty'),
-    selected: __('admin.users_table.bulk.selected'),
-    rowsSelected: __('admin.users_table.pagination.rows_selected'),
-    row: __('admin.users_table.pagination.row'),
-    rowsPerPage: __('admin.users_table.pagination.rows_per_page'),
-    page: __('admin.users_table.pagination.page'),
-    of: __('admin.users_table.pagination.of'),
-    goFirst: __('admin.users_table.pagination.go_first'),
-    goPrevious: __('admin.users_table.pagination.go_previous'),
-    goNext: __('admin.users_table.pagination.go_next'),
-    goLast: __('admin.users_table.pagination.go_last'),
-    columns: __('admin.users_table.filters.columns'),
-    clearSelection: __('admin.users_table.bulk.clear_selection'),
-  }), [__]);
+    empty: t('admin.users_table.empty'),
+    selected: t('admin.users_table.bulk.selected'),
+    rowsSelected: t('admin.users_table.pagination.rows_selected'),
+    row: t('admin.users_table.pagination.row'),
+    rowsPerPage: t('admin.users_table.pagination.rows_per_page'),
+    page: t('admin.users_table.pagination.page'),
+    of: t('admin.users_table.pagination.of'),
+    goFirst: t('admin.users_table.pagination.go_first'),
+    goPrevious: t('admin.users_table.pagination.go_previous'),
+    goNext: t('admin.users_table.pagination.go_next'),
+    goLast: t('admin.users_table.pagination.go_last'),
+    columns: t('admin.users_table.filters.columns'),
+    clearSelection: t('admin.users_table.bulk.clear_selection'),
+  }), [t]);
 
   // ============================================
   // LOADING & ERROR STATES
@@ -322,7 +361,7 @@ export default function Users() {
 
   if (isLoading) {
     return (
-      <AdminLayout title={__('admin.users.title')}>
+      <AdminLayout title={t('admin.users.title')}>
         <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -338,7 +377,7 @@ export default function Users() {
 
   if (error) {
     return (
-      <AdminLayout title={__('admin.users.title')}>
+      <AdminLayout title={t('admin.users.title')}>
         <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
           <Alert variant="destructive">
             <AlertDescription>{error.message}</AlertDescription>
@@ -353,38 +392,25 @@ export default function Users() {
   // ============================================
 
   return (
-    <AdminLayout title={__('admin.users.title')}>
+    <AdminLayout title={t('admin.users.title')}>
       <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{__('admin.users.title')}</h1>
+            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('admin.users.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              {__('admin.users.description')}
+              {t('admin.users.description')}
             </p>
           </div>
         </div>
 
         <ResourceList
-          data={users || []}
+          bulkActions={bulkActions}
+          bulkActionsSlot={renderBulkActionsSlot}
           columns={columns}
+          data={users ?? []}
+          filters={filters}
           getRowId={(row) => row.id.toString()}
           translations={translations}
-          bulkActions={bulkActions}
-          filters={filters}
-          bulkActionsSlot={() => (
-            <Select
-              value={selectedRole}
-              onValueChange={setSelectedRole}
-            >
-              <SelectTrigger className="h-9 w-full sm:w-40">
-                <SelectValue placeholder={__('admin.users_table.bulk.change_role')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">{__('admin.users_table.roles.admin')}</SelectItem>
-                <SelectItem value="manager">{__('admin.users_table.roles.manager')}</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
         />
       </div>
     </AdminLayout>

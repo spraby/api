@@ -19,7 +19,7 @@ export function SectionCards() {
             $1,250.00
           </CardTitle>
           <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+            <Badge className="flex gap-1 rounded-lg text-xs" variant="outline">
               <TrendingUpIcon className="size-3" />
               +12.5%
             </Badge>
@@ -41,7 +41,7 @@ export function SectionCards() {
             1,234
           </CardTitle>
           <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+            <Badge className="flex gap-1 rounded-lg text-xs" variant="outline">
               <TrendingDownIcon className="size-3" />
               -20%
             </Badge>
@@ -63,7 +63,7 @@ export function SectionCards() {
             45,678
           </CardTitle>
           <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+            <Badge className="flex gap-1 rounded-lg text-xs" variant="outline">
               <TrendingUpIcon className="size-3" />
               +12.5%
             </Badge>
@@ -83,7 +83,7 @@ export function SectionCards() {
             4.5%
           </CardTitle>
           <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+            <Badge className="flex gap-1 rounded-lg text-xs" variant="outline">
               <TrendingUpIcon className="size-3" />
               +4.5%
             </Badge>

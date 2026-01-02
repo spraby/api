@@ -1,5 +1,6 @@
+import type { FormEventHandler } from 'react';
+
 import { useForm, Head, Link } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
 
 import { Button } from '../../components/ui/button.tsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.tsx';
@@ -39,77 +40,71 @@ export default function Register() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={submit} className="flex flex-col gap-y-4">
+            <form className="flex flex-col gap-y-4" onSubmit={submit}>
               <div className="flex flex-col gap-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
+                  autoFocus
+                  required
                   id="name"
+                  placeholder="John Doe"
                   type="text"
                   value={data.name}
-                  onChange={(e) => setData('name', e.target.value)}
-                  placeholder="John Doe"
-                  required
-                  autoFocus
+                  onChange={(e) => { setData('name', e.target.value); }}
                 />
-                {errors.name && (
-                  <span className="text-sm text-(--destructive)">{errors.name}</span>
-                )}
+                {!!errors.name && <span className="text-sm text-(--destructive)">{errors.name}</span>}
               </div>
 
               <div className="flex flex-col gap-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
+                  required
                   id="email"
+                  placeholder="user@example.com"
                   type="email"
                   value={data.email}
-                  onChange={(e) => setData('email', e.target.value)}
-                  placeholder="user@example.com"
-                  required
+                  onChange={(e) => { setData('email', e.target.value); }}
                 />
-                {errors.email && (
-                  <span className="text-sm text-(--destructive)">{errors.email}</span>
-                )}
+                {!!errors.email && <span className="text-sm text-(--destructive)">{errors.email}</span>}
               </div>
 
               <div className="flex flex-col gap-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
+                  required
                   id="password"
                   type="password"
                   value={data.password}
-                  onChange={(e) => setData('password', e.target.value)}
-                  required
+                  onChange={(e) => { setData('password', e.target.value); }}
                 />
-                {errors.password && (
-                  <span className="text-sm text-(--destructive)">{errors.password}</span>
-                )}
+                {!!errors.password && <span className="text-sm text-(--destructive)">{errors.password}</span>}
               </div>
 
               <div className="flex flex-col gap-y-2">
                 <Label htmlFor="password_confirmation">Confirm Password</Label>
                 <Input
+                  required
                   id="password_confirmation"
                   type="password"
                   value={data.password_confirmation}
-                  onChange={(e) => setData('password_confirmation', e.target.value)}
-                  required
+                  onChange={(e) => { setData('password_confirmation', e.target.value); }}
                 />
-                {errors.password_confirmation && (
+                {!!errors.password_confirmation && (
                   <span className="text-sm text-(--destructive)">
                     {errors.password_confirmation}
                   </span>
                 )}
               </div>
 
-              <Button type="submit" disabled={processing} className="w-full">
+              <Button className="w-full" disabled={processing} type="submit">
                 {processing ? 'Creating account...' : 'Create Account'}
               </Button>
 
               <div className="text-center text-sm text-(--muted-foreground)">
                 Already have an account?{' '}
                 <Link
-                  href="/sb/admin/login"
                   className="text-(--primary) underline-offset-4 hover:underline"
+                  href="/sb/admin/login"
                 >
                   Login
                 </Link>

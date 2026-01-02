@@ -46,19 +46,65 @@ export interface BulkUpdateUserRolesRequest {
 }
 
 // ============================================
-// PRODUCT TYPES (для будущего расширения)
+// CATEGORY TYPES
 // ============================================
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
+// ============================================
+// PRODUCT TYPES
+// ============================================
+
+export interface Variant {
+  id?: number;
+  title: string | null;
+  price: string;
+  final_price: string;
+  enabled: boolean;
+}
 
 export interface Product {
   id: number;
-  name: string;
-  slug: string;
-  description?: string;
+  title: string;
+  description: string | null;
   price: string;
-  final_price?: string;
+  final_price: string;
+  enabled: boolean;
   brand_id: number;
+  category_id: number | null;
+  brand: {
+    id: number;
+    name: string;
+  } | null;
+  category: {
+    id: number;
+    name: string;
+  } | null;
+  image_url: string | null;
+  variants?: Variant[];
   created_at: string;
-  updated_at?: string;
+}
+
+export interface UpdateProductRequest {
+  title: string;
+  description: string | null;
+  price: string;
+  final_price: string;
+  enabled: boolean;
+  category_id: number | null;
+  variants: Variant[];
+}
+
+export interface BulkDeleteProductsRequest {
+  product_ids: number[];
+}
+
+export interface BulkUpdateProductStatusRequest {
+  product_ids: number[];
+  enabled: boolean;
 }
 
 // ============================================

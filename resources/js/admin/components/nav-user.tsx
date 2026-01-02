@@ -36,7 +36,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const { __ } = useLang()
+  const { t } = useLang()
 
   const handleLogout = () => {
     router.post('/sb/admin/logout')
@@ -48,11 +48,11 @@ export function NavUser({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              size="lg"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage alt={user.name} src={user.avatar} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -65,21 +65,21 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
+            align="end"
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
-            align="end"
             sideOffset={4}
           >
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <UserCircleIcon />
-                {__('admin.user.account')}
+                {t('admin.user.account')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon />
-              {__('admin.user.logout')}
+              {t('admin.user.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

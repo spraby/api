@@ -11,7 +11,7 @@ import {
 import { useLang } from '@/lib/lang';
 
 export function LanguageToggle() {
-  const { __, locale } = useLang();
+  const { t, locale } = useLang();
 
   const switchLocale = (newLocale: string) => {
     router.get(`/set-locale/${newLocale}`, {}, {
@@ -24,23 +24,23 @@ export function LanguageToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button size="icon" variant="ghost">
           <Languages className="h-5 w-5" />
-          <span className="sr-only">{__('admin.language.switch')}</span>
+          <span className="sr-only">{t('admin.language.switch')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => switchLocale('ru')}
           className={locale === 'ru' ? 'bg-accent' : ''}
+          onClick={() => { switchLocale('ru'); }}
         >
-          {__('admin.language.russian')}
+          {t('admin.language.russian')}
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => switchLocale('en')}
           className={locale === 'en' ? 'bg-accent' : ''}
+          onClick={() => { switchLocale('en'); }}
         >
-          {__('admin.language.english')}
+          {t('admin.language.english')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,6 +1,7 @@
-import { ColumnDef } from "@tanstack/react-table"
-import { LucideIcon } from "lucide-react"
-import * as React from "react"
+import type * as React from "react"
+
+import type { ColumnDef } from "@tanstack/react-table"
+import type { LucideIcon } from "lucide-react"
 
 /**
  * Translations interface for ResourceList component
@@ -109,10 +110,10 @@ export interface SelectFilter extends BaseFilter {
   placeholder: string
 
   /** Available options */
-  options: Array<{
+  options: {
     label: string
     value: string
-  }>
+  }[]
 
   /** Default value */
   defaultValue?: string

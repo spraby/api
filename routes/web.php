@@ -47,6 +47,11 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         })->name('users');
         Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
 
+        Route::get('/products', function () {
+            return Inertia::render('Products');
+        })->name('products');
+        Route::get('/products/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('products.edit');
+
         // API routes (JSON only, for TanStack Query)
         Route::get('/users/api', [App\Http\Controllers\Admin\UserController::class, 'apiIndex'])->name('users.api.index');
         Route::get('/users/{id}/api', [App\Http\Controllers\Admin\UserController::class, 'apiShow'])->name('users.api.show');
@@ -54,6 +59,15 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         Route::delete('/users/{id}/api', [App\Http\Controllers\Admin\UserController::class, 'apiDestroy'])->name('users.api.destroy');
         Route::post('/users/bulk-delete/api', [App\Http\Controllers\Admin\UserController::class, 'apiBulkDelete'])->name('users.api.bulk-delete');
         Route::post('/users/bulk-update-role/api', [App\Http\Controllers\Admin\UserController::class, 'apiBulkUpdateRole'])->name('users.api.bulk-update-role');
+
+        Route::get('/products/api', [App\Http\Controllers\Admin\ProductController::class, 'apiIndex'])->name('products.api.index');
+        Route::get('/products/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiShow'])->name('products.api.show');
+        Route::put('/products/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiUpdate'])->name('products.api.update');
+        Route::delete('/products/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiDestroy'])->name('products.api.destroy');
+        Route::post('/products/bulk-delete/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkDelete'])->name('products.api.bulk-delete');
+        Route::post('/products/bulk-update-status/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkUpdateStatus'])->name('products.api.bulk-update-status');
+
+        Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
     });

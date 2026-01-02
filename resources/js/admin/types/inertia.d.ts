@@ -1,4 +1,4 @@
-import { Config } from 'ziggy-js';
+import type { Config } from 'ziggy-js';
 
 export interface User {
   id: number;

@@ -1,5 +1,6 @@
+import type { FormEventHandler } from 'react';
+
 import { useForm, Head, Link } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
 
 import { Button } from '../../components/ui/button.tsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.tsx';
@@ -37,59 +38,55 @@ export default function Login() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={submit} className="flex flex-col gap-y-4">
+            <form className="flex flex-col gap-y-4" onSubmit={submit}>
               <div className="flex flex-col gap-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
+                  autoFocus
+                  required
                   id="email"
+                  placeholder="user@example.com"
                   type="email"
                   value={data.email}
-                  onChange={(e) => setData('email', e.target.value)}
-                  placeholder="user@example.com"
-                  required
-                  autoFocus
+                  onChange={(e) => { setData('email', e.target.value); }}
                 />
-                {errors.email && (
-                  <span className="text-sm text-(--destructive)">{errors.email}</span>
-                )}
+                {!!errors.email && <span className="text-sm text-(--destructive)">{errors.email}</span>}
               </div>
 
               <div className="flex flex-col gap-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
+                  required
                   id="password"
                   type="password"
                   value={data.password}
-                  onChange={(e) => setData('password', e.target.value)}
-                  required
+                  onChange={(e) => { setData('password', e.target.value); }}
                 />
-                {errors.password && (
-                  <span className="text-sm text-(--destructive)">{errors.password}</span>
-                )}
+                {!!errors.password && <span className="text-sm text-(--destructive)">{errors.password}</span>}
               </div>
 
               <div className="flex items-center gap-x-2">
                 <input
+                  checked={data.remember}
+                  className="h-4 w-4 rounded border-(--input)"
                   id="remember"
                   type="checkbox"
-                  checked={data.remember}
-                  onChange={(e) => setData('remember', e.target.checked)}
-                  className="h-4 w-4 rounded border-(--input)"
+                  onChange={(e) => { setData('remember', e.target.checked); }}
                 />
-                <Label htmlFor="remember" className="cursor-pointer">
+                <Label className="cursor-pointer" htmlFor="remember">
                   Remember me
                 </Label>
               </div>
 
-              <Button type="submit" disabled={processing} className="w-full">
+              <Button className="w-full" disabled={processing} type="submit">
                 {processing ? 'Logging in...' : 'Login'}
               </Button>
 
               <div className="text-center text-sm text-(--muted-foreground)">
                 Don&apos;t have an account?{' '}
                 <Link
-                  href="/sb/admin/register"
                   className="text-(--primary) underline-offset-4 hover:underline"
+                  href="/sb/admin/register"
                 >
                   Register
                 </Link>

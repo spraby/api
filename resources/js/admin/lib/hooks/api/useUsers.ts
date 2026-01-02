@@ -4,12 +4,14 @@
  * React Query hooks for fetching user data
  */
 
-import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { getUser, getUsers } from '@/lib/api/endpoints/users';
 import type { ApiError } from '@/lib/api/fetch-client';
 import { userKeys } from '@/lib/api/query-keys';
 import type { User, UserFilters } from '@/types/api';
+
+import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 
 
 // ============================================
@@ -27,7 +29,7 @@ export function useUsers(
 ): UseQueryResult<User[], ApiError> {
   return useQuery({
     queryKey: userKeys.list(filters as Record<string, unknown>),
-    queryFn: () => getUsers(filters),
+    queryFn: async () => getUsers(filters),
     ...options,
   });
 }
@@ -43,7 +45,7 @@ export function useUser(
 ): UseQueryResult<User, ApiError> {
   return useQuery({
     queryKey: userKeys.detail(id),
-    queryFn: () => getUser(id),
+    queryFn: async () => getUser(id),
     enabled: !!id, // Don't run query if id is not provided
     ...options,
   });

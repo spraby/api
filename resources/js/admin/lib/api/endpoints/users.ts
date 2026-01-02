@@ -30,6 +30,7 @@ export async function getUsers(filters?: UserFilters): Promise<User[]> {
   const response = await fetchClient.get<User[]>('/sb/admin/users/api', {
     params: filters as Record<string, string | number>,
   });
+
   return response.data;
 }
 
@@ -39,6 +40,7 @@ export async function getUsers(filters?: UserFilters): Promise<User[]> {
  */
 export async function getUser(id: number): Promise<User> {
   const response = await fetchClient.get<User>(`/sb/admin/users/${id}/api`);
+
   return response.data;
 }
 
@@ -52,6 +54,7 @@ export async function getUser(id: number): Promise<User> {
  */
 export async function createUser(data: CreateUserRequest): Promise<User> {
   const response = await fetchClient.post<User>('/sb/admin/users/api', data);
+
   return response.data;
 }
 
@@ -65,6 +68,7 @@ export async function updateUser(
   data: UpdateUserRequest
 ): Promise<User> {
   const response = await fetchClient.put<User>(`/sb/admin/users/${id}/api`, data);
+
   return response.data;
 }
 

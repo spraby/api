@@ -31,7 +31,7 @@ export function handleApiError(error: unknown, fallbackMessage?: string): void {
     });
   } else {
     // Show general error
-    toast.error(apiError.message || fallbackMessage || 'An error occurred');
+    toast.error(apiError.message || fallbackMessage ?? 'An error occurred');
   }
 }
 
@@ -44,6 +44,7 @@ export function getErrorMessage(error: unknown, fallback = 'An error occurred'):
   if (apiError.errors) {
     // Return first validation error
     const firstError = Object.values(apiError.errors)[0];
+
     return firstError?.[0] || fallback;
   }
 

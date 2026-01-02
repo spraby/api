@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import {
   CameraIcon,
   ClipboardListIcon,
@@ -9,7 +11,6 @@ import {
   SettingsIcon,
   UserIcon,
 } from "lucide-react"
-import * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -24,7 +25,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useLang } from "@/lib/lang"
-import { User } from "@/types/inertia"
+import type { User } from "@/types/inertia"
 
 const navClouds = [
   {
@@ -98,30 +99,30 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
-  const { __ } = useLang()
+  const { t } = useLang()
 
   const data = {
     navMain: [
       {
-        title: __('admin.nav.dashboard'),
+        title: t('admin.nav.dashboard'),
         url: "/sb/admin/dashboard",
         icon: LayoutDashboardIcon,
       },
       {
-        title: __('admin.nav.users'),
+        title: t('admin.nav.users'),
         url: "/sb/admin/users",
         icon: UserIcon,
       },
     ],
-    navClouds: navClouds,
+    navClouds,
     navSecondary: [
       {
-        title: __('admin.nav.settings'),
+        title: t('admin.nav.settings'),
         url: "#",
         icon: SettingsIcon,
       },
     ],
-    documents: documents,
+    documents,
   }
   // Prepare user data for NavUser component with default avatar
   const navUserData = user
@@ -155,7 +156,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         {/*<NavDocuments items={data.documents} />*/}
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavSecondary className="mt-auto" items={data.navSecondary} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={navUserData} />

@@ -7,8 +7,8 @@ type ToasterProps = React.ComponentProps<typeof Sonner>
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      position="top-right"
       richColors
+      position="top-right"
       {...props}
     />
   )

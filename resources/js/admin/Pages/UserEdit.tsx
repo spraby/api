@@ -1,6 +1,8 @@
+import type { FormEventHandler} from 'react';
+import { useEffect, useState } from 'react';
+
 import { router } from '@inertiajs/react';
 import { ArrowLeftIcon } from 'lucide-react';
-import { FormEventHandler, useEffect, useState } from 'react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -25,7 +27,7 @@ interface UserEditProps {
 }
 
 export default function UserEdit({ userId }: UserEditProps) {
-  const { __ } = useLang();
+  const { t } = useLang();
 
   // API Hooks
   const { data: user, isLoading, error } = useUser(userId);
@@ -43,10 +45,10 @@ export default function UserEdit({ userId }: UserEditProps) {
   useEffect(() => {
     if (user) {
       setFormData({
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
+        first_name: user.first_name ?? '',
+        last_name: user.last_name ?? '',
         email: user.email,
-        role: user.role || '',
+        role: user.role ?? '',
       });
     }
   }, [user]);
@@ -71,7 +73,7 @@ export default function UserEdit({ userId }: UserEditProps) {
   // Loading state
   if (isLoading) {
     return (
-      <AdminLayout title={__('admin.users_edit.title')}>
+      <AdminLayout title={t('admin.users_edit.title')}>
         <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -88,14 +90,14 @@ export default function UserEdit({ userId }: UserEditProps) {
   // Error state
   if (error) {
     return (
-      <AdminLayout title={__('admin.users_edit.title')}>
+      <AdminLayout title={t('admin.users_edit.title')}>
         <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
           <Alert variant="destructive">
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
-          <Button variant="outline" onClick={() => router.visit('/sb/admin/users')}>
+          <Button variant="outline" onClick={() => { router.visit('/sb/admin/users'); }}>
             <ArrowLeftIcon className="mr-2 size-4" />
-            {__('admin.users_edit.actions.back')}
+            {t('admin.users_edit.actions.back')}
           </Button>
         </div>
       </AdminLayout>
@@ -103,90 +105,90 @@ export default function UserEdit({ userId }: UserEditProps) {
   }
 
   return (
-    <AdminLayout title={__('admin.users_edit.title')}>
+    <AdminLayout title={t('admin.users_edit.title')}>
       <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Button
-                variant="ghost"
-                size="icon"
                 className="size-8"
-                onClick={() => router.visit('/sb/admin/users')}
+                size="icon"
+                variant="ghost"
+                onClick={() => { router.visit('/sb/admin/users'); }}
               >
                 <ArrowLeftIcon className="size-4" />
               </Button>
               <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-                {__('admin.users_edit.title')}
+                {t('admin.users_edit.title')}
               </h1>
             </div>
             <p className="pl-10 text-sm text-muted-foreground">
-              {__('admin.users_edit.description')}
+              {t('admin.users_edit.description')}
             </p>
           </div>
         </div>
 
         <div className="rounded-lg border bg-card">
-          <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:p-6">
+          <form className="space-y-6 p-4 sm:p-6" onSubmit={handleSubmit}>
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="first_name" className="flex items-center gap-1">
-                  {__('admin.users_edit.fields.first_name')}
+                <Label className="flex items-center gap-1" htmlFor="first_name">
+                  {t('admin.users_edit.fields.first_name')}
                   <span className="text-destructive">*</span>
                 </Label>
                 <Input
+                  required
+                  disabled={updateUser.isPending}
                   id="first_name"
+                  placeholder={t('admin.users_edit.placeholders.first_name')}
                   type="text"
                   value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                  placeholder={__('admin.users_edit.placeholders.first_name')}
-                  required
-                  disabled={updateUser.isPending}
+                  onChange={(e) => { setFormData({ ...formData, first_name: e.target.value }); }}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="last_name">{__('admin.users_edit.fields.last_name')}</Label>
+                <Label htmlFor="last_name">{t('admin.users_edit.fields.last_name')}</Label>
                 <Input
+                  disabled={updateUser.isPending}
                   id="last_name"
+                  placeholder={t('admin.users_edit.placeholders.last_name')}
                   type="text"
                   value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                  placeholder={__('admin.users_edit.placeholders.last_name')}
-                  disabled={updateUser.isPending}
+                  onChange={(e) => { setFormData({ ...formData, last_name: e.target.value }); }}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-1">
-                  {__('admin.users_edit.fields.email')}
+                <Label className="flex items-center gap-1" htmlFor="email">
+                  {t('admin.users_edit.fields.email')}
                   <span className="text-destructive">*</span>
                 </Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder={__('admin.users_edit.placeholders.email')}
                   required
                   disabled={updateUser.isPending}
+                  id="email"
+                  placeholder={t('admin.users_edit.placeholders.email')}
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => { setFormData({ ...formData, email: e.target.value }); }}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role">{__('admin.users_edit.fields.role')}</Label>
+                <Label htmlFor="role">{t('admin.users_edit.fields.role')}</Label>
                 <Select
-                  value={formData.role || 'none'}
-                  onValueChange={(value) => setFormData({ ...formData, role: value === 'none' ? '' : value })}
                   disabled={updateUser.isPending}
+                  value={formData.role ?? 'none'}
+                  onValueChange={(value) => { setFormData({ ...formData, role: value === 'none' ? '' : value }); }}
                 >
                   <SelectTrigger id="role">
-                    <SelectValue placeholder={__('admin.users_edit.placeholders.role')} />
+                    <SelectValue placeholder={t('admin.users_edit.placeholders.role')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">{__('admin.users_edit.roles.none')}</SelectItem>
-                    <SelectItem value="admin">{__('admin.users_edit.roles.admin')}</SelectItem>
-                    <SelectItem value="manager">{__('admin.users_edit.roles.manager')}</SelectItem>
+                    <SelectItem value="none">{t('admin.users_edit.roles.none')}</SelectItem>
+                    <SelectItem value="admin">{t('admin.users_edit.roles.admin')}</SelectItem>
+                    <SelectItem value="manager">{t('admin.users_edit.roles.manager')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -194,21 +196,21 @@ export default function UserEdit({ userId }: UserEditProps) {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                <span className="text-destructive">*</span> {__('admin.users_edit.required_fields')}
+                <span className="text-destructive">*</span> {t('admin.users_edit.required_fields')}
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
+                  disabled={updateUser.isPending}
                   type="button"
                   variant="outline"
-                  onClick={() => router.visit('/sb/admin/users')}
-                  disabled={updateUser.isPending}
+                  onClick={() => { router.visit('/sb/admin/users'); }}
                 >
-                  {__('admin.users_edit.actions.cancel')}
+                  {t('admin.users_edit.actions.cancel')}
                 </Button>
-                <Button type="submit" disabled={updateUser.isPending}>
+                <Button disabled={updateUser.isPending} type="submit">
                   {updateUser.isPending
-                    ? __('admin.users_edit.actions.saving')
-                    : __('admin.users_edit.actions.save')}
+                    ? t('admin.users_edit.actions.saving')
+                    : t('admin.users_edit.actions.save')}
                 </Button>
               </div>
             </div>
