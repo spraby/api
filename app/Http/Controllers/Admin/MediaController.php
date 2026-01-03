@@ -73,7 +73,7 @@ class MediaController extends Controller
 
         $dto = new FileUploadDTO(
             fileType: FileType::IMAGE,
-            directory: "brands/{$brand->id}/images",
+            directory: "brands/{$brand->id}",
             visibility: 'public'
         );
 

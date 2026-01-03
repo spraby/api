@@ -43,20 +43,25 @@ class FileService implements FileServiceInterface
 
         // Upload file
         try {
-            $uploaded = $file->storeAs(
-                $directory,
-                $filename,
-                [
-                    'disk' => $this->disk->getConfig()['driver'] ?? 's3',
-                    'visibility' => $dto->visibility,
-                ]
+            // Build full path with filename
+            $fullPath = $directory ? "{$directory}/{$filename}" : $filename;
+
+            // Upload file using put method (without visibility parameter for S3 compatibility)
+            $success = $this->disk->put(
+                $fullPath,
+                file_get_contents($file->getRealPath())
             );
 
-            if (! $uploaded) {
+            if (! $success) {
                 throw FileUploadException::uploadFailed('Storage operation returned false');
             }
 
-            return $uploaded;
+            // Set visibility separately after upload
+            if ($dto->visibility) {
+                $this->disk->setVisibility($fullPath, $dto->visibility);
+            }
+
+            return $fullPath;
         } catch (\Exception $e) {
             throw FileUploadException::uploadFailed($e->getMessage());
         }
