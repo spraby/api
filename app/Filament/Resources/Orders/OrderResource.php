@@ -17,8 +17,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class OrderResource extends Resource
 {
@@ -37,7 +37,9 @@ class OrderResource extends Resource
          */
         $user = Auth::user();
 
-        if ($user?->hasRole('admin')) return $query;
+        if ($user?->hasRole('admin')) {
+            return $query;
+        }
 
         $brand = $user->getBrand();
 
@@ -50,9 +52,6 @@ class OrderResource extends Resource
 
     protected static ?string $navigationBadgeTooltip = 'Count new orders';
 
-    /**
-     * @return string|null
-     */
     public static function getNavigationBadge(): ?string
     {
         /**

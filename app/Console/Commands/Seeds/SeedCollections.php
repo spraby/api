@@ -106,13 +106,12 @@ class SeedCollections extends Command
             }
         }
 
-        if (!empty($categoryIds)) {
+        if (! empty($categoryIds)) {
             $dbCollection->categories()->sync($categoryIds);
         }
 
         return $categoryIds;
     }
-
 
     /**
      * @return void

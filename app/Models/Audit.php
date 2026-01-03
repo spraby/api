@@ -15,17 +15,11 @@ class Audit extends Model
         'new_values' => 'json',
     ];
 
-    /**
-     * @return MorphTo
-     */
     public function auditable(): MorphTo
     {
         return $this->morphTo();
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

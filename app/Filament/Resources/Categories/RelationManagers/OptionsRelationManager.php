@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Categories\RelationManagers;
 
 use App\Filament\Resources\Options\OptionResource;
-use Filament\Actions\DetachAction;
 use Filament\Actions\AttachAction;
+use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
@@ -20,7 +20,7 @@ class OptionsRelationManager extends RelationManager
         return $table
             ->recordActions([
                 EditAction::make(),
-                DetachAction::make()
+                DetachAction::make(),
             ])
             ->headerActions([
                 AttachAction::make()

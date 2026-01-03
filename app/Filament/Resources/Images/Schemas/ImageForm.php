@@ -24,7 +24,7 @@ class ImageForm
 
         if ($user->isAdmin()) {
             $directoryPath[] = 'admin';
-        } else if ($user->isManager()) {
+        } elseif ($user->isManager()) {
             $brand = $user->getBrand();
             $directoryPath[] = $brand->id;
         }
@@ -49,7 +49,7 @@ class ImageForm
                                 '16:9',
                                 '4:3',
                                 '1:1',
-                            ])
+                            ]),
                     ]),
             ]);
     }

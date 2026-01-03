@@ -29,7 +29,7 @@ class CategoryController extends Controller
         }
 
         // Apply Row Level Security for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrand = Auth::user()->brands()->first();
             if ($userBrand) {
                 $query->whereHas('brands', function ($q) use ($userBrand) {

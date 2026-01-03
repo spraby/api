@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $id
@@ -24,11 +24,12 @@ class Settings extends Model
     use HasFactory;
 
     protected $primaryKey = 'id';
+
     protected $guarded = [];
 
     public const KEYS = [
         'MENU' => 'menu',
-        'INFO' => 'information'
+        'INFO' => 'information',
     ];
 
     protected $casts = [
@@ -38,31 +39,28 @@ class Settings extends Model
     ];
 
     /**
-     * @param array $data
      * @return Model
      */
     public static function createMenu(array $data)
     {
         return self::create([
             'key' => self::KEYS['MENU'],
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
     /**
-     * @param array $data
      * @return Model
      */
     public static function createInformation(array $data)
     {
         return self::create([
             'key' => self::KEYS['INFO'],
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
     /**
-     * @param Builder $query
      * @return Builder
      */
     public function scopeMenu(Builder $query)

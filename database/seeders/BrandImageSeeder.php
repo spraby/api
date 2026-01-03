@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Brand;
 use App\Models\Image;
+use Illuminate\Database\Seeder;
 
 class BrandImageSeeder extends Seeder
 {

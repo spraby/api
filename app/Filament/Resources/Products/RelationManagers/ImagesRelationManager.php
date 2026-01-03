@@ -36,14 +36,14 @@ class ImagesRelationManager extends RelationManager
                 Action::make('add')
                     ->label('Add from media')
                     ->icon(Heroicon::Plus)
-                    ->modalContent(view('livewire.image-picker.data', ['product' => $product, 'variant' => new Variant()]))
+                    ->modalContent(view('livewire.image-picker.data', ['product' => $product, 'variant' => new Variant]))
                     ->modalHeading('Add images')
                     ->modalSubmitAction(false),
 
                 Action::make('create')
                     ->label('Upload new')
                     ->icon(Heroicon::ArrowUpTray)
-                    ->schema(fn(Schema $schema) => ImageBulkCreateForm::configure($schema))
+                    ->schema(fn (Schema $schema) => ImageBulkCreateForm::configure($schema))
                     ->modalHeading('Upload images')
                     ->action(function (array $data) use ($product): void {
                         $position = $product->images()->count();
@@ -63,7 +63,7 @@ class ImagesRelationManager extends RelationManager
                     })
                     ->modalWidth('100%')
                     ->slideOver()
-                    ->stickyModalHeader()
+                    ->stickyModalHeader(),
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),

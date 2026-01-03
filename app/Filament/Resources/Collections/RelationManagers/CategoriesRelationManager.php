@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Collections\RelationManagers;
 
 use App\Filament\Resources\Categories\CategoryResource;
 use Filament\Actions\AttachAction;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -21,7 +20,7 @@ class CategoriesRelationManager extends RelationManager
         return $table
             ->recordActions([
                 EditAction::make(),
-                DetachAction::make()
+                DetachAction::make(),
             ])
             ->headerActions([
                 AttachAction::make()

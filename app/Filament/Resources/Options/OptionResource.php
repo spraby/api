@@ -23,15 +23,13 @@ class OptionResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    /**
-     * @return bool
-     */
     public static function canAccess(): bool
     {
         /**
          * @var User $user
          */
         $user = auth()->user();
+
         return $user && $user->hasRole(User::ROLES['ADMIN']);
     }
 

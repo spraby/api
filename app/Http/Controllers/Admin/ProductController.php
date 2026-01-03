@@ -12,7 +12,6 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
-
     /**
      * Show the products list page.
      * Data is fetched via API using TanStack Query
@@ -32,7 +31,6 @@ class ProductController extends Controller
             'productId' => $id,
         ]);
     }
-
 
     // ========================================
     // API ENDPOINTS (для TanStack Query)
@@ -90,7 +88,7 @@ class ProductController extends Controller
                     'name' => $product->category->name,
                 ] : null,
                 'image_url' => $mainImage && $mainImage->image
-                    ? config('filesystems.disks.s3.url') . '/' . $mainImage->image->path
+                    ? config('filesystems.disks.s3.url').'/'.$mainImage->image->path
                     : null,
                 'created_at' => $product->created_at->toISOString(),
             ];
@@ -125,7 +123,7 @@ class ProductController extends Controller
                 'name' => $product->category->name,
             ] : null,
             'image_url' => $mainImage && $mainImage->image
-                ? config('filesystems.disks.s3.url') . '/' . $mainImage->image->path
+                ? config('filesystems.disks.s3.url').'/'.$mainImage->image->path
                 : null,
             'variants' => $product->variants->map(function ($variant) {
                 return [
@@ -202,7 +200,7 @@ class ProductController extends Controller
 
             // Delete variants that were removed
             $variantsToDelete = array_diff($existingVariantIds, $submittedVariantIds);
-            if (!empty($variantsToDelete)) {
+            if (! empty($variantsToDelete)) {
                 Variant::whereIn('id', $variantsToDelete)->delete();
             }
 
@@ -229,7 +227,7 @@ class ProductController extends Controller
                     'name' => $product->category->name,
                 ] : null,
                 'image_url' => $mainImage && $mainImage->image
-                    ? config('filesystems.disks.s3.url') . '/' . $mainImage->image->path
+                    ? config('filesystems.disks.s3.url').'/'.$mainImage->image->path
                     : null,
                 'variants' => $product->variants->map(function ($variant) {
                     return [
@@ -245,7 +243,7 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update product',
-                'errors' => ['general' => [$e->getMessage()]]
+                'errors' => ['general' => [$e->getMessage()]],
             ], 422);
         }
     }
@@ -260,12 +258,12 @@ class ProductController extends Controller
             $product->delete();
 
             return response()->json([
-                'message' => 'Product deleted successfully'
+                'message' => 'Product deleted successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete product',
-                'errors' => ['general' => [$e->getMessage()]]
+                'errors' => ['general' => [$e->getMessage()]],
             ], 422);
         }
     }
@@ -285,7 +283,7 @@ class ProductController extends Controller
         Product::whereIn('id', $productIds)->delete();
 
         return response()->json([
-            'message' => 'Products deleted successfully'
+            'message' => 'Products deleted successfully',
         ]);
     }
 
@@ -306,7 +304,7 @@ class ProductController extends Controller
         Product::whereIn('id', $productIds)->update(['enabled' => $enabled]);
 
         return response()->json([
-            'message' => 'Product status updated successfully'
+            'message' => 'Product status updated successfully',
         ]);
     }
 }

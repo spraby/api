@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('sb/admin/*') || $request->is('sb/admin')) {
                 return route('sb.admin.login');
             }
+
             // For Filament and other routes, redirect to Filament login
             return '/admin/login';
         });

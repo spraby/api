@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Order;
-use App\Models\Customer;
 use App\Models\Brand;
+use App\Models\Customer;
+use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +17,7 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'ORD-' . $this->faker->unique()->numerify('###-###'),
+            'name' => 'ORD-'.$this->faker->unique()->numerify('###-###'),
             'customer_id' => Customer::inRandomOrder()->first()?->id,
             'brand_id' => Brand::inRandomOrder()->first()?->id,
             'note' => $this->faker->optional()->sentence(),

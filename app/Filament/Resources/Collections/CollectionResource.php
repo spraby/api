@@ -24,15 +24,13 @@ class CollectionResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    /**
-     * @return bool
-     */
     public static function canAccess(): bool
     {
         /**
          * @var User $user
          */
         $user = auth()->user();
+
         return $user && $user->hasRole(User::ROLES['ADMIN']);
     }
 
@@ -52,7 +50,7 @@ class CollectionResource extends Resource
     public static function getRelations(): array
     {
         return [
-//            RelationManagers\CategoriesRelationManager::class,
+            //            RelationManagers\CategoriesRelationManager::class,
         ];
     }
 
@@ -61,7 +59,7 @@ class CollectionResource extends Resource
         return [
             'index' => ListCollections::route('/'),
             'create' => CreateCollection::route('/create'),
-//            'edit' => EditCollection::route('/{record}/edit'),
+            //            'edit' => EditCollection::route('/{record}/edit'),
         ];
     }
 }

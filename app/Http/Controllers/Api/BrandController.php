@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BrandController extends Controller
@@ -19,7 +19,7 @@ class BrandController extends Controller
             ->withCount(['products', 'categories', 'orders']);
 
         // Apply Row Level Security for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrandIds = Auth::user()->brands()->pluck('brands.id');
             $query->whereIn('id', $userBrandIds);
         }
@@ -29,7 +29,7 @@ class BrandController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('description', 'ilike', "%{$search}%");
+                    ->orWhere('description', 'ilike', "%{$search}%");
             });
         }
 
@@ -55,9 +55,9 @@ class BrandController extends Controller
     public function show(Brand $brand): JsonResponse
     {
         // Check access for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrandIds = Auth::user()->brands()->pluck('brands.id')->toArray();
-            if (!in_array($brand->id, $userBrandIds)) {
+            if (! in_array($brand->id, $userBrandIds)) {
                 abort(403, 'Access denied');
             }
         }
@@ -92,15 +92,15 @@ class BrandController extends Controller
     public function update(Request $request, Brand $brand): JsonResponse
     {
         // Check access for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrandIds = Auth::user()->brands()->pluck('brands.id')->toArray();
-            if (!in_array($brand->id, $userBrandIds)) {
+            if (! in_array($brand->id, $userBrandIds)) {
                 abort(403, 'Access denied');
             }
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:brands,name,' . $brand->id,
+            'name' => 'required|string|max:255|unique:brands,name,'.$brand->id,
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -115,14 +115,14 @@ class BrandController extends Controller
     public function destroy(Brand $brand): JsonResponse
     {
         // Only admin can delete brands
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             abort(403, 'Only administrators can delete brands');
         }
 
         // Check if brand has related data
         if ($brand->products()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete brand with existing products'
+                'message' => 'Cannot delete brand with existing products',
             ], 422);
         }
 

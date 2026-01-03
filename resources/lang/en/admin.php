@@ -5,6 +5,7 @@ return [
         'dashboard' => 'Dashboard',
         'users' => 'Users',
         'products' => 'Products',
+        'media' => 'Media',
         'settings' => 'Settings',
         'documents' => 'Documents',
     ],
@@ -217,5 +218,38 @@ return [
         'errors' => [
             'at_least_one_variant' => 'Product must have at least one variant',
         ],
+    ],
+
+    'media' => [
+        'title' => 'Media Library',
+        'upload_button' => 'Upload Images',
+        'upload_dialog_title' => 'Upload Images',
+        'upload_dialog_description' => 'Select up to 50 images to upload to your media library.',
+        'select_files' => 'Click to select files',
+        'max_files' => 'Maximum 50 files, 10MB each',
+        'max_files_error' => 'You can upload a maximum of 50 files at once',
+        'no_files_selected' => 'Please select files to upload',
+        'files_selected' => ':count file(s) selected',
+        'selected_files' => 'Selected files',
+        'delete_confirm_title' => 'Delete Image',
+        'delete_confirm_description' => 'Are you sure you want to delete this image? This action cannot be undone.',
+        'empty_title' => 'No images yet',
+        'empty_description' => 'Upload your first images to get started with your media library.',
+        'upload_first_images' => 'Upload Images',
+    ],
+
+    'common' => [
+        'cancel' => 'Cancel',
+        'delete' => 'Delete',
+        'upload' => 'Upload',
+        'uploading' => 'Uploading...',
+        'save' => 'Save',
+        'saving' => 'Saving...',
+    ],
+
+    'pagination' => [
+        'previous' => 'Previous',
+        'next' => 'Next',
+        'page_of' => 'Page :current of :total',
     ],
 ];

@@ -2,15 +2,14 @@
 
 namespace Database\Seeders;
 
-//use App\Models\Permission;
-use Illuminate\Database\Seeder;
+// use App\Models\Permission;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
-
     const PERMISSIONS = [
         'READ_PRODUCTS' => 'read_products',
         'WRITE_PRODUCTS' => 'write_products',
@@ -25,14 +24,16 @@ class UserSeeder extends Seeder
         self::PERMISSIONS['WRITE_CATEGORY'],
     ];
 
-
     public function run(): void
     {
         $roles = ['admin', 'manager'];
 
-        foreach ($roles as $roleValue) Role::findOrCreate($roleValue);
-        foreach (self::PERMISSIONS as $PERMISSION) Permission::findOrCreate($PERMISSION);
-
+        foreach ($roles as $roleValue) {
+            Role::findOrCreate($roleValue);
+        }
+        foreach (self::PERMISSIONS as $PERMISSION) {
+            Permission::findOrCreate($PERMISSION);
+        }
 
         foreach ($roles as $roleValue) {
             $role = Role::findByName($roleValue);
@@ -43,16 +44,15 @@ class UserSeeder extends Seeder
          * @var User $user
          */
         $user = User::where('email', 'admin@gmail.com')->first();
-        if (!$user) {
+        if (! $user) {
             $user = User::factory()->admin()->create([
                 'email' => 'admin@gmail.com',
             ]);
         }
         $user->assignRole('admin');
 
-
         $user = User::where('email', 'manager@gmail.com')->first();
-        if (!$user) {
+        if (! $user) {
             $user = User::factory()->create([
                 'email' => 'manager@gmail.com',
             ]);

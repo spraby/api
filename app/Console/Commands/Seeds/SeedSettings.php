@@ -32,26 +32,19 @@ class SeedSettings extends Command
         $this->generateInformation();
     }
 
-    /**
-     * @return void
-     */
     public function generateInformation(): void
     {
         $description = '<p><span style=\"color: rgb(0, 0, 0);\">Портал </span><strong style=\"color: rgb(0, 0, 0);\">SPRA.BY</strong><span style=\"color: rgb(0, 0, 0);\"> не является интернет-магазином, приобретение товара осуществляется напрямую у ремесленника, юридического лица или в стационарном торговом объекте по указанному адресу продавца. </span></p><p><br></p><p><span style=\"color: rgb(0, 0, 0);\">Информация о товарах на портале </span><strong style=\"color: rgb(0, 0, 0);\">SPRA.BY</strong><span style=\"color: rgb(0, 0, 0);\"> носит справочный характер и не является публичной офертой. Указанная цена на товары может отличаться от фактической. Если в описании или цене вы заметили неточность или ошибку, пожалуйста, сообщите нам на почту help@spra.by</span></p>';
 
         Settings::updateOrCreate([
             'key' => Settings::KEYS['INFO'],
-        ],[
+        ], [
             'data' => [
-                "description" => $description
-            ]
+                'description' => $description,
+            ],
         ]);
     }
 
-
-    /**
-     * @return void
-     */
     private function generateMenu(): void
     {
         $menu = [];
@@ -59,14 +52,16 @@ class SeedSettings extends Command
 
         foreach ($scheme['collections'] as $collection) {
             $data = $this->generateCollectionForMenu($collection);
-            if ($data) $menu[] = $data;
+            if ($data) {
+                $menu[] = $data;
+            }
         }
 
         /**
          * @var Settings $settings
          */
         $settings = Settings::menu()->first();
-        if (!$settings) {
+        if (! $settings) {
             Settings::createMenu($menu);
         } else {
             $settings->data = $menu;
@@ -74,15 +69,13 @@ class SeedSettings extends Command
         }
     }
 
-    /**
-     * @param array $collection
-     * @return array|null
-     */
     private function generateCollectionForMenu(array $collection): ?array
     {
         $dbCollection = Collection::where('handle', $collection['id'])->where('name', $collection['name'])->first();
 
-        if (!$dbCollection) return null;
+        if (! $dbCollection) {
+            return null;
+        }
 
         $collectionData = [
             'id' => $dbCollection->id,
@@ -94,7 +87,9 @@ class SeedSettings extends Command
         if (isset($collection['subCollections'])) {
             foreach ($collection['subCollections'] as $subCollections) {
                 $data = $this->generateCollectionForMenu($subCollections);
-                if ($data) $childrenCollections[] = $data;
+                if ($data) {
+                    $childrenCollections[] = $data;
+                }
             }
         }
 

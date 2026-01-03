@@ -43,7 +43,7 @@ class VariantForm
                             ->schema([
                                 ImageEntry::make('image.image.src')
                                     ->extraAttributes(['class' => 'w-full aspect-square'])
-                                    ->state(fn(Variant|null $v) => $v?->image?->image?->src ?? null)
+                                    ->state(fn (?Variant $v) => $v?->image?->image?->src ?? null)
                                     ->label('')
                                     ->hiddenLabel()
                                     ->imageHeight('auto')
@@ -55,17 +55,19 @@ class VariantForm
                                             ->icon(Heroicon::OutlinedPhoto)
                                             ->hiddenLabel()
                                             ->link()
-                                            ->modalContent(fn(Variant $v) => view('livewire.image-picker.data', ['product' => $v->product, 'variant' => $v]))
+                                            ->modalContent(fn (Variant $v) => view('livewire.image-picker.data', ['product' => $v->product, 'variant' => $v]))
                                             ->modalHeading('Add images')
                                             ->modalSubmitAction(false),
                                         Action::make('upload_image')
                                             ->icon(Heroicon::OutlinedArrowUpTray)
                                             ->hiddenLabel()
                                             ->link()
-                                            ->schema(fn(Schema $schema) => ImageSingleCreateForm::configure($schema))
+                                            ->schema(fn (Schema $schema) => ImageSingleCreateForm::configure($schema))
                                             ->modalHeading('Upload images')
-                                            ->action(function (array $data, Variant|null $variant): void {
-                                                if (!isset($data['src']) && !$variant) return;
+                                            ->action(function (array $data, ?Variant $variant): void {
+                                                if (! isset($data['src']) && ! $variant) {
+                                                    return;
+                                                }
 
                                                 $position = $variant->product->images()->count();
 
@@ -84,8 +86,8 @@ class VariantForm
                                                 $variant->refresh();
                                             })
                                             ->slideOver()
-                                            ->stickyModalHeader()
-                                    ])
+                                            ->stickyModalHeader(),
+                                    ]),
                             ]),
 
                         Grid::make()
@@ -116,7 +118,7 @@ class VariantForm
                                             ->dehydrated(false)
                                             ->numeric()
                                             ->reactive()
-                                            ->afterStateHydrated(function (Variant|null $variant, Set $set) {
+                                            ->afterStateHydrated(function (?Variant $variant, Set $set) {
                                                 $set('discount', $variant?->discount ?? 0);
                                             })
                                             ->afterStateUpdated(function (Get $get, Set $set) {
@@ -130,7 +132,7 @@ class VariantForm
                                             ->afterStateUpdated(function (Get $get, Set $set) {
                                                 Utilities::updateDiscountValue($get, $set);
                                             }),
-                                    ])
+                                    ]),
 
                             ]),
 
@@ -141,59 +143,75 @@ class VariantForm
                             ->schema([
                                 Select::make('option_id')
                                     ->label('Option')
-                                    ->options(function (VariantValue|null $v): Collection {
-                                        if (!$v?->variant?->product?->category) return collect();
+                                    ->options(function (?VariantValue $v): Collection {
+                                        if (! $v?->variant?->product?->category) {
+                                            return collect();
+                                        }
+
                                         return $v->variant->product->category->options->pluck('title', 'id');
                                     })
                                     ->disableOptionWhen(function (string $value, string $state, Get $get, VariantValue $v) {
-                                        if (!$v->variant?->product?->category) return collect();
+                                        if (! $v->variant?->product?->category) {
+                                            return collect();
+                                        }
                                         $option = $v->variant->product->category->options->firstWhere('id', $value);
-                                        return $state !== $value && (!$option->values->count() || !!collect($get('../../values'))
-                                                    ->first(fn($v) => isset($v['option_id']) && $value === (string)$v['option_id']));
+
+                                        return $state !== $value && (! $option->values->count() || (bool) collect($get('../../values'))
+                                            ->first(fn ($v) => isset($v['option_id']) && $value === (string) $v['option_id']));
                                     })
                                     ->required()
                                     ->live()
-                                    ->default(function (Get $get, VariantValue|null $v) {
-                                        if (!$v?->variant?->product?->category) return [];
+                                    ->default(function (Get $get, ?VariantValue $v) {
+                                        if (! $v?->variant?->product?->category) {
+                                            return [];
+                                        }
                                         /**
                                          * @var Option|null $option
                                          */
                                         $option = $v->variant->product->category->options->first(function (Option $o) use ($get) {
-                                            return $o->values->count() && !collect($get('../../values'))
-                                                    ->first(fn($v) => isset($v['option_id']) && (string)$o->id === (string)$v['option_id']);
+                                            return $o->values->count() && ! collect($get('../../values'))
+                                                ->first(fn ($v) => isset($v['option_id']) && (string) $o->id === (string) $v['option_id']);
                                         });
 
-                                        return $option ? (string)$option->id : null;
+                                        return $option ? (string) $option->id : null;
                                     })
                                     ->columnSpan(1),
 
                                 Select::make('option_value_id')
                                     ->label('Value')
-                                    ->options(function (Get $get, VariantValue|null $v): Collection {
-                                        if (!$v?->variant?->product?->category) return collect();
+                                    ->options(function (Get $get, ?VariantValue $v): Collection {
+                                        if (! $v?->variant?->product?->category) {
+                                            return collect();
+                                        }
 
                                         $optionId = $get('option_id');
                                         /** @var Option|null $option */
                                         $option = $optionId ? $v->variant->product->category->options->firstWhere('id', $optionId) : null;
-                                        if (!$option) return collect();
+                                        if (! $option) {
+                                            return collect();
+                                        }
 
                                         return $option->values->pluck('value', 'id');
                                     })
                                     ->required()
-                                    ->default(function (Get $get, VariantValue|null $v) {
-                                        if (!$v?->variant?->product?->category) return null;
+                                    ->default(function (Get $get, ?VariantValue $v) {
+                                        if (! $v?->variant?->product?->category) {
+                                            return null;
+                                        }
 
                                         $firstValue = collect($get('../../values'))
-                                            ->first(fn($v) => isset($v['option_id']) && !isset($v['option_value_id']));
+                                            ->first(fn ($v) => isset($v['option_id']) && ! isset($v['option_value_id']));
 
                                         /**
                                          * @var Option|null $option
                                          */
                                         $option = $firstValue && $firstValue['option_id'] ? $v->variant->product->category->options->firstWhere('id', $firstValue['option_id']) : null;
-                                        if (!$option) return null;
+                                        if (! $option) {
+                                            return null;
+                                        }
 
                                         $optionUsedValueIds = collect($get('../../values'))
-                                            ->filter(fn($value) => (string)$option->id === (string)$value['option_id'])
+                                            ->filter(fn ($value) => (string) $option->id === (string) $value['option_id'])
                                             ->pluck('option_value_id')
                                             ->filter()
                                             ->all();
@@ -212,23 +230,19 @@ class VariantForm
                             ])
                             ->columns(2)
                             ->addActionLabel('Add combination')
-                            ->maxItems(function (Get $get, Variant|null $v): int {
-                                if (!$v) return 10000;
+                            ->maxItems(function (Get $get, ?Variant $v): int {
+                                if (! $v) {
+                                    return 10000;
+                                }
                                 $usedOptionIds = collect($get('values'))->pluck('option_id')->filter()->all();
-                                $optionIds = $v->product->category?->options->filter(fn(Option $o) => $o->values->count())->pluck('id')->all();
+                                $optionIds = $v->product->category?->options->filter(fn (Option $o) => $o->values->count())->pluck('id')->all();
+
                                 return count(array_diff($optionIds, $usedOptionIds)) === 0 ? count($optionIds) : 10000;
-                            })
+                            }),
                     ]),
             ]);
     }
 
-    /**
-     * @param string $src
-     * @param string $name
-     * @param Variant $variant
-     * @param int $position
-     * @return void
-     */
     private static function saveImage(string $src, string $name, Variant $variant, int $position): void
     {
         /**

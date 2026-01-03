@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Variant;
 use App\Models\Product;
+use App\Models\Variant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -26,6 +26,7 @@ class ImagePicker extends Field
     public function images(Collection $images): static
     {
         $this->images = $images;
+
         return $this;
     }
 

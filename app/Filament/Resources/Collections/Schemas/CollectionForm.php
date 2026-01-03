@@ -39,7 +39,7 @@ class CollectionForm
                                     ->multiple()
                                     ->preload()
                                     ->columnSpanFull(),
-                            ])
+                            ]),
                     ]),
 
                 RichEditor::make('description')
@@ -56,7 +56,7 @@ class CollectionForm
                         'undo',
                         'redo',
                     ])
-                    ->columnSpanFull()
+                    ->columnSpanFull(),
             ]);
     }
 }

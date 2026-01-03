@@ -40,10 +40,10 @@ class BrandsTable
             ->filters([
                 Filter::make('has_orders')
                     ->label('Has orders')
-                    ->query(fn(Builder $query): Builder => $query->has('orders')),
+                    ->query(fn (Builder $query): Builder => $query->has('orders')),
                 Filter::make('has_products')
                     ->label('Has products')
-                    ->query(fn(Builder $query): Builder => $query->has('products')),
+                    ->query(fn (Builder $query): Builder => $query->has('products')),
             ])
             ->recordActions([
                 EditAction::make(),

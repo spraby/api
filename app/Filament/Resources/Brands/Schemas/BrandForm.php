@@ -2,10 +2,9 @@
 
 namespace App\Filament\Resources\Brands\Schemas;
 
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\RichEditor;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 class BrandForm

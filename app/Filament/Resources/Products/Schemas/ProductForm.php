@@ -72,7 +72,7 @@ class ProductForm
                                     ->dehydrated(false)
                                     ->numeric()
                                     ->reactive()
-                                    ->afterStateHydrated(function (Product|null $product, Set $set) {
+                                    ->afterStateHydrated(function (?Product $product, Set $set) {
                                         $set('discount', $product?->discount ?? 0);
                                     })
                                     ->afterStateUpdated(function (Get $get, Set $set) {
@@ -97,9 +97,9 @@ class ProductForm
                             ->schema([
                                 ImageEntry::make('main_image.image.src')
                                     ->label('')
-                                    ->state(fn(Product|null $p) => $p?->mainImage->image->src ?? null)
+                                    ->state(fn (?Product $p) => $p?->mainImage->image->src ?? null)
                                     ->hiddenLabel()
-                                    ->default(fn() => 'https://ncpi.tj/wp-content/uploads/2019/07/no_image.jpg')
+                                    ->default(fn () => 'https://ncpi.tj/wp-content/uploads/2019/07/no_image.jpg')
                                     ->lazy()
                                     ->imageHeight('auto')
                                     ->imageWidth('100%'),
@@ -109,17 +109,19 @@ class ProductForm
                             ->schema([
                                 Toggle::make('enabled')
                                     ->label(__('filament-resources.resources.product.fields.enabled'))
-                                    ->default(fn(Product|null $p) => $p?->enabled ?? true)
+                                    ->default(fn (?Product $p) => $p?->enabled ?? true)
                                     ->live()
-                                    ->afterStateUpdated(function ($state, Product|null $p) {
-                                        if (!$p) return;
+                                    ->afterStateUpdated(function ($state, ?Product $p) {
+                                        if (! $p) {
+                                            return;
+                                        }
                                         $p->enabled = $state;
                                         $p->save();
                                         Notification::make()
                                             ->title(__('Status changed'))
                                             ->success()
                                             ->send();
-                                    })
+                                    }),
                             ]),
 
                         Section::make('Category')
@@ -127,11 +129,11 @@ class ProductForm
                             ->schema([
                                 Select::make('category_id')
                                     ->label(__('filament-resources.resources.product.fields.category_id'))
-                                    ->relationship('category', 'name', fn(Product|null $p) => $p?->brand->categories())
+                                    ->relationship('category', 'name', fn (?Product $p) => $p?->brand->categories())
                                     ->searchable()
                                     ->preload(),
                             ]),
-                    ])
+                    ]),
             ]);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Image;
+use Illuminate\Database\Seeder;
 
 class ImageSeeder extends Seeder
 {

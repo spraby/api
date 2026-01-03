@@ -7,6 +7,7 @@ import {
   FileCodeIcon,
   FileIcon,
   FileTextIcon,
+  ImageIcon,
   LayoutDashboardIcon,
   PackageIcon,
   SettingsIcon,
@@ -113,6 +114,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         title: t('admin.nav.products'),
         url: "/sb/admin/products",
         icon: PackageIcon,
+      },
+      {
+        title: t('admin.nav.media'),
+        url: "/sb/admin/media",
+        icon: ImageIcon,
       },
       {
         title: t('admin.nav.users'),

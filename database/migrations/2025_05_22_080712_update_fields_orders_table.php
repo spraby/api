@@ -75,30 +75,30 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("
+        DB::statement('
             ALTER TABLE orders
               ALTER COLUMN status
                 DROP DEFAULT,
               ALTER COLUMN status
                 TYPE varchar
                 USING status::text;
-        ");
-        DB::statement("
+        ');
+        DB::statement('
             ALTER TABLE orders
               ALTER COLUMN delivery_status
                 DROP DEFAULT,
               ALTER COLUMN delivery_status
                 TYPE varchar
                 USING delivery_status::text;
-        ");
-        DB::statement("
+        ');
+        DB::statement('
             ALTER TABLE orders
               ALTER COLUMN financial_status
                 DROP DEFAULT,
               ALTER COLUMN financial_status
                 TYPE varchar
                 USING financial_status::text;
-        ");
+        ');
 
         DB::statement('DROP TYPE IF EXISTS order_status;');
         DB::statement('DROP TYPE IF EXISTS delivery_status;');

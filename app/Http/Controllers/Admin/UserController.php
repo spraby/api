@@ -12,7 +12,6 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-
     /**
      * Show the form for editing the specified user.
      * Data is fetched via API using TanStack Query
@@ -23,7 +22,6 @@ class UserController extends Controller
             'userId' => $id,
         ]);
     }
-
 
     // ========================================
     // API ENDPOINTS (для TanStack Query)
@@ -125,7 +123,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update user',
-                'errors' => ['general' => [$e->getMessage()]]
+                'errors' => ['general' => [$e->getMessage()]],
             ], 422);
         }
     }
@@ -147,12 +145,12 @@ class UserController extends Controller
             $user->delete();
 
             return response()->json([
-                'message' => 'User deleted successfully'
+                'message' => 'User deleted successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete user',
-                'errors' => ['general' => [$e->getMessage()]]
+                'errors' => ['general' => [$e->getMessage()]],
             ], 422);
         }
     }
@@ -171,12 +169,12 @@ class UserController extends Controller
 
         // Prevent deleting yourself
         $currentUserId = auth()->id();
-        $userIds = array_filter($userIds, fn($id) => $id != $currentUserId);
+        $userIds = array_filter($userIds, fn ($id) => $id != $currentUserId);
 
         User::whereIn('id', $userIds)->delete();
 
         return response()->json([
-            'message' => 'Users deleted successfully'
+            'message' => 'Users deleted successfully',
         ]);
     }
 
@@ -205,7 +203,7 @@ class UserController extends Controller
         }
 
         return response()->json([
-            'message' => 'User roles updated successfully'
+            'message' => 'User roles updated successfully',
         ]);
     }
 }

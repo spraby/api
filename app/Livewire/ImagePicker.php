@@ -1,17 +1,15 @@
 <?php
 
-
 namespace App\Livewire;
 
+use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\User;
 use App\Models\Variant;
-use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Collection;
-use App\Models\Product;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\ImageColumn;
@@ -20,6 +18,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -30,14 +29,11 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
     use InteractsWithTable;
 
     public string $search = '';
+
     public ?Product $product;
+
     public ?Variant $variant;
 
-    /**
-     * @param Product|null $product
-     * @param Variant|null $variant
-     * @return void
-     */
     public function mount(?Product $product = null, ?Variant $variant = null): void
     {
         $this->product = $product;
@@ -59,7 +55,7 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
         $brand = $user->getBrand();
 
         return $table
-            ->query(fn() => $brand?->images()->when(!!$this->variant?->id, fn($q) => $q->whereIn('id', $imagesIds), fn($q) => $q->whereNotIn('id', $imagesIds)))
+            ->query(fn () => $brand?->images()->when((bool) $this->variant?->id, fn ($q) => $q->whereIn('id', $imagesIds), fn ($q) => $q->whereNotIn('id', $imagesIds)))
             ->columns([
                 Stack::make([
                     ImageColumn::make('url')
@@ -92,7 +88,7 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
                                 $id = $records->pluck('id')->first();
                                 if ($id) {
                                     $productImage = ProductImage::where('image_id', $id)->where('product_id', $this->product->id)->first();
-                                    if($productImage){
+                                    if ($productImage) {
                                         $this->variant->image_id = $productImage->id;
                                         $this->variant->save();
                                     }
@@ -117,7 +113,7 @@ class ImagePicker extends Component implements HasActions, HasSchemas, HasTable
                                 ->title('Something went wrong')
                                 ->danger();
                         }
-                    })
+                    }),
             ]);
     }
 

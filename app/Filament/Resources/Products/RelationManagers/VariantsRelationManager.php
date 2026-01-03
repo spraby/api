@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\Products\RelationManagers;
 
 use App\Filament\Components\Form\Banner;
-use App\Filament\Resources\Products\Schemas\VariantCreateForm;
-use App\Filament\Resources\Variants\Schemas\VariantForm;
 use App\Filament\Resources\Variants\VariantResource;
 use App\Models\Option;
 use App\Models\OptionValue;
@@ -41,12 +39,12 @@ class VariantsRelationManager extends RelationManager
                 Action::make('add-variant')
                     ->label('Add new')
                     ->icon(Heroicon::Plus)
-                    ->schema(fn(Schema $schema) => $this->createForm($schema))
+                    ->schema(fn (Schema $schema) => $this->createForm($schema))
                     ->modalHeading('Add Variant')
                     ->action(function (array $data) use ($product): void {
                         $values = collect($data['values']);
                         $optionValueIds = $values->pluck('option_value_id')->filter()->all();
-                        $optionValues = OptionValue::query()->whereIn('id', $optionValueIds)->get();;
+                        $optionValues = OptionValue::query()->whereIn('id', $optionValueIds)->get();
 
                         $title = [];
 
@@ -76,14 +74,12 @@ class VariantsRelationManager extends RelationManager
                             ]);
                         }
                     })
-                    ->slideOver()
+                    ->slideOver(),
 
             ]);
     }
 
     /**
-     * @param Schema $schema
-     * @return Schema
      * @throws Exception
      */
     public function createForm(Schema $schema): Schema
@@ -92,6 +88,7 @@ class VariantsRelationManager extends RelationManager
          * @var Product $product
          */
         $product = $this->getOwnerRecord();
+
         return $schema
             ->components([
                 Banner::make('banner')
@@ -99,71 +96,85 @@ class VariantsRelationManager extends RelationManager
                     ->label('test')
                     ->setHeader('Your product doesn’t have any categories yet, so creating variations isn’t possible right now.')
                     ->setType('warning')
-                    ->hidden(fn() => !!$product->category),
+                    ->hidden(fn () => (bool) $product->category),
 
                 Repeater::make('values')
                     ->label('Variant Options')
                     ->columnSpan(12)
-                    ->hidden(fn() => !$product->category)
+                    ->hidden(fn () => ! $product->category)
                     ->schema([
                         Select::make('option_id')
                             ->label('Option')
                             ->options(function () use ($product): Collection {
-                                if (!$product?->category) return collect();
+                                if (! $product?->category) {
+                                    return collect();
+                                }
+
                                 return $product->category->options->pluck('title', 'id');
                             })
                             ->disableOptionWhen(function (string $value, string $state, Get $get) use ($product) {
-                                if (!$product?->category) return collect();
+                                if (! $product?->category) {
+                                    return collect();
+                                }
                                 $option = $product->category->options->firstWhere('id', $value);
 
-                                return $state !== $value && (!$option->values->count() || !!collect($get('../../values'))
-                                            ->first(fn($v) => isset($v['option_id']) && $value === (string)$v['option_id']));
+                                return $state !== $value && (! $option->values->count() || (bool) collect($get('../../values'))
+                                    ->first(fn ($v) => isset($v['option_id']) && $value === (string) $v['option_id']));
                             })
                             ->required()
                             ->live()
                             ->default(function (Get $get) use ($product) {
-                                if (!$product?->category) return collect();
+                                if (! $product?->category) {
+                                    return collect();
+                                }
 
                                 /**
                                  * @var Option|null $option
                                  */
                                 $option = $product->category->options->first(function (Option $o) use ($get) {
-                                    return $o->values->count() && !collect($get('../../values'))
-                                            ->first(fn($v) => isset($v['option_id']) && (string)$o->id === (string)$v['option_id']);
+                                    return $o->values->count() && ! collect($get('../../values'))
+                                        ->first(fn ($v) => isset($v['option_id']) && (string) $o->id === (string) $v['option_id']);
                                 });
 
-                                return $option ? (string)$option->id : null;
+                                return $option ? (string) $option->id : null;
                             })
                             ->columnSpan(1),
-
 
                         Select::make('option_value_id')
                             ->label('Value')
                             ->options(function (Get $get) use ($product): Collection {
-                                if (!$product?->category) return collect();
+                                if (! $product?->category) {
+                                    return collect();
+                                }
 
                                 $optionId = $get('option_id');
                                 /** @var Option|null $option */
                                 $option = $optionId ? $product->category->options->firstWhere('id', $optionId) : null;
-                                if (!$option) return collect();
+                                if (! $option) {
+                                    return collect();
+                                }
 
                                 return $option->values->pluck('value', 'id');
                             })
                             ->required()
                             ->default(function (Get $get) use ($product) {
-                                if (!$product?->category) return null;
+                                if (! $product?->category) {
+                                    return null;
+                                }
 
                                 $firstValue = collect($get('../../values'))
-                                    ->first(fn($v) => isset($v['option_id']) && !isset($v['option_value_id']));
+                                    ->first(fn ($v) => isset($v['option_id']) && ! isset($v['option_value_id']));
 
                                 /**
                                  * @var Option|null $option
                                  */
                                 $option = $firstValue && $firstValue['option_id'] ? $product->category->options->firstWhere('id', $firstValue['option_id']) : null;
-                                if (!$option) return null;
+                                if (! $option) {
+                                    return null;
+                                }
 
                                 $optionUsedValueIds = collect($get('../../values'))
-                                    ->filter(fn($value) => (string)$option->id === (string)$value['option_id'])
+                                    ->filter(fn ($value) => (string) $option->id === (string) $value['option_id'])
                                     ->pluck('option_value_id')
                                     ->filter()
                                     ->all();
@@ -184,14 +195,18 @@ class VariantsRelationManager extends RelationManager
                     ->columns(2)
                     ->addActionLabel('Add combination')
                     ->maxItems(function (Get $get) use ($product): int {
-                        if (!$product->category) return 0;
+                        if (! $product->category) {
+                            return 0;
+                        }
                         $usedOptionIds = collect($get('values'))->pluck('option_id')->filter()->all();
-                        $optionIds = $product->category?->options->filter(fn(Option $o) => $o->values->count())->pluck('id')->all();
-                        if ($optionIds === null) return 0;
+                        $optionIds = $product->category?->options->filter(fn (Option $o) => $o->values->count())->pluck('id')->all();
+                        if ($optionIds === null) {
+                            return 0;
+                        }
+
                         return count(array_diff($optionIds, $usedOptionIds)) === 0 ? count($optionIds) : 10000;
-                    })
+                    }),
 
             ]);
     }
-
 }

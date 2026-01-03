@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\OptionValue;
+use Illuminate\Database\Seeder;
 
 class OptionValueSeeder extends Seeder
 {

@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Categories\Schemas;
 
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\RichEditor;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
@@ -39,7 +39,7 @@ class CategoryForm
                                     ->multiple()
                                     ->preload()
                                     ->columnSpanFull(),
-                            ])
+                            ]),
                     ]),
 
                 RichEditor::make('description')
@@ -56,7 +56,7 @@ class CategoryForm
                         'undo',
                         'redo',
                     ])
-                    ->columnSpanFull()
+                    ->columnSpanFull(),
             ]);
     }
 }

@@ -10,7 +10,6 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -34,12 +33,12 @@ class VariantsTable
                     ->imageWidth(50)
                     ->imageHeight(50),
                 TextColumn::make('title')
-                    ->state(fn(Variant $v): HtmlString => new HtmlString($v->values->map(fn(VariantValue $value) => "<div><b>{$value->option->title}</b>: {$value->value->value}</div>")->implode('')))
+                    ->state(fn (Variant $v): HtmlString => new HtmlString($v->values->map(fn (VariantValue $value) => "<div><b>{$value->option->title}</b>: {$value->value->value}</div>")->implode('')))
                     ->searchable(),
                 TextColumn::make('final_price')
                     ->label('Price')
-                    ->state(fn(Variant $v): string => Brand::toMoney($v->final_price))
-                    ->description(fn(Variant $v): Htmlable => $v->final_price !== $v->price ? new HtmlString("<s class='text-[10px]'>" . Brand::toMoney($v->price) . "</s> <span class='text-green-500'>{$v->discount}%</span>") : new HtmlString(''))
+                    ->state(fn (Variant $v): string => Brand::toMoney($v->final_price))
+                    ->description(fn (Variant $v): Htmlable => $v->final_price !== $v->price ? new HtmlString("<s class='text-[10px]'>".Brand::toMoney($v->price)."</s> <span class='text-green-500'>{$v->discount}%</span>") : new HtmlString(''))
                     ->sortable(),
                 IconColumn::make('enabled')
                     ->boolean(),
@@ -51,8 +50,8 @@ class VariantsTable
                 Action::make('edit-variant')
                     ->label('Edit')
                     ->icon(Heroicon::PencilSquare)
-                    ->schema(fn(Schema $schema) => VariantForm::configure($schema))
-                    ->fillForm(fn(Variant $record) => $record->toArray())
+                    ->schema(fn (Schema $schema) => VariantForm::configure($schema))
+                    ->fillForm(fn (Variant $record) => $record->toArray())
                     ->modalHeading('Edit Variant')
                     ->action(function (array $data, Variant $record): void {
                         $record->update($data);

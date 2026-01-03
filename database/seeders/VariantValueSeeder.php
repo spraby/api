@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Variant;
 use App\Models\Option;
 use App\Models\OptionValue;
+use App\Models\Variant;
 use App\Models\VariantValue;
+use Illuminate\Database\Seeder;
 
 class VariantValueSeeder extends Seeder
 {

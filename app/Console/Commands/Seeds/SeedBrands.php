@@ -28,25 +28,22 @@ class SeedBrands extends Command
      */
     public function handle(): void
     {
-        $force = !!$this->option('force');
+        $force = (bool) $this->option('force');
         $this->generateBrands($force);
     }
 
-    /**
-     * @param bool $force
-     * @return void
-     */
     private function generateBrands(bool $force = false): void
     {
-        if ($force) Brand::get()->each(function (Brand $brand) {
-            $brand->delete();
-        });
+        if ($force) {
+            Brand::get()->each(function (Brand $brand) {
+                $brand->delete();
+            });
+        }
 
         $users = User::get();
         $categories = Category::get();
         $categoriesPerUser = ceil($categories->count() / ($users->count() > 0 ? $users->count() : 1));
         $categories = $categories->chunk($categoriesPerUser);
-
 
         foreach ($users as $key => $user) {
             $index = isset($categories[$key]) ? $key : random_int(0, $users->count() - 1);
@@ -54,7 +51,7 @@ class SeedBrands extends Command
 
             $brand = Brand::updateOrCreate([
                 'user_id' => $user->id,
-                'name' => 'Brand_' . $user->id,
+                'name' => 'Brand_'.$user->id,
             ], [
                 'description' => "Brand for user {$user->email}",
             ]);

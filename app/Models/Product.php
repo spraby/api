@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany, HasManyThrough};
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -21,11 +23,9 @@ use Illuminate\Support\Facades\DB;
  * @property string $final_price
  * @property Carbon $created_at
  * @property Carbon $updated_at
- *
  * @property string $externalUrl
  * @property float $discount
  * @property ProductImage $mainImage
- *
  * @property-read Brand $brand
  * @property-read Category|null $category
  * @property-read Collection<Variant> $variants
@@ -63,9 +63,6 @@ class Product extends Model
         return $this->belongsTo(Brand::class);
     }
 
-    /**
-     * @return HasManyThrough
-     */
     public function options(): HasManyThrough
     {
         return $this->hasManyThrough(
@@ -88,9 +85,6 @@ class Product extends Model
         return $this->hasMany(Variant::class);
     }
 
-    /**
-     * @return HasMany
-     */
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
@@ -118,9 +112,6 @@ class Product extends Model
         return $this->hasMany(ProductStatistics::class)->where('type', 'view');
     }
 
-    /**
-     * @return void
-     */
     protected static function booted(): void
     {
         static::creating(function (self $model): void {
@@ -129,39 +120,31 @@ class Product extends Model
              * @var Brand $brand
              */
             $user = auth()->user();
-            if (!$user) return;
+            if (! $user) {
+                return;
+            }
             $brand = $user->brands()->first();
-            if ($brand) $model->brand_id = $brand->id;
+            if ($brand) {
+                $model->brand_id = $brand->id;
+            }
         });
     }
 
-    /**
-     * @return ProductImage|null
-     */
-    public function getMainImageAttribute(): ProductImage|null
+    public function getMainImageAttribute(): ?ProductImage
     {
         return $this->images?->sortBy('position')?->first();
     }
 
-    /**
-     * @return string
-     */
     public function getExternalUrlAttribute(): string
     {
-        return config('app.store_url') . '/products/' . $this->id;
+        return config('app.store_url').'/products/'.$this->id;
     }
 
-    /**
-     * @return float
-     */
     public function getDiscountAttribute(): float
     {
         return round($this->price > 0 ? (($this->price - $this->final_price) / $this->price) * 100 : 0, 0);
     }
 
-    /**
-     * @return void
-     */
     public function reorderImages(): void
     {
         DB::transaction(function () {

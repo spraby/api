@@ -12,18 +12,11 @@ class CreateImage extends CreateRecord
 
     protected ?string $heading = 'Upload images';
 
-    /**
-     * @return string
-     */
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
 
-    /**
-     * @param array|string $data
-     * @return Model
-     */
     protected function handleRecordCreation(array|string $data): Model
     {
         $lastImage = null;
@@ -43,9 +36,6 @@ class CreateImage extends CreateRecord
         return $lastImage ?? new (static::getModel());
     }
 
-    /**
-     * @return array
-     */
     protected function getFormActions(): array
     {
         return [

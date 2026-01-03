@@ -2,17 +2,12 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
-use App\Filament\Resources\Variants\Schemas\VariantForm;
 use App\Models\Brand;
 use App\Models\Product;
-use App\Models\Variant;
 use Exception;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -40,13 +35,13 @@ class ProductsTable
 
                 TextColumn::make('title')
                     ->copyable()
-                    ->description(fn(Product $p): Htmlable => new HtmlString("<a class='flex gap-[2px] items-center' href='{$p->externalUrl}' target='_blank'>Preview" . ProductsTable::getHeroIconPreview() . "</a><div class='text-gray-400 text-[10px]'>{$p?->category?->name}<span/>"))
+                    ->description(fn (Product $p): Htmlable => new HtmlString("<a class='flex gap-[2px] items-center' href='{$p->externalUrl}' target='_blank'>Preview".ProductsTable::getHeroIconPreview()."</a><div class='text-gray-400 text-[10px]'>{$p?->category?->name}<span/>"))
                     ->searchable(),
 
                 TextColumn::make('final_price')
                     ->label('Price')
-                    ->state(fn(Product $p): string => Brand::toMoney($p->final_price))
-                    ->description(fn(Product $p): Htmlable => $p->final_price !== $p->price ? new HtmlString("<s class='text-[10px]'>" . Brand::toMoney($p->final_price) . "</s> <span class='text-green-500'>{$p->discount}%</span>") : new HtmlString(''))
+                    ->state(fn (Product $p): string => Brand::toMoney($p->final_price))
+                    ->description(fn (Product $p): Htmlable => $p->final_price !== $p->price ? new HtmlString("<s class='text-[10px]'>".Brand::toMoney($p->final_price)."</s> <span class='text-green-500'>{$p->discount}%</span>") : new HtmlString(''))
                     ->sortable(),
 
                 IconColumn::make('enabled')
@@ -73,9 +68,6 @@ class ProductsTable
             ]);
     }
 
-    /**
-     * @return string
-     */
     private static function getHeroIconPreview(): string
     {
         return '<svg class="fi-icon fi-size-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-slot="icon">

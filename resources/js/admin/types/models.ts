@@ -127,16 +127,12 @@ export interface OptionValue extends BaseModel {
 
 // Image
 export interface Image extends BaseModel {
-  brand_id: number;
-  file_name: string;
-  file_path: string;
-  file_size: number;
-  mime_type: string;
-  alt_text?: string;
-  title?: string;
-  width?: number;
-  height?: number;
-  brand?: Brand;
+  name: string;
+  src: string;
+  alt?: string;
+  meta?: string;
+  url?: string; // Computed attribute from Laravel
+  brands?: Brand[];
 }
 
 export interface ProductImage {

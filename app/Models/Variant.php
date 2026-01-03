@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property string $id
@@ -19,9 +20,7 @@ use Carbon\Carbon;
  * @property bool $enabled
  * @property Carbon $created_at
  * @property Carbon $updated_at
- *
  * @property float $discount
- *
  * @property-read Product $product
  * @property-read ProductImage|null $image
  * @property-read Collection<VariantValue> $values
@@ -64,9 +63,6 @@ class Variant extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * @return float
-     */
     public function getDiscountAttribute(): float
     {
         return round($this->price > 0 ? (($this->price - $this->final_price) / $this->price) * 100 : 0, 0);

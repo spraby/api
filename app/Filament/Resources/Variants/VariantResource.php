@@ -15,8 +15,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class VariantResource extends Resource
 {
@@ -37,7 +37,9 @@ class VariantResource extends Resource
          */
         $user = Auth::user();
 
-        if ($user?->hasRole(User::ROLES['ADMIN'])) return $query;
+        if ($user?->hasRole(User::ROLES['ADMIN'])) {
+            return $query;
+        }
 
         $brand = $user->getBrand();
 

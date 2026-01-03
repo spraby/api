@@ -46,8 +46,8 @@ class Test extends Command
 
         $d = Storage::disk('s3')->put('test.txt', 'Hello, S3!');
         dd($d);
-$image = Image::find(2);
-dd(Storage::disk('public')->url($image->src));
+        $image = Image::find(2);
+        dd(Storage::disk('public')->url($image->src));
         dd();
 
         $user = User::create([
@@ -60,15 +60,17 @@ dd(Storage::disk('public')->url($image->src));
         $role = Role::firstOrCreate(['name' => 'admin']);
         $user->assignRole('admin');
 
-//        $this->addPermissions();
+        //        $this->addPermissions();
     }
 
-    public function addPermissions(){
-//        Permission::create(['name' => 'manage_brands']);
+    public function addPermissions()
+    {
+        //        Permission::create(['name' => 'manage_brands']);
         Role::findByName('admin')->givePermissionTo('manage_brands');
     }
 
-    public function addRole(){
+    public function addRole()
+    {
         $user = User::find(15);
         $user->assignRole('admin');
     }

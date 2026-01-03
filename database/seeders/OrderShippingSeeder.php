@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\OrderShipping;
 use App\Models\Order;
-
+use App\Models\OrderShipping;
+use Illuminate\Database\Seeder;
 
 class OrderShippingSeeder extends Seeder
 {

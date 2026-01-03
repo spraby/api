@@ -9,7 +9,6 @@ use App\Filament\Resources\Brands\Schemas\BrandForm;
 use App\Filament\Resources\Brands\Tables\BrandsTable;
 use App\Models\Brand;
 use BackedEnum;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -22,7 +21,6 @@ class BrandResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
     protected static ?string $recordTitleAttribute = 'Brand';
-
 
     public static function form(Schema $schema): Schema
     {
@@ -38,7 +36,7 @@ class BrandResource extends Resource
     {
         return [
             RelationManagers\ProductsRelationManager::class,
-//            RelationManagers\CategoriesRelationManager::class,
+            //            RelationManagers\CategoriesRelationManager::class,
             RelationManagers\OrdersRelationManager::class,
         ];
     }

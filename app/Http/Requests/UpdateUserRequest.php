@@ -31,7 +31,7 @@ class UpdateUserRequest extends FormRequest
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($userId)
+                Rule::unique('users', 'email')->ignore($userId),
             ],
             'role' => ['nullable', 'string', 'in:admin,manager'],
         ];

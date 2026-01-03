@@ -3,9 +3,7 @@
 namespace App\Filament\Resources\ProductImages;
 
 use App\Filament\Resources\ProductImages\Pages\CreateProductImage;
-use App\Filament\Resources\ProductImages\Pages\EditProductImage;
 use App\Filament\Resources\ProductImages\Pages\ListProductImages;
-use App\Filament\Resources\ProductImages\Pages\ViewProductImage;
 use App\Filament\Resources\ProductImages\Schemas\ProductImageForm;
 use App\Filament\Resources\ProductImages\Schemas\ProductImageInfolist;
 use App\Filament\Resources\ProductImages\Tables\ProductImagesTable;

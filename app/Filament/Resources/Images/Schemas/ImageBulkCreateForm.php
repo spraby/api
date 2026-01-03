@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Images\Schemas;
 
 use Exception;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
@@ -34,7 +33,7 @@ class ImageBulkCreateForm
                                 '16:9',
                                 '4:3',
                                 '1:1',
-                            ])
+                            ]),
                     ]),
             ]);
     }

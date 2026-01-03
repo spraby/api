@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -19,7 +18,6 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $meta
  * @property Carbon $created_at
  * @property Carbon $updated_at
- *
  * @property string $url
  * @property-read Collection<ProductImage> $productImages
  * @property-read Collection<Brand> $brands
@@ -44,9 +42,8 @@ class Image extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * @return string
-     */
+    protected $appends = ['url'];
+
     public function getUrlAttribute(): string
     {
         return Storage::disk('s3')->url($this->src);
@@ -65,9 +62,6 @@ class Image extends Model
         return $this->belongsToMany(Brand::class);
     }
 
-    /**
-     * @return void
-     */
     protected static function booted(): void
     {
         static::created(function (Image $image) {
@@ -77,14 +71,15 @@ class Image extends Model
              * @var Image $image
              */
             $user = auth()->user();
-            if (!$user) return;
+            if (! $user) {
+                return;
+            }
             $brand = $user->brands->first();
-            if ($brand) $image->brands()->syncWithoutDetaching($brand->id);
+            if ($brand) {
+                $image->brands()->syncWithoutDetaching($brand->id);
+            }
         });
 
-        /**
-         *
-         */
         static::deleting(function (Image $image) {
             if ($image->src) {
                 Storage::disk('s3')->delete($image->src);

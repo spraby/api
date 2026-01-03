@@ -52,6 +52,8 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         })->name('products');
         Route::get('/products/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('products.edit');
 
+        Route::get('/media', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
+
         // API routes (JSON only, for TanStack Query)
         Route::get('/users/api', [App\Http\Controllers\Admin\UserController::class, 'apiIndex'])->name('users.api.index');
         Route::get('/users/{id}/api', [App\Http\Controllers\Admin\UserController::class, 'apiShow'])->name('users.api.show');
@@ -68,6 +70,9 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         Route::post('/products/bulk-update-status/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkUpdateStatus'])->name('products.api.bulk-update-status');
 
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
+
+        Route::post('/media', [App\Http\Controllers\Admin\MediaController::class, 'store'])->name('media.store');
+        Route::delete('/media/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
     });

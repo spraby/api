@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
@@ -20,7 +20,7 @@ class ProductController extends Controller
             ->withCount(['variants', 'images', 'orderItems as orders_count']);
 
         // Apply Row Level Security for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrand = Auth::user()->brands()->first();
             if ($userBrand) {
                 $query->where('brand_id', $userBrand->id);
@@ -31,7 +31,7 @@ class ProductController extends Controller
                     'current_page' => 1,
                     'last_page' => 1,
                     'per_page' => 10,
-                    'total' => 0
+                    'total' => 0,
                 ]);
             }
         }
@@ -41,7 +41,7 @@ class ProductController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'ilike', "%{$search}%")
-                  ->orWhere('description', 'ilike', "%{$search}%");
+                    ->orWhere('description', 'ilike', "%{$search}%");
             });
         }
 
@@ -65,7 +65,7 @@ class ProductController extends Controller
         // Validate sort field
         $allowedSortFields = [
             'id', 'title', 'price', 'final_price', 'created_at', 'updated_at',
-            'variants_count', 'images_count', 'orders_count'
+            'variants_count', 'images_count', 'orders_count',
         ];
         if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortOrder);
@@ -107,9 +107,9 @@ class ProductController extends Controller
     public function show(Product $product): JsonResponse
     {
         // Check access for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrand = Auth::user()->brands()->first();
-            if (!$userBrand || $product->brand_id !== $userBrand->id) {
+            if (! $userBrand || $product->brand_id !== $userBrand->id) {
                 abort(403, 'Access denied');
             }
         }
@@ -190,9 +190,9 @@ class ProductController extends Controller
     public function update(Request $request, Product $product): JsonResponse
     {
         // Check access for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrand = Auth::user()->brands()->first();
-            if (!$userBrand || $product->brand_id !== $userBrand->id) {
+            if (! $userBrand || $product->brand_id !== $userBrand->id) {
                 abort(403, 'Access denied');
             }
         }
@@ -237,9 +237,9 @@ class ProductController extends Controller
     public function destroy(Product $product): JsonResponse
     {
         // Check access for non-admin users
-        if (!Auth::user()?->hasRole('admin')) {
+        if (! Auth::user()?->hasRole('admin')) {
             $userBrand = Auth::user()->brands()->first();
-            if (!$userBrand || $product->brand_id !== $userBrand->id) {
+            if (! $userBrand || $product->brand_id !== $userBrand->id) {
                 abort(403, 'Access denied');
             }
         }
@@ -247,7 +247,7 @@ class ProductController extends Controller
         // Check if product has orders
         if ($product->orderItems()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete product with existing orders'
+                'message' => 'Cannot delete product with existing orders',
             ], 422);
         }
 

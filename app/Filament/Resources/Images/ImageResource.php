@@ -5,9 +5,7 @@ namespace App\Filament\Resources\Images;
 use App\Filament\Resources\Images\Pages\CreateImage;
 use App\Filament\Resources\Images\Pages\EditImage;
 use App\Filament\Resources\Images\Pages\ListImages;
-use App\Filament\Resources\Images\Pages\ViewImage;
 use App\Filament\Resources\Images\Schemas\ImageForm;
-use App\Filament\Resources\Images\Schemas\ImageInfolist;
 use App\Filament\Resources\Images\Tables\ImagesTable;
 use App\Models\Image;
 use App\Models\User;
@@ -16,8 +14,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class ImageResource extends Resource
 {
@@ -39,17 +37,19 @@ class ImageResource extends Resource
         return ImagesTable::configure($table);
     }
 
-    /**
-     * @return bool
-     */
     public static function canAccess(): bool
     {
         /**
          * @var User $user
          */
         $user = auth()->user();
-        if ($user && $user->isAdmin()) return true;
-        if ($user && $user->isManager() && $user->getBrand()) return true;
+        if ($user && $user->isAdmin()) {
+            return true;
+        }
+        if ($user && $user->isManager() && $user->getBrand()) {
+            return true;
+        }
+
         return false;
     }
 
@@ -62,7 +62,9 @@ class ImageResource extends Resource
          */
         $user = Auth::user();
 
-        if ($user?->hasRole('admin')) return $query;
+        if ($user?->hasRole('admin')) {
+            return $query;
+        }
 
         $brand = $user->getBrand();
 

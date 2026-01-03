@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Builder;
-use Carbon\Carbon;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -18,7 +18,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $password
  * @property Carbon $created_at
  * @property Carbon $updated_at
- *
  * @property-read Collection<Brand> $brands
  *
  * @method static Builder|static email(string $email)
@@ -123,58 +122,37 @@ class User extends Authenticatable
         self::PERMISSIONS['WRITE_IMAGES'],
     ];
 
-    /**
-     * @return bool
-     */
     public function isAdmin(): bool
     {
         return $this->hasRole(self::ROLES['ADMIN']);
     }
 
-    /**
-     * @return bool
-     */
     public function isManager(): bool
     {
         return $this->hasRole(self::ROLES['MANAGER']);
     }
 
-    /**
-     * @return HasMany
-     */
     public function brands(): HasMany
     {
         return $this->hasMany(Brand::class);
     }
 
-    /**
-     * @return string|null
-     */
     public function getNameAttribute(): ?string
     {
         return $this->first_name;
     }
 
-    /**
-     * @return Brand|null
-     */
     public function getBrand(): ?Brand
     {
         return $this->brands()->first();
     }
 
-    /**
-     * @param Builder $query
-     * @param string $email
-     * @return void
-     */
     public function scopeEmail(Builder $query, string $email): void
     {
         $query->where('users.email', $email);
     }
 
     /**
-     * @param Builder $query
      * @return void
      */
     public function scopeAdmin(Builder $query)
@@ -186,7 +164,6 @@ class User extends Authenticatable
     }
 
     /**
-     * @param Builder $query
      * @return void
      */
     public function scopeManager(Builder $query)
@@ -194,6 +171,6 @@ class User extends Authenticatable
         $query->select('users.*')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->where('roles.name', self::ROLES['MANAGER']);;
+            ->where('roles.name', self::ROLES['MANAGER']);
     }
 }

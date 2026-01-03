@@ -58,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->assets([
                 Css::make('custom-stylesheet', Vite::asset('resources/css/app.css')),
-//                Js::make('custom-script', resource_path('js/custom.js')),
+                //                Js::make('custom-script', resource_path('js/custom.js')),
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -74,7 +74,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-//                'can:access-admin-panel'
+                //                'can:access-admin-panel'
             ]);
     }
 }

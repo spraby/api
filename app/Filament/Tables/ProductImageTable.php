@@ -1,16 +1,16 @@
 <?php
+
 namespace App\Filament\Tables;
 
+use App\Models\ProductImage;
 use Filament\Support\Contracts\TranslatableContentDriver;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Livewire\Component;
-use App\Models\ProductImage;
 
 class ProductImageTable extends Component implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
-
 
     public function table(Table $table): Table
     {

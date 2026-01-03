@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\ProductImages\Schemas;
 
-use App\Models\Product;
 use Exception;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
