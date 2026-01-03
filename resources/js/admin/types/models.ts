@@ -132,7 +132,7 @@ export interface Image extends BaseModel {
   alt?: string;
   meta?: string;
   url?: string; // Computed attribute from Laravel
-  brands?: Brand[];
+  brands: Brand[]; // Always loaded with eager loading in MediaController
 }
 
 export interface ProductImage {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { ImageIcon, PlusIcon, Trash2Icon, UploadIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,36 +28,29 @@ import AdminLayout from '@/layouts/AdminLayout';
 import { useLang } from '@/lib/lang';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types/inertia';
-import type { Image, PaginatedData } from '@/types/models';
+import type { Image as ImageModel, PaginatedData } from '@/types/models';
+
+// Declare global route function from Ziggy
+declare function route(name: string, params?: Record<string, unknown>): string;
 
 interface MediaProps extends PageProps {
-  images: PaginatedData<Image>;
+  images: PaginatedData<ImageModel>;
 }
 
 export default function Media({ images }: MediaProps) {
-  const { t } = useLang();
-  const { flash } = usePage<PageProps>().props;
+  const { trans } = useLang();
 
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [imageToDelete, setImageToDelete] = useState<Image | null>(null);
-
-  // Show success/error flash messages
-  if (flash?.success) {
-    toast.success(flash.success);
-  }
-
-  if (flash?.error) {
-    toast.error(flash.error);
-  }
+  const [imageToDelete, setImageToDelete] = useState<ImageModel | null>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
     if (files.length > 50) {
-      toast.error(t('admin.media.max_files_error'));
+      toast.error(trans('admin.media.max_files_error'));
 
       return;
     }
@@ -67,13 +60,13 @@ export default function Media({ images }: MediaProps) {
 
   const handleUpload = () => {
     if (selectedFiles.length === 0) {
-      toast.error(t('admin.media.no_files_selected'));
+      toast.error(trans('admin.media.no_files_selected'));
 
       return;
     }
 
     if (selectedFiles.length > 50) {
-      toast.error(t('admin.media.max_files_error'));
+      toast.error(trans('admin.media.max_files_error'));
 
       return;
     }
@@ -101,7 +94,7 @@ export default function Media({ images }: MediaProps) {
     });
   };
 
-  const confirmDelete = (image: Image) => {
+  const confirmDelete = (image: ImageModel) => {
     setImageToDelete(image);
     setDeleteDialogOpen(true);
   };
@@ -123,14 +116,14 @@ export default function Media({ images }: MediaProps) {
   };
 
   return (
-    <AdminLayout title={t('admin.media.title')}>
+    <AdminLayout title={trans('admin.media.title')}>
       <div className="flex flex-1 flex-col gap-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">{t('admin.media.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{trans('admin.media.title')}</h1>
           <Button onClick={() => { setUploadDialogOpen(true); }}>
             <PlusIcon className="mr-2 h-4 w-4" />
-            {t('admin.media.upload_button')}
+            {trans('admin.media.upload_button')}
           </Button>
         </div>
 
@@ -138,13 +131,13 @@ export default function Media({ images }: MediaProps) {
         {images.data.length === 0 && (
           <Card className="flex flex-col items-center justify-center p-12">
             <ImageIcon className="h-16 w-16 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">{t('admin.media.empty_title')}</h3>
+            <h3 className="mt-4 text-lg font-semibold">{trans('admin.media.empty_title')}</h3>
             <p className="mt-2 text-center text-sm text-muted-foreground">
-              {t('admin.media.empty_description')}
+              {trans('admin.media.empty_description')}
             </p>
             <Button className="mt-4" onClick={() => { setUploadDialogOpen(true); }}>
               <UploadIcon className="mr-2 h-4 w-4" />
-              {t('admin.media.upload_first_images')}
+              {trans('admin.media.upload_first_images')}
             </Button>
           </Card>
         )}
@@ -169,9 +162,9 @@ export default function Media({ images }: MediaProps) {
                     <p className="truncate text-sm font-medium" title={image.name}>
                       {image.name}
                     </p>
-                    {!!image.brands && image.brands.length > 0 && (
+                    {image.brands.length > 0 && (
                       <p className="mt-1 truncate text-xs text-muted-foreground">
-                        {image.brands[0].name}
+                        {image.brands[0]?.name}
                       </p>
                     )}
                   </div>
@@ -200,12 +193,12 @@ export default function Media({ images }: MediaProps) {
                 router.get(route('sb.admin.media'), { page: images.current_page - 1 });
               }}
             >
-              {t('admin.pagination.previous')}
+              {trans('admin.pagination.previous')}
             </Button>
             <span className="text-sm text-muted-foreground">
-              {t('admin.pagination.page_of', {
-                current: images.current_page,
-                total: images.last_page,
+              {trans('admin.pagination.page_of', {
+                current: images.current_page.toString(),
+                total: images.last_page.toString(),
               })}
             </span>
             <Button
@@ -215,7 +208,7 @@ export default function Media({ images }: MediaProps) {
                 router.get(route('sb.admin.media'), { page: images.current_page + 1 });
               }}
             >
-              {t('admin.pagination.next')}
+              {trans('admin.pagination.next')}
             </Button>
           </div>
         )}
@@ -225,8 +218,8 @@ export default function Media({ images }: MediaProps) {
       <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('admin.media.upload_dialog_title')}</DialogTitle>
-            <DialogDescription>{t('admin.media.upload_dialog_description')}</DialogDescription>
+            <DialogTitle>{trans('admin.media.upload_dialog_title')}</DialogTitle>
+            <DialogDescription>{trans('admin.media.upload_dialog_description')}</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -242,10 +235,10 @@ export default function Media({ images }: MediaProps) {
                 <UploadIcon className="h-8 w-8 text-muted-foreground" />
                 <p className="mt-2 text-sm font-medium">
                   {selectedFiles.length > 0
-                    ? t('admin.media.files_selected', { count: selectedFiles.length })
-                    : t('admin.media.select_files')}
+                    ? trans('admin.media.files_selected', { count: selectedFiles.length.toString() })
+                    : trans('admin.media.select_files')}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">{t('admin.media.max_files')}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{trans('admin.media.max_files')}</p>
               </label>
               <input
                 accept="image/*"
@@ -259,7 +252,7 @@ export default function Media({ images }: MediaProps) {
 
             {selectedFiles.length > 0 && (
               <div className="max-h-48 overflow-y-auto rounded-lg border p-3">
-                <p className="mb-2 text-sm font-medium">{t('admin.media.selected_files')}:</p>
+                <p className="mb-2 text-sm font-medium">{trans('admin.media.selected_files')}:</p>
                 <ul className="space-y-1">
                   {selectedFiles.map((file, index) => (
                     <li key={index} className="text-sm text-muted-foreground">
@@ -279,10 +272,10 @@ export default function Media({ images }: MediaProps) {
                 setSelectedFiles([]);
               }}
             >
-              {t('admin.common.cancel')}
+              {trans('admin.common.cancel')}
             </Button>
             <Button disabled={selectedFiles.length === 0 || isUploading} onClick={handleUpload}>
-              {isUploading ? t('admin.common.uploading') : t('admin.common.upload')}
+              {isUploading ? trans('admin.common.uploading') : trans('admin.common.upload')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -292,16 +285,16 @@ export default function Media({ images }: MediaProps) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('admin.media.delete_confirm_title')}</AlertDialogTitle>
+            <AlertDialogTitle>{trans('admin.media.delete_confirm_title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('admin.media.delete_confirm_description')}
+              {trans('admin.media.delete_confirm_description')}
               {!!imageToDelete && <span className="mt-2 block font-medium">{imageToDelete.name}</span>}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('admin.common.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{trans('admin.common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>
-              {t('admin.common.delete')}
+              {trans('admin.common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
