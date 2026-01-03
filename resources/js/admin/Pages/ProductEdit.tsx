@@ -121,8 +121,11 @@ export default function ProductEdit({ productId }: ProductEditProps) {
 
   const updateVariant = (index: number, field: keyof Variant, value: string | boolean) => {
     const newVariants = [...variants];
+    const currentVariant = newVariants[index];
 
-    newVariants[index] = { ...newVariants[index], [field]: value };
+    if (!currentVariant) {return;}
+
+    newVariants[index] = { ...currentVariant, [field]: value };
     setVariants(newVariants);
   };
 
