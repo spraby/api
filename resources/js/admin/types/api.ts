@@ -58,6 +58,13 @@ export interface Category {
 // PRODUCT TYPES
 // ============================================
 
+export interface ProductImage {
+  id: number;
+  image_id: number;
+  url: string | null;
+  position: number;
+}
+
 export interface Variant {
   id?: number;
   title: string | null;
@@ -84,6 +91,7 @@ export interface Product {
     name: string;
   } | null;
   image_url: string | null;
+  images?: ProductImage[];
   variants?: Variant[];
   created_at: string;
 }

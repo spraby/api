@@ -20,16 +20,9 @@ class CategoryController extends Controller
             ->select('id', 'name')
             ->orderBy('name');
 
-        // Filter by brand_id if provided
-        $brandId = $request->input('brand_id');
-        if ($brandId) {
-            $query->whereHas('brands', function ($q) use ($brandId) {
-                $q->where('brands.id', $brandId);
-            });
-        }
-
         // Apply Row Level Security for non-admin users
         if (! Auth::user()?->hasRole('admin')) {
+            // For non-admin users, always use their brand (ignore passed brand_id)
             $userBrand = Auth::user()->brands()->first();
             if ($userBrand) {
                 $query->whereHas('brands', function ($q) use ($userBrand) {
@@ -37,6 +30,14 @@ class CategoryController extends Controller
                 });
             } else {
                 return response()->json(['data' => []]);
+            }
+        } else {
+            // For admin users, filter by brand_id if provided
+            $brandId = $request->input('brand_id');
+            if ($brandId) {
+                $query->whereHas('brands', function ($q) use ($brandId) {
+                    $q->where('brands.id', $brandId);
+                });
             }
         }
 

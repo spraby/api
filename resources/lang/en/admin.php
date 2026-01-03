@@ -183,8 +183,10 @@ return [
         'description' => 'Update product information and variants',
         'sections' => [
             'product_info' => 'Product Information',
+            'product_images' => 'Product Images',
             'variants' => 'Product Variants',
         ],
+        'no_images' => 'No images uploaded for this product',
         'fields' => [
             'title' => 'Title',
             'description' => 'Description',

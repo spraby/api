@@ -87,9 +87,7 @@ class ProductController extends Controller
                     'id' => $product->category->id,
                     'name' => $product->category->name,
                 ] : null,
-                'image_url' => $mainImage && $mainImage->image
-                    ? config('filesystems.disks.s3.url').'/'.$mainImage->image->path
-                    : null,
+                'image_url' => $mainImage?->image?->url,
                 'created_at' => $product->created_at->toISOString(),
             ];
         });
@@ -122,9 +120,15 @@ class ProductController extends Controller
                 'id' => $product->category->id,
                 'name' => $product->category->name,
             ] : null,
-            'image_url' => $mainImage && $mainImage->image
-                ? config('filesystems.disks.s3.url').'/'.$mainImage->image->path
-                : null,
+            'image_url' => $mainImage?->image?->url,
+            'images' => $product->images->sortBy('position')->map(function ($productImage) {
+                return [
+                    'id' => $productImage->id,
+                    'image_id' => $productImage->image_id,
+                    'url' => $productImage->image?->url,
+                    'position' => $productImage->position,
+                ];
+            })->values(),
             'variants' => $product->variants->map(function ($variant) {
                 return [
                     'id' => $variant->id,
@@ -226,9 +230,15 @@ class ProductController extends Controller
                     'id' => $product->category->id,
                     'name' => $product->category->name,
                 ] : null,
-                'image_url' => $mainImage && $mainImage->image
-                    ? config('filesystems.disks.s3.url').'/'.$mainImage->image->path
-                    : null,
+                'image_url' => $mainImage?->image?->url,
+                'images' => $product->images->sortBy('position')->map(function ($productImage) {
+                    return [
+                        'id' => $productImage->id,
+                        'image_id' => $productImage->image_id,
+                        'url' => $productImage->image?->url,
+                        'position' => $productImage->position,
+                    ];
+                })->values(),
                 'variants' => $product->variants->map(function ($variant) {
                     return [
                         'id' => $variant->id,

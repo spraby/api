@@ -2,11 +2,13 @@ import type { FormEventHandler} from 'react';
 import { useEffect, useState } from 'react';
 
 import { router } from '@inertiajs/react';
-import { ArrowLeftIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { ArrowLeftIcon, ImageIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,7 +38,9 @@ export default function ProductEdit({ productId }: ProductEditProps) {
 
   // API Hooks
   const { data: product, isLoading, error } = useProduct(productId);
-  const { data: categories = [] } = useCategories(product?.brand_id);
+  const { data: categories = [] } = useCategories(product?.brand_id, {
+    enabled: !!product?.brand_id,
+  });
   const updateProduct = useUpdateProduct();
 
   // Form state
@@ -223,15 +227,25 @@ export default function ProductEdit({ productId }: ProductEditProps) {
                 <Select
                   disabled={updateProduct.isPending}
                   value={formData.category_id?.toString() ?? 'none'}
-                  onValueChange={(value) =>
-                    { setFormData({ ...formData, category_id: value === 'none' ? null : Number(value) }); }
-                  }
+                  onValueChange={(value) => {
+                    // Ignore empty string values (happens when Select can't find the option)
+                    if (value === '') {
+                      return;
+                    }
+                    setFormData({ ...formData, category_id: value === 'none' ? null : Number(value) });
+                  }}
                 >
                   <SelectTrigger id="category">
                     <SelectValue placeholder={t('admin.products_edit.placeholders.category')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">{t('admin.products_edit.category.none')}</SelectItem>
+                    {/* Show product's category even if it's not in the brand's categories list */}
+                    {product?.category && !categories.find(c => c.id === product.category_id) ? (
+                      <SelectItem key={product.category.id} value={product.category.id.toString()}>
+                        {product.category.name}
+                      </SelectItem>
+                    ) : null}
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
@@ -291,6 +305,48 @@ export default function ProductEdit({ productId }: ProductEditProps) {
                 </Label>
               </div>
             </div>
+          </div>
+
+          {/* Product Images Section */}
+          <div className="rounded-lg border bg-card p-4 sm:p-6">
+            <h2 className="mb-4 text-lg font-semibold">{t('admin.products_edit.sections.product_images')}</h2>
+
+            {product?.images && product.images.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {product.images.map((productImage, index) => (
+                  <Card key={productImage.id}>
+                    <CardContent className="p-3">
+                      {productImage.url ? (
+                        <img
+                          alt={`${product.title} - ${index + 1}`}
+                          className="h-32 w-full rounded-md border object-cover"
+                          src={productImage.url}
+                        />
+                      ) : (
+                        <div className="flex h-32 items-center justify-center rounded-md border bg-muted">
+                          <ImageIcon className="size-12 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          Position: {productImage.position}
+                        </span>
+                        {index === 0 && (
+                          <Badge className="text-xs" variant="secondary">Main</Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8">
+                <ImageIcon className="mb-2 size-12 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  {t('admin.products_edit.no_images')}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Variants Section */}

@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Original route - keep for compatibility
+// Redirect to admin panel
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/sb/admin');
 });
 
 // Language switcher - restore original functionality
