@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   Select,
   SelectContent,
@@ -18,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
 import { useCategories } from '@/lib/hooks/api/useCategories';
 import { useProduct } from '@/lib/hooks/api/useProducts';
 import { useUpdateProduct } from '@/lib/hooks/mutations/useProductMutations';
@@ -207,13 +207,11 @@ export default function ProductEdit({ productId }: ProductEditProps) {
 
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="description">{t('admin.products_edit.fields.description')}</Label>
-                <Textarea
+                <RichTextEditor
                   disabled={updateProduct.isPending}
-                  id="description"
                   placeholder={t('admin.products_edit.placeholders.description')}
-                  rows={4}
                   value={formData.description}
-                  onChange={(e) => { setFormData({ ...formData, description: e.target.value }); }}
+                  onChange={(value) => { setFormData({ ...formData, description: value }); }}
                 />
               </div>
 

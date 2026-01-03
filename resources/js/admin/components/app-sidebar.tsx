@@ -8,6 +8,7 @@ import {
   FileIcon,
   FileTextIcon,
   LayoutDashboardIcon,
+  PackageIcon,
   SettingsIcon,
   UserIcon,
 } from "lucide-react"
@@ -107,6 +108,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         title: t('admin.nav.dashboard'),
         url: "/sb/admin/dashboard",
         icon: LayoutDashboardIcon,
+      },
+      {
+        title: t('admin.nav.products'),
+        url: "/sb/admin/products",
+        icon: PackageIcon,
       },
       {
         title: t('admin.nav.users'),
