@@ -69,9 +69,18 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         Route::post('/products/bulk-delete/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkDelete'])->name('products.api.bulk-delete');
         Route::post('/products/bulk-update-status/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkUpdateStatus'])->name('products.api.bulk-update-status');
 
+        // Product images management
+        Route::post('/products/{id}/images/attach/api', [App\Http\Controllers\Admin\ProductController::class, 'apiAttachImages'])->name('products.api.images.attach');
+        Route::post('/products/{id}/images/upload/api', [App\Http\Controllers\Admin\ProductController::class, 'apiUploadImages'])->name('products.api.images.upload');
+        Route::delete('/products/{id}/images/{productImageId}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiDetachImage'])->name('products.api.images.detach');
+        Route::put('/products/{id}/images/reorder/api', [App\Http\Controllers\Admin\ProductController::class, 'apiReorderImages'])->name('products.api.images.reorder');
+
+        // Variant image management
+        Route::put('/variants/{id}/image/api', [App\Http\Controllers\Admin\VariantController::class, 'apiSetImage'])->name('variants.api.image.set');
+
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
 
-        Route::post('/media', [App\Http\Controllers\Admin\MediaController::class, 'store'])->name('media.store');
+        Route::get('/media/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');
         Route::delete('/media/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');

@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\Image;
 use App\Models\User;
 use App\Services\FileService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -113,5 +114,51 @@ class MediaController extends Controller
         $image->delete(); // Observer will automatically delete file from S3
 
         return redirect()->back()->with('success', 'Image deleted successfully');
+    }
+
+    /**
+     * API: Get all images as JSON
+     */
+    public function apiIndex(Request $request): JsonResponse
+    {
+        /**
+         * @var User $user
+         */
+        $user = auth()->user();
+
+        $query = Image::query()->with('brands:id,name');
+
+        // Row Level Security: managers see only their brand's images
+        if (! $user->hasRole('admin')) {
+            $brand = $user->brands->first();
+            if ($brand) {
+                $query->whereHas('brands', function ($q) use ($brand) {
+                    $q->where('brands.id', $brand->id);
+                });
+            }
+        }
+
+        // Apply search filter if provided
+        if ($request->has('search') && $request->input('search')) {
+            $search = $request->input('search');
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $perPage = $request->input('per_page', 24);
+        $paginated = $query->latest()->paginate($perPage);
+
+        // Transform to match frontend expected structure
+        return response()->json([
+            'data' => $paginated->items(),
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'from' => $paginated->firstItem(),
+                'to' => $paginated->lastItem(),
+                'last_page' => $paginated->lastPage(),
+                'path' => $paginated->path(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ],
+        ]);
     }
 }

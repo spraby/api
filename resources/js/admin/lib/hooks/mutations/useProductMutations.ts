@@ -54,7 +54,6 @@ export function useUpdateProduct(
       // Invalidate both list and specific product detail
       void queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       void queryClient.invalidateQueries({ queryKey: productKeys.detail(variables.id) });
-      toast.success('Product updated successfully');
       // Call user's custom onSuccess if provided
       if (options?.onSuccess) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

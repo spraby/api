@@ -5,10 +5,11 @@ import { router } from '@inertiajs/react';
 import { ArrowLeftIcon, ImageIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { ConfirmationPopover } from '@/components/confirmation-popover';
+import { ProductImagesManager } from '@/components/product-images-manager';
+import { ProductImagesPicker } from '@/components/product-images-picker';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +24,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCategories } from '@/lib/hooks/api/useCategories';
 import { useProduct } from '@/lib/hooks/api/useProducts';
+import { useSetVariantImage } from '@/lib/hooks/mutations/useProductImageMutations';
 import { useUpdateProduct } from '@/lib/hooks/mutations/useProductMutations';
 import { useLang } from '@/lib/lang';
 import type { Variant } from '@/types/api';
@@ -33,6 +35,23 @@ interface ProductEditProps {
   productId: number;
 }
 
+// Generate unique temporary key for new variants
+const generateVariantKey = (): string => {
+  return `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+// Get stable key for variant
+const getVariantKey = (variant: Variant, index: number): string => {
+  if (variant.id) {
+    return `variant-${variant.id}`;
+  }
+  if (variant._key) {
+    return variant._key;
+  }
+
+  return `variant-index-${index}`;
+};
+
 export default function ProductEdit({ productId }: ProductEditProps) {
   const { t } = useLang();
 
@@ -42,6 +61,7 @@ export default function ProductEdit({ productId }: ProductEditProps) {
     enabled: !!product?.brand_id,
   });
   const updateProduct = useUpdateProduct();
+  const setVariantImage = useSetVariantImage();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -54,8 +74,12 @@ export default function ProductEdit({ productId }: ProductEditProps) {
   });
 
   const [variants, setVariants] = useState<Variant[]>([
-    { title: '', price: '', final_price: '', enabled: true },
+    { title: '', price: '', final_price: '', enabled: true, image_id: null, image_url: null, _key: generateVariantKey() },
   ]);
+  const [variantImagePicker, setVariantImagePicker] = useState<{
+    open: boolean;
+    variantIndex: number | null;
+  }>({ open: false, variantIndex: null });
 
   // Update form when product data loads
   useEffect(() => {
@@ -96,7 +120,7 @@ export default function ProductEdit({ productId }: ProductEditProps) {
       },
       {
         onSuccess: () => {
-          router.visit('/sb/admin/products');
+          toast.success(t('admin.products_edit.success.saved'));
         },
       }
     );
@@ -110,6 +134,9 @@ export default function ProductEdit({ productId }: ProductEditProps) {
         price: formData.price,
         final_price: formData.final_price,
         enabled: true,
+        image_id: null,
+        image_url: null,
+        _key: generateVariantKey(),
       },
     ]);
   };
@@ -131,6 +158,65 @@ export default function ProductEdit({ productId }: ProductEditProps) {
 
     newVariants[index] = { ...currentVariant, [field]: value };
     setVariants(newVariants);
+  };
+
+  const handleVariantImageSelect = (productImageId: number) => {
+    if (variantImagePicker.variantIndex === null) {
+      return;
+    }
+
+    const variant = variants[variantImagePicker.variantIndex];
+
+    if (!variant?.id) {
+      toast.error(t('admin.products_edit.errors.save_variant_first'));
+
+      return;
+    }
+
+    const currentIndex = variantImagePicker.variantIndex;
+
+    setVariantImage.mutate(
+      {
+        variantId: variant.id,
+        productId,
+        data: { product_image_id: productImageId },
+      },
+      {
+        onSuccess: (data) => {
+          // Update local state instead of waiting for full product reload
+          const newVariants = [...variants];
+
+          newVariants[currentIndex] = data.variant;
+
+          setVariants(newVariants);
+        },
+      }
+    );
+  };
+
+  const removeVariantImage = (index: number) => {
+    const variant = variants[index];
+
+    if (!variant?.id) {
+      return;}
+
+    setVariantImage.mutate(
+      {
+        variantId: variant.id,
+        productId,
+        data: { product_image_id: null },
+      },
+      {
+        onSuccess: (data) => {
+          // Update local state instead of waiting for full product reload
+          const newVariants = [...variants];
+
+          newVariants[index] = data.variant;
+
+          setVariants(newVariants);
+        },
+      }
+    );
   };
 
   // Loading state
@@ -310,42 +396,12 @@ export default function ProductEdit({ productId }: ProductEditProps) {
           {/* Product Images Section */}
           <div className="rounded-lg border bg-card p-4 sm:p-6">
             <h2 className="mb-4 text-lg font-semibold">{t('admin.products_edit.sections.product_images')}</h2>
-
-            {product?.images && product.images.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {product.images.map((productImage, index) => (
-                  <Card key={productImage.id}>
-                    <CardContent className="p-3">
-                      {productImage.url ? (
-                        <img
-                          alt={`${product.title} - ${index + 1}`}
-                          className="h-32 w-full rounded-md border object-cover"
-                          src={productImage.url}
-                        />
-                      ) : (
-                        <div className="flex h-32 items-center justify-center rounded-md border bg-muted">
-                          <ImageIcon className="size-12 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
-                          Position: {productImage.position}
-                        </span>
-                        {index === 0 && (
-                          <Badge className="text-xs" variant="secondary">Main</Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8">
-                <ImageIcon className="mb-2 size-12 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  {t('admin.products_edit.no_images')}
-                </p>
-              </div>
+            {!!product && (
+              <ProductImagesManager
+                disabled={updateProduct.isPending}
+                images={product.images || []}
+                productId={productId}
+              />
             )}
           </div>
 
@@ -364,10 +420,9 @@ export default function ProductEdit({ productId }: ProductEditProps) {
                 {t('admin.products_edit.actions.add_variant')}
               </Button>
             </div>
-
             <div className="space-y-4">
               {variants.map((variant, index) => (
-                <div key={index} className="rounded-lg border bg-muted/50 p-4">
+                <div key={getVariantKey(variant, index)} className="rounded-lg border bg-muted/50 p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <h3 className="font-medium">
                       {t('admin.products_edit.variant')} #{index + 1}
@@ -384,6 +439,64 @@ export default function ProductEdit({ productId }: ProductEditProps) {
                         <TrashIcon className="size-4" />
                       </Button>
                     )}
+                  </div>
+
+                  {/* Variant Image */}
+                  <div className="mb-4 space-y-2 sm:col-span-3">
+                    <Label>{t('admin.products_edit.fields.variant_image')}</Label>
+                    <div className="flex items-center gap-3">
+                      {variant.image_url ? (
+                        <div className="relative">
+                          <img
+                            alt={variant.title || `Variant ${index + 1}`}
+                            className="size-20 rounded-md border object-cover"
+                            src={variant.image_url}
+                          />
+                          <div className="absolute -right-2 -top-2">
+                            <ConfirmationPopover
+                              isLoading={setVariantImage.isPending}
+                              message={t('admin.products_edit.variants.confirm_remove_image')}
+                              trigger={
+                                <Button
+                                  disabled={updateProduct.isPending || !variant.id}
+                                  size="icon"
+                                  type="button"
+                                  variant="destructive"
+                                >
+                                  <TrashIcon className="size-4" />
+                                </Button>
+                              }
+                              onConfirm={() => {
+                                removeVariantImage(index);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex size-20 items-center justify-center rounded-md border bg-muted">
+                          <ImageIcon className="size-8 text-muted-foreground" />
+                        </div>
+                      )}
+                      <Button
+                        disabled={updateProduct.isPending || !variant.id}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setVariantImagePicker({ open: true, variantIndex: index });
+                        }}
+                      >
+                        <PlusIcon className="mr-2 size-4" />
+                        {variant.image_url
+                          ? t('admin.products_edit.actions.change_image')
+                          : t('admin.products_edit.actions.select_image')}
+                      </Button>
+                      {!variant.id && (
+                        <span className="text-xs text-muted-foreground">
+                          {t('admin.products_edit.hints.save_to_add_image')}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-3">
@@ -477,6 +590,23 @@ export default function ProductEdit({ productId }: ProductEditProps) {
               </Button>
             </div>
           </div>
+
+          {/* Variant Image Picker Dialog */}
+          {!!product && (
+            <ProductImagesPicker
+              currentImageId={
+                variantImagePicker.variantIndex !== null
+                  ? variants[variantImagePicker.variantIndex]?.image_id ?? null
+                  : null
+              }
+              open={variantImagePicker.open}
+              productImages={product.images || []}
+              onOpenChange={(open) => {
+                setVariantImagePicker({ open, variantIndex: null });
+              }}
+              onSelect={handleVariantImageSelect}
+            />
+          )}
         </form>
       </div>
     </AdminLayout>

@@ -71,6 +71,9 @@ export interface Variant {
   price: string;
   final_price: string;
   enabled: boolean;
+  image_id: number | null;
+  image_url: string | null;
+  _key?: string; // Temporary key for new variants (before they get an id)
 }
 
 export interface Product {
@@ -123,14 +126,14 @@ export interface PaginatedResponse<T> {
   data: T[];
   meta: {
     current_page: number;
-    from: number;
+    from: number | null;
     last_page: number;
     path: string;
     per_page: number;
-    to: number;
+    to: number | null;
     total: number;
   };
-  links: {
+  links?: {
     first: string;
     last: string;
     prev: string | null;
@@ -153,6 +156,38 @@ export interface ProductFilters {
   search?: string;
   brand_id?: number;
   category_id?: number;
+  page?: number;
+  per_page?: number;
+}
+
+// ============================================
+// IMAGE MANAGEMENT TYPES
+// ============================================
+
+export interface Image {
+  id: number;
+  name: string;
+  src: string;
+  url: string;
+  alt: string | null;
+  brands: { id: number; name: string }[];
+  created_at: string;
+}
+
+export interface AttachImagesRequest {
+  image_ids: number[];
+}
+
+export interface ReorderImagesRequest {
+  image_ids: number[];
+}
+
+export interface SetVariantImageRequest {
+  product_image_id: number | null;
+}
+
+export interface MediaFilters {
+  search?: string;
   page?: number;
   per_page?: number;
 }

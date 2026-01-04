@@ -187,6 +187,17 @@ return [
             'variants' => 'Product Variants',
         ],
         'no_images' => 'No images uploaded for this product',
+        'images' => [
+            'add_from_media' => 'Add from Media',
+            'upload_new' => 'Upload New',
+            'no_images' => 'No images for this product',
+            'position' => 'Position',
+            'main' => 'Main',
+            'confirm_delete' => 'Remove this image from the product? It will remain in the media library.',
+        ],
+        'variants' => [
+            'confirm_remove_image' => 'Remove image from this variant?',
+        ],
         'fields' => [
             'title' => 'Title',
             'description' => 'Description',
@@ -196,6 +207,7 @@ return [
             'enabled' => 'Product Enabled',
             'variant_title' => 'Variant Title',
             'variant_enabled' => 'Variant Enabled',
+            'variant_image' => 'Variant Image',
         ],
         'placeholders' => [
             'title' => 'Enter product title',
@@ -216,10 +228,49 @@ return [
             'cancel' => 'Cancel',
             'save' => 'Save Changes',
             'saving' => 'Saving...',
+            'select_image' => 'Select Image',
+            'change_image' => 'Change Image',
         ],
         'errors' => [
             'at_least_one_variant' => 'Product must have at least one variant',
+            'save_variant_first' => 'Please save the product first to add variant images',
+            'image_not_attached' => 'This image is not attached to the product. Please attach it first.',
         ],
+        'hints' => [
+            'save_to_add_image' => 'Save product first to add images',
+        ],
+        'success' => [
+            'saved' => 'Product saved successfully',
+        ],
+    ],
+
+    'image_upload' => [
+        'title' => 'Upload Images',
+        'description' => 'Upload new images to your product',
+        'select_or_drop' => 'Click to select or drag & drop files here',
+        'max_files' => 'Maximum :max files',
+        'files_selected' => ':count file(s) selected',
+        'selected_files' => 'Selected files',
+    ],
+
+    'media_picker' => [
+        'title' => 'Select Images',
+        'description_multiple' => 'Select one or more images from your media library',
+        'description_single' => 'Select an image from your media library',
+        'search_placeholder' => 'Search images...',
+        'no_results' => 'No images found matching your search',
+        'no_images' => 'No images in your media library',
+        'select_button' => 'Select (:count)',
+    ],
+
+    'product_images_picker' => [
+        'title' => 'Select Product Image',
+        'description' => 'Choose an image from the product\'s images',
+        'no_images' => 'No images for this product',
+        'add_images_first' => 'Add images to the product first',
+        'position' => 'Position',
+        'main' => 'Main',
+        'select_button' => 'Select Image',
     ],
 
     'media' => [
@@ -243,6 +294,7 @@ return [
     'common' => [
         'cancel' => 'Cancel',
         'delete' => 'Delete',
+        'deleting' => 'Deleting...',
         'upload' => 'Upload',
         'uploading' => 'Uploading...',
         'save' => 'Save',
@@ -253,5 +305,6 @@ return [
         'previous' => 'Previous',
         'next' => 'Next',
         'page_of' => 'Page :current of :total',
+        'showing' => 'Showing :from to :to of :total',
     ],
 ];
