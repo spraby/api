@@ -49,9 +49,25 @@ export interface BulkUpdateUserRolesRequest {
 // CATEGORY TYPES
 // ============================================
 
+export interface OptionValue {
+  id: number;
+  option_id: number;
+  value: string;
+  position: number;
+}
+
+export interface Option {
+  id: number;
+  name: string;
+  title: string;
+  description?: string;
+  values?: OptionValue[];
+}
+
 export interface Category {
   id: number;
   name: string;
+  options?: Option[];
 }
 
 // ============================================
@@ -65,6 +81,22 @@ export interface ProductImage {
   position: number;
 }
 
+export interface VariantValue {
+  id?: number;
+  variant_id?: number;
+  option_id: number;
+  option_value_id: number;
+  option?: {
+    id: number;
+    name: string;
+    title: string;
+  };
+  value?: {
+    id: number;
+    value: string;
+  };
+}
+
 export interface Variant {
   id?: number;
   title: string | null;
@@ -73,6 +105,7 @@ export interface Variant {
   enabled: boolean;
   image_id: number | null;
   image_url: string | null;
+  values?: VariantValue[];
   _key?: string; // Temporary key for new variants (before they get an id)
 }
 
@@ -92,6 +125,7 @@ export interface Product {
   category: {
     id: number;
     name: string;
+    options?: Option[];
   } | null;
   image_url: string | null;
   images?: ProductImage[];

@@ -198,6 +198,10 @@ return [
         'variants' => [
             'confirm_remove_image' => 'Удалить изображение из этого варианта?',
         ],
+        'variant_options' => [
+            'title' => 'Значения опций',
+            'select_placeholder' => 'Выберите значение',
+        ],
         'fields' => [
             'title' => 'Название',
             'description' => 'Описание',

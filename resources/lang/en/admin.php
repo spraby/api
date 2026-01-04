@@ -198,6 +198,10 @@ return [
         'variants' => [
             'confirm_remove_image' => 'Remove image from this variant?',
         ],
+        'variant_options' => [
+            'title' => 'Option Values',
+            'select_placeholder' => 'Select value',
+        ],
         'fields' => [
             'title' => 'Title',
             'description' => 'Description',

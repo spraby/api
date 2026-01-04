@@ -69,6 +69,7 @@ export interface Variant extends BaseModel {
   is_active: boolean;
   product?: Product;
   option_values?: OptionValue[];
+  values?: VariantValue[];
 }
 
 // Category
@@ -87,6 +88,7 @@ export interface Category extends BaseModel {
   parent?: Category;
   children?: Category[];
   products?: Product[];
+  options?: Option[];
 }
 
 // Collection
@@ -123,6 +125,16 @@ export interface OptionValue extends BaseModel {
   color_code?: string;
   sort_order: number;
   option?: Option;
+}
+
+// VariantValue
+export interface VariantValue extends BaseModel {
+  variant_id: number;
+  option_id: number;
+  option_value_id: number;
+  variant?: Variant;
+  option?: Option;
+  value?: OptionValue;
 }
 
 // Image

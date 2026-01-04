@@ -17,6 +17,9 @@ class CategoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Category::query()
+            ->with(['options.values' => function ($query) {
+                $query->orderBy('position');
+            }])
             ->select('id', 'name')
             ->orderBy('name');
 

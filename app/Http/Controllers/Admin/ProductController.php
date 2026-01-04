@@ -108,7 +108,15 @@ class ProductController extends Controller
     public function apiShow(int $id): JsonResponse
     {
 
-        $product = Product::with(['brand', 'category', 'images.image', 'variants'])->findOrFail($id);
+        $product = Product::with([
+            'brand',
+            'category.options.values' => function ($query) {
+                $query->orderBy('position');
+            },
+            'images.image',
+            'variants.values.value',
+            'variants.values.option',
+        ])->findOrFail($id);
         $mainImage = $product->images->sortBy('position')->first();
 
         return response()->json([
@@ -127,6 +135,7 @@ class ProductController extends Controller
             'category' => $product->category ? [
                 'id' => $product->category->id,
                 'name' => $product->category->name,
+                'options' => $product->category->options,
             ] : null,
             'image_url' => $mainImage?->image?->url,
             'images' => $product->images->sortBy('position')->map(function ($productImage) {
@@ -146,6 +155,23 @@ class ProductController extends Controller
                     'enabled' => $variant->enabled,
                     'image_id' => $variant->image_id,
                     'image_url' => $variant->image?->image?->url,
+                    'values' => $variant->values->map(function ($variantValue) {
+                        return [
+                            'id' => $variantValue->id,
+                            'variant_id' => $variantValue->variant_id,
+                            'option_id' => $variantValue->option_id,
+                            'option_value_id' => $variantValue->option_value_id,
+                            'option' => $variantValue->option ? [
+                                'id' => $variantValue->option->id,
+                                'name' => $variantValue->option->name,
+                                'title' => $variantValue->option->title,
+                            ] : null,
+                            'value' => $variantValue->value ? [
+                                'id' => $variantValue->value->id,
+                                'value' => $variantValue->value->value,
+                            ] : null,
+                        ];
+                    })->values(),
                 ];
             })->values(),
             'created_at' => $product->created_at->toISOString(),
@@ -169,6 +195,9 @@ class ProductController extends Controller
             'variants.*.price' => 'required|numeric|min:0',
             'variants.*.final_price' => 'required|numeric|min:0',
             'variants.*.enabled' => 'required|boolean',
+            'variants.*.values' => 'nullable|array',
+            'variants.*.values.*.option_id' => 'required|exists:options,id',
+            'variants.*.values.*.option_value_id' => 'required|exists:option_values,id',
         ]);
 
         try {
@@ -210,6 +239,20 @@ class ProductController extends Controller
                     ]);
                     $submittedVariantIds[] = $variant->id;
                 }
+
+                // Sync variant values
+                if (isset($variantData['values']) && is_array($variantData['values'])) {
+                    // Delete existing values
+                    $variant->values()->delete();
+
+                    // Create new values
+                    foreach ($variantData['values'] as $valueData) {
+                        $variant->values()->create([
+                            'option_id' => $valueData['option_id'],
+                            'option_value_id' => $valueData['option_value_id'],
+                        ]);
+                    }
+                }
             }
 
             // Delete variants that were removed
@@ -219,7 +262,13 @@ class ProductController extends Controller
             }
 
             // Reload product with relationships
-            $product->load(['brand', 'category', 'images.image', 'variants']);
+            $product->load([
+                'brand',
+                'category.options.values',
+                'images.image',
+                'variants.values.value',
+                'variants.values.option',
+            ]);
 
             $mainImage = $product->images->sortBy('position')->first();
 
@@ -258,6 +307,23 @@ class ProductController extends Controller
                         'enabled' => $variant->enabled,
                         'image_id' => $variant->image_id,
                         'image_url' => $variant->image?->image?->url,
+                        'values' => $variant->values->map(function ($variantValue) {
+                            return [
+                                'id' => $variantValue->id,
+                                'variant_id' => $variantValue->variant_id,
+                                'option_id' => $variantValue->option_id,
+                                'option_value_id' => $variantValue->option_value_id,
+                                'option' => $variantValue->option ? [
+                                    'id' => $variantValue->option->id,
+                                    'name' => $variantValue->option->name,
+                                    'title' => $variantValue->option->title,
+                                ] : null,
+                                'value' => $variantValue->value ? [
+                                    'id' => $variantValue->value->id,
+                                    'value' => $variantValue->value->value,
+                                ] : null,
+                            ];
+                        })->values(),
                     ];
                 }),
                 'created_at' => $product->created_at->toISOString(),
