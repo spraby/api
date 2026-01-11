@@ -190,7 +190,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       >
         <MenuBar editor={editor} />
         <EditorContent
-          className="rich-text-editor-content"
+          className="rich-text-editor-content max-h-[400px] overflow-auto"
           editor={editor}
           placeholder={placeholder}
         />

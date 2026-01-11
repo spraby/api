@@ -10,6 +10,7 @@
 import type {
   BulkDeleteProductsRequest,
   BulkUpdateProductStatusRequest,
+  CreateProductRequest,
   Product,
   ProductFilters,
   UpdateProductRequest,
@@ -46,6 +47,18 @@ export async function getProduct(id: number): Promise<Product> {
 // ============================================
 // MUTATION ENDPOINTS
 // ============================================
+
+/**
+ * Create a new product
+ * @param data - Product creation data
+ */
+export async function createProduct(
+  data: CreateProductRequest
+): Promise<Product> {
+  const response = await fetchClient.post<Product>('/sb/admin/products/api', data);
+
+  return response.data;
+}
 
 /**
  * Update an existing product

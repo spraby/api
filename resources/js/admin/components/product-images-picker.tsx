@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { useLang } from '@/lib/lang';
 import { cn } from '@/lib/utils';
-import type { ProductImage } from '@/types/api';
+import type { ProductImage } from '@/types/models';
 
 interface ProductImagesPickerProps {
   open: boolean;
@@ -86,16 +86,16 @@ export function ProductImagesPicker({
                       isSelected && 'ring-2 ring-primary'
                     )}
                     onClick={() => {
-                      setSelectedImageId(productImage.id);
+                        if(productImage?.id) setSelectedImageId(productImage.id);
                     }}
                   >
                     <CardContent className="p-0">
                       <div className="relative aspect-square overflow-hidden bg-muted">
-                        {productImage.url ? (
+                        {productImage.image?.url ? (
                           <img
                             alt={`Product position ${productImage.position}`}
                             className="size-full object-cover transition-transform group-hover:scale-105"
-                            src={productImage.url}
+                            src={productImage.image.url}
                           />
                         ) : (
                           <div className="flex size-full items-center justify-center">

@@ -101,6 +101,7 @@ export interface Variant {
   id?: number;
   title: string | null;
   price: string;
+  discount: string;
   final_price: string;
   enabled: boolean;
   image_id: number | null;
@@ -134,6 +135,14 @@ export interface Product {
 }
 
 export interface UpdateProductRequest {
+  title: string;
+  description: string | null;
+  enabled: boolean;
+  category_id: number | null;
+  variants: Variant[];
+}
+
+export interface CreateProductRequest {
   title: string;
   description: string | null;
   price: string;

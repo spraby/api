@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useLang } from '@/lib/lang';
-import type { Option, VariantValue } from '@/types/api';
+import type { Option, VariantValue } from '@/types/models';
 
 interface VariantOptionSelectorProps {
   options: Option[];
@@ -46,35 +46,40 @@ export function VariantOptionSelector({
     <div className="space-y-4">
       <h4 className="text-sm font-medium">{t('admin.products_edit.variant_options.title')}</h4>
       <div className="grid gap-4 sm:grid-cols-2">
-        {options.map((option) => (
-          <div key={option.id} className="space-y-2">
-            <Label htmlFor={`variant-${variantIndex}-option-${option.id}`}>
-              {option.title}
-            </Label>
-            <Select
-              disabled={disabled || !option.values || option.values.length === 0}
-              value={getSelectedValue(option.id)}
-              onValueChange={(value) => {
-                if (value) {
-                  onValueChange(option.id, Number(value));
-                }
-              }}
-            >
-              <SelectTrigger id={`variant-${variantIndex}-option-${option.id}`}>
-                <SelectValue
-                  placeholder={t('admin.products_edit.variant_options.select_placeholder')}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {option.values?.map((optionValue) => (
-                  <SelectItem key={optionValue.id} value={optionValue.id.toString()}>
-                    {optionValue.value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ))}
+        {options.filter(i => !!i.id).map((option) => {
+          const selectedValue = getSelectedValue(option.id as number);
+
+          return (
+            <div key={option.id} className="space-y-2">
+              <Label htmlFor={`variant-${variantIndex}-option-${option.id}`}>
+                {option.title}
+              </Label>
+              <Select
+                key={`${variantIndex}-${option.id}-${selectedValue}`}
+                disabled={disabled || !option.values || option.values.length === 0}
+                value={selectedValue}
+                onValueChange={(value) => {
+                  if (value) {
+                    onValueChange(option.id as number, Number(value));
+                  }
+                }}
+              >
+                <SelectTrigger id={`variant-${variantIndex}-option-${option.id}`}>
+                  <SelectValue
+                    placeholder={t('admin.products_edit.variant_options.select_placeholder')}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {option.values?.filter(i => !!i.id).map((optionValue) => (
+                    <SelectItem key={optionValue.id} value={(optionValue.id as number).toString()}>
+                      {optionValue.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

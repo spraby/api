@@ -47,12 +47,6 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         })->name('users');
         Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
 
-        Route::get('/products', function () {
-            return Inertia::render('Products');
-        })->name('products');
-        Route::get('/products/{id}/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('products.edit');
-
-        Route::get('/media', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
 
         // API routes (JSON only, for TanStack Query)
         Route::get('/users/api', [App\Http\Controllers\Admin\UserController::class, 'apiIndex'])->name('users.api.index');
@@ -62,26 +56,48 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         Route::post('/users/bulk-delete/api', [App\Http\Controllers\Admin\UserController::class, 'apiBulkDelete'])->name('users.api.bulk-delete');
         Route::post('/users/bulk-update-role/api', [App\Http\Controllers\Admin\UserController::class, 'apiBulkUpdateRole'])->name('users.api.bulk-update-role');
 
-        Route::get('/products/api', [App\Http\Controllers\Admin\ProductController::class, 'apiIndex'])->name('products.api.index');
-        Route::get('/products/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiShow'])->name('products.api.show');
-        Route::put('/products/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiUpdate'])->name('products.api.update');
-        Route::delete('/products/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiDestroy'])->name('products.api.destroy');
-        Route::post('/products/bulk-delete/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkDelete'])->name('products.api.bulk-delete');
-        Route::post('/products/bulk-update-status/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkUpdateStatus'])->name('products.api.bulk-update-status');
 
-        // Product images management
-        Route::post('/products/{id}/images/attach/api', [App\Http\Controllers\Admin\ProductController::class, 'apiAttachImages'])->name('products.api.images.attach');
-        Route::post('/products/{id}/images/upload/api', [App\Http\Controllers\Admin\ProductController::class, 'apiUploadImages'])->name('products.api.images.upload');
-        Route::delete('/products/{id}/images/{productImageId}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiDetachImage'])->name('products.api.images.detach');
-        Route::put('/products/{id}/images/reorder/api', [App\Http\Controllers\Admin\ProductController::class, 'apiReorderImages'])->name('products.api.images.reorder');
+        Route::prefix('products')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Products', []);
+            })->name('products');
+
+            Route::get('/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('products.create');
+            Route::post('/store', [App\Http\Controllers\Admin\ProductController::class, 'store'])->name('products.store');
+
+            Route::prefix('{id}')->group(function () {
+                Route::get('/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('products.edit');
+                Route::put('/', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('products.update');
+
+                Route::prefix('images')->group(function () {
+                    Route::post('/attach', [App\Http\Controllers\Admin\ProductController::class, 'attachImages'])->name('products.images.attach');
+                    Route::post('/upload', [App\Http\Controllers\Admin\ProductController::class, 'uploadImages'])->name('products.images.upload');
+                    Route::delete('/{productImageId}', [App\Http\Controllers\Admin\ProductController::class, 'detachImage'])->name('products.images.detach');
+                    Route::put('/reorder', [App\Http\Controllers\Admin\ProductController::class, 'reorderImages'])->name('products.images.reorder');
+                });
+            });
+
+            //deprecate
+            Route::get('/api', [App\Http\Controllers\Admin\ProductController::class, 'apiIndex'])->name('products.api.index');
+            Route::post('/api', [App\Http\Controllers\Admin\ProductController::class, 'apiStore'])->name('products.api.store');
+            Route::get('/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiShow'])->name('products.api.show');
+            Route::put('/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiUpdate'])->name('products.api.update');
+            Route::delete('/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiDestroy'])->name('products.api.destroy');
+            Route::post('/bulk-delete/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkDelete'])->name('products.api.bulk-delete');
+            Route::post('/bulk-update-status/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkUpdateStatus'])->name('products.api.bulk-update-status');
+        });
+
+        Route::prefix('media')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
+            Route::get('/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');
+            Route::delete('/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
+        });
 
         // Variant image management
+        Route::put('/variants/{id}/image', [App\Http\Controllers\Admin\VariantController::class, 'setImage'])->name('variants.image.set');
         Route::put('/variants/{id}/image/api', [App\Http\Controllers\Admin\VariantController::class, 'apiSetImage'])->name('variants.api.image.set');
 
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
-
-        Route::get('/media/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');
-        Route::delete('/media/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
     });

@@ -6,10 +6,45 @@ use App\Http\Controllers\Controller;
 use App\Models\ProductImage;
 use App\Models\Variant;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 
 class VariantController extends Controller
 {
+    /**
+     * Inertia: Set image for variant
+     */
+    public function setImage(Request $request, int $id): RedirectResponse
+    {
+        $request->validate([
+            'product_image_id' => 'nullable|integer|exists:product_images,id',
+        ]);
+
+        try {
+            $variant = Variant::findOrFail($id);
+            $productImageId = $request->input('product_image_id');
+
+            // If product_image_id is provided, verify it belongs to the same product
+            if ($productImageId) {
+                $productImage = ProductImage::where('id', $productImageId)
+                    ->where('product_id', $variant->product_id)
+                    ->firstOrFail();
+
+                $variant->image_id = $productImage->id;
+            } else {
+                // Allow removing image
+                $variant->image_id = null;
+            }
+
+            $variant->save();
+
+            return Redirect::back()->with('success', 'Variant image updated successfully');
+        } catch (\Exception $e) {
+            return Redirect::back()->with('error', 'Failed to update variant image: ' . $e->getMessage());
+        }
+    }
+
     /**
      * API: Set image for variant
      */

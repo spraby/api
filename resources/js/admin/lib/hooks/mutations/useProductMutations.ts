@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import {
   bulkDeleteProducts,
   bulkUpdateProductStatus,
+  createProduct,
   deleteProduct,
   updateProduct,
 } from '@/lib/api/endpoints/products';
@@ -21,6 +22,7 @@ import { productKeys } from '@/lib/api/query-keys';
 import type {
   BulkDeleteProductsRequest,
   BulkUpdateProductStatusRequest,
+  CreateProductRequest,
   Product,
   UpdateProductRequest,
 } from '@/types/api';
@@ -29,6 +31,34 @@ import type {
   UseMutationOptions,
   UseMutationResult} from '@tanstack/react-query';
 
+
+// ============================================
+// CREATE PRODUCT
+// ============================================
+
+export function useCreateProduct(
+  options?: Omit<
+    UseMutationOptions<Product, ApiError, CreateProductRequest>,
+    'mutationFn'
+  >
+): UseMutationResult<Product, ApiError, CreateProductRequest> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...options,
+    mutationFn: async (data) => createProduct(data),
+    onSuccess: (data, variables, context) => {
+      // Invalidate products list
+      void queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      toast.success('Product created successfully');
+      // Call user's custom onSuccess if provided
+      if (options?.onSuccess) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (options.onSuccess as any)(data, variables, context);
+      }
+    },
+  });
+}
 
 // ============================================
 // UPDATE PRODUCT

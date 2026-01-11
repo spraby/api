@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { router } from '@inertiajs/react';
-import { CheckCircle2Icon, ImageIcon, MoreVerticalIcon, PackageIcon, Trash2Icon, XCircleIcon } from "lucide-react"
+import { CheckCircle2Icon, ImageIcon, MoreVerticalIcon, PackageIcon, PlusIcon, Trash2Icon, XCircleIcon } from "lucide-react"
 
 import { ResourceList } from '@/components/resource-list';
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -446,6 +446,14 @@ export default function Products() {
               {t('admin.products.description')}
             </p>
           </div>
+          <Button
+            onClick={() => {
+              router.visit('/sb/admin/products/create');
+            }}
+          >
+            <PlusIcon className="size-4" />
+            {t('admin.products.actions.create')}
+          </Button>
         </div>
 
         <ResourceList

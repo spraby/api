@@ -14,6 +14,9 @@ import type { PageProps } from '@/types/inertia';
 export default function Page({children}: { children: React.ReactNode, title?: string }) {
     const { flash, auth } = usePage<PageProps>().props;
 
+
+
+
     useEffect(() => {
         if (flash?.success) {
             toast.success(flash.success);

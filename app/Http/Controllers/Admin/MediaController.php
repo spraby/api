@@ -36,7 +36,7 @@ class MediaController extends Controller
 
         // Row Level Security: managers see only their brand's images
         if (! $user->hasRole('admin')) {
-            $brand = $user->brands->first();
+            $brand = $user->getBrand();
             if ($brand) {
                 $query->whereHas('brands', function ($q) use ($brand) {
                     $q->where('brands.id', $brand->id);
@@ -129,8 +129,8 @@ class MediaController extends Controller
         $query = Image::query()->with('brands:id,name');
 
         // Row Level Security: managers see only their brand's images
-        if (! $user->hasRole('admin')) {
-            $brand = $user->brands->first();
+        if (!$user->hasRole('admin')) {
+            $brand = $user->getBrand();
             if ($brand) {
                 $query->whereHas('brands', function ($q) use ($brand) {
                     $q->where('brands.id', $brand->id);

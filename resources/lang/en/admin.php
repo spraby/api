@@ -126,6 +126,9 @@ return [
     'products' => [
         'title' => 'Products',
         'description' => 'Manage your product catalog',
+        'actions' => [
+            'create' => 'Create Product',
+        ],
     ],
 
     'products_table' => [
@@ -223,6 +226,8 @@ return [
         ],
         'category' => [
             'none' => 'No category',
+            'not_in_list' => 'Category is not in the brand\'s category list. Cannot edit this product.',
+            'locked' => 'Category cannot be changed after product creation',
         ],
         'variant' => 'Variant',
         'required_fields' => 'Required fields',
@@ -239,12 +244,67 @@ return [
             'at_least_one_variant' => 'Product must have at least one variant',
             'save_variant_first' => 'Please save the product first to add variant images',
             'image_not_attached' => 'This image is not attached to the product. Please attach it first.',
+            'all_combinations_used' => 'All possible option combinations are already used. Cannot add more variants.',
         ],
         'hints' => [
             'save_to_add_image' => 'Save product first to add images',
         ],
         'success' => [
             'saved' => 'Product saved successfully',
+        ],
+        'duplicate_variants' => [
+            'title' => 'Duplicate Variants Detected',
+            'description' => 'The following variants have identical option values. Each variant should have a unique combination of options.',
+            'group_label' => 'Variants',
+        ],
+    ],
+
+    'products_create' => [
+        'title' => 'Create Product',
+        'description' => 'Add a new product to your catalog',
+        'sections' => [
+            'product_info' => 'Product Information',
+        ],
+        'fields' => [
+            'title' => 'Title',
+            'description' => 'Description',
+            'category' => 'Category',
+            'price' => 'Price',
+            'final_price' => 'Final Price',
+            'enabled' => 'Product Enabled',
+            'variant_title' => 'Variant Title',
+            'variant_enabled' => 'Variant Enabled',
+        ],
+        'placeholders' => [
+            'title' => 'Enter product title',
+            'description' => 'Enter product description...',
+            'category' => 'Select category',
+            'price' => '0.00',
+            'final_price' => '0.00',
+            'variant_title' => 'e.g., Small, Medium, Red, etc.',
+        ],
+        'category' => [
+            'none' => 'No category',
+        ],
+        'required_fields' => 'Required fields',
+        'actions' => [
+            'back' => 'Back to Products',
+            'add_variant' => 'Add Variant',
+            'cancel' => 'Cancel',
+            'create' => 'Create Product',
+            'creating' => 'Creating...',
+        ],
+        'errors' => [
+            'at_least_one_variant' => 'Product must have at least one variant',
+            'all_combinations_used' => 'All possible option combinations are already used. Cannot add more variants.',
+        ],
+        'success' => [
+            'created' => 'Product created successfully',
+        ],
+        'duplicate_variants' => [
+            'title' => 'Duplicate Variants Detected',
+            'description' => 'The following variants have identical option values. Each variant should have a unique combination of options.',
+            'group_label' => 'Variants',
         ],
     ],
 
