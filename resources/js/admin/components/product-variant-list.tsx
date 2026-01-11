@@ -3,12 +3,16 @@ import {useState} from "react";
 import {router} from '@inertiajs/react';
 import {PlusIcon} from 'lucide-react';
 import {toast} from "sonner";
+import {v4 as uuidv4} from 'uuid';
 
 import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
 import type {Option, Product, Variant} from '@/types/models';
+
+// Extended Variant type with temporary ID for new variants
+type VariantWithTempId = Variant & { _tempId?: string };
 
 
 interface ProductVariantListProps {
@@ -82,21 +86,25 @@ export function ProductVariantList({
     };
 
     /**
-     *
+     * Get unique identifier for variant (id or tempId)
      * @param variant
-     * @param optionId
-     * @param optionValueId
      */
+    const getVariantKey = (variant: VariantWithTempId): string | number => {
+        return variant.id ?? variant._tempId ?? '';
+    };
+
     /**
-     *
+     * Update variant option value
      * @param variant
      * @param optionId
      * @param optionValueId
      */
-    const updateVariantOptionValue = (variant: Variant, optionId: number, optionValueId: number) => {
-        if (!variant || !variant.id) {
+    const updateVariantOptionValue = (variant: VariantWithTempId, optionId: number, optionValueId: number) => {
+        if (!variant) {
             return;
         }
+
+        const key = getVariantKey(variant);
 
         // Initialize values array if it doesn't exist
         if (!variant.values) {
@@ -110,72 +118,90 @@ export function ProductVariantList({
             // Update existing value
             variant.values[existingValueIndex] = {
                 ...variant.values[existingValueIndex],
-                variant_id: variant.id,
+                variant_id: variant.id ?? 0,
                 option_id: optionId,
                 option_value_id: optionValueId,
             };
         } else {
             // Add new value
             variant.values.push({
-                variant_id: variant.id,
+                variant_id: variant.id ?? 0,
                 option_id: optionId,
                 option_value_id: optionValueId,
             } as any);
         }
 
-        const newVariants = [...(product.variants ?? []).map(i => i.id === variant.id ? variant : i)];
+        const newVariants = [...(product.variants ?? []).map(v =>
+            getVariantKey(v as VariantWithTempId) === key ? variant : v
+        )];
         onUpdate(newVariants);
     };
 
-
     /**
-     *
+     * Remove variant from list
      * @param variant
      */
-    const removeVariant = (variant: Variant) => {
-        onUpdate((product.variants ?? []).filter(v => v.id !== variant.id))
+    const removeVariant = (variant: VariantWithTempId) => {
+        const key = getVariantKey(variant);
+        onUpdate((product.variants ?? []).filter(v => getVariantKey(v as VariantWithTempId) !== key));
     };
 
     /**
-     *
+     * Update variant properties
      * @param variant
      * @param values
      */
-    const updateVariant = (variant: Variant, values: any) => {
-        onUpdate((product.variants ?? []).map(v => v.id === variant.id ? {...v, ...values} : v))
+    const updateVariant = (variant: VariantWithTempId, values: any) => {
+        const key = getVariantKey(variant);
+        onUpdate((product.variants ?? []).map(v =>
+            getVariantKey(v as VariantWithTempId) === key ? {...v, ...values} : v
+        ));
     };
 
+    /**
+     * Add new variant with temporary ID
+     */
     const addVariant = () => {
+        const newVariant: VariantWithTempId = {
+            _tempId: uuidv4(),
+            product_id: product.id ?? 0,
+            title: '',
+            price: '0.00',
+            final_price: '0.00',
+            enabled: false,
+            image_id: null,
+            values: [],
+        };
 
+        onUpdate([...(product.variants ?? []), newVariant as Variant]);
     };
-
 
     return <>
         <div className="col-span-9 flex flex-col gap-5">
             {/*<DuplicateVariantsAlert duplicateGroups={duplicateVariants}/>*/}
 
-            {(product.variants ?? []).map((variant, index) => (
-                <ProductVariantItem
-                    key={index}
-                    variant={variant}
-                    onUpdate={(values: any) => {
-                        updateVariant(variant, values);
-                    }}
-                    onRemove={(product.variants ?? [])?.length > 1 ? () => removeVariant(variant) : null}
-                    onImageRemove={() => removeVariantImage(variant)}
-                    onImageSelect={() => setVariantImagePicker({open: true, variant: variant})}
-                    options={options}
-                    onOptionValueChange={(optionId, optionValueId) => {
-                        updateVariantOptionValue(variant, optionId, optionValueId);
-                    }}
-
-
-                    index={index}
-                    disabled={false}
-                />
-            ))}
+            {(product.variants ?? []).map((variant, index) => {
+                const variantWithTempId = variant as VariantWithTempId;
+                return (
+                    <ProductVariantItem
+                        key={getVariantKey(variantWithTempId)}
+                        variant={variant}
+                        onUpdate={(values: any) => {
+                            updateVariant(variantWithTempId, values);
+                        }}
+                        onRemove={(product.variants ?? [])?.length > 1 ? () => removeVariant(variantWithTempId) : null}
+                        onImageRemove={() => removeVariantImage(variant)}
+                        onImageSelect={() => setVariantImagePicker({open: true, variant: variant})}
+                        options={options}
+                        onOptionValueChange={(optionId, optionValueId) => {
+                            updateVariantOptionValue(variantWithTempId, optionId, optionValueId);
+                        }}
+                        index={index}
+                        disabled={false}
+                    />
+                );
+            })}
             {
-                product?.id &&
                 <div className="flex items-center justify-end">
                     <Button
                         size="sm"

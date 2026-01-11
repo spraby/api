@@ -89,7 +89,7 @@ export function ProductVariantItem({
 
             <div className="grid grid-cols-12 gap-5">
                 {
-                    (typeof onRemove === 'function') && (
+                    (typeof onRemove === 'function') && !!variant.id && (
                         <div className="col-span-3 flex flex-col gap-2">
                             {variant.image?.image?.url ? (
                                 <div className="group relative w-full">
@@ -146,7 +146,7 @@ export function ProductVariantItem({
                     )
                 }
                 <div
-                    className={`${typeof onRemove === 'function' ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
+                    className={`${typeof onRemove === 'function' && !!variant.id ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
                     {
                         (typeof onRemove === 'function') &&
                         <div className="col-span-12 space-y-2">

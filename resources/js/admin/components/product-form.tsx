@@ -53,7 +53,12 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         e.preventDefault();
 
         if (product?.id) {
-            put(route('sb.admin.products.update', product.id));
+            put(route('sb.admin.products.update', product.id), {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    setData(page.props['product'] as Product);
+                },
+            });
         } else {
             post(route('sb.admin.products.store'));
         }

@@ -76,7 +76,7 @@ class ProductController extends Controller
      * Show the form for editing the specified product.
      * Data is fetched via API using TanStack Query
      */
-    public function edit(int $id): Response
+    public function edit(Product $product): Response
     {
         /**
          * @var User $user
@@ -91,7 +91,12 @@ class ProductController extends Controller
             ]);
         }
 
-        $product = Product::with([
+        // Verify product belongs to user's brand
+        if ($product->brand_id !== $brand->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $product->load([
             'brand.categories.options.values',
             'category.options.values' => function ($query) {
                 $query->orderBy('position');
@@ -103,9 +108,7 @@ class ProductController extends Controller
             'variants.image.image',
             'variants.values.value',
             'variants.values.option',
-        ])
-            ->where('brand_id', $brand->id)
-        ->findOrFail($id);
+        ]);
 
         return Inertia::render('ProductEdit', [
             'product' => $product,
@@ -120,6 +123,22 @@ class ProductController extends Controller
     public function update(Product $product, UpdateProductRequest $request): RedirectResponse
     {
         try {
+            /**
+             * @var User $user
+             * @var Brand $brand
+             */
+            $user = auth()->user();
+            $brand = $user->getBrand();
+
+            if (!$brand) {
+                return Redirect::back()->with('error', 'Brand not found');
+            }
+
+            // Verify product belongs to user's brand
+            if ($product->brand_id !== $brand->id) {
+                abort(403, 'Unauthorized');
+            }
+
             // Update product
             $product->update([
                 'title' => $request->input('title'),
@@ -153,6 +172,7 @@ class ProductController extends Controller
                         $submittedVariantIds[] = $variantData['id'];
                     }
                 } else {
+
                     // Create new variant
                     $variant = Variant::create([
                         'product_id' => $product->id,
@@ -185,7 +205,11 @@ class ProductController extends Controller
                 Variant::whereIn('id', $variantsToDelete)->delete();
             }
 
-            return Redirect::back()->with('success', 'Product updated successfully');
+            $product->refresh()->load('variants');
+
+            return Redirect::route('sb.admin.products.edit', $product->id)
+                ->with('success', 'Product updated successfully');
+
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to update product: ' . $e->getMessage());
         }
@@ -987,7 +1011,7 @@ class ProductController extends Controller
     /**
      * Inertia: Attach images to product
      */
-    public function attachImages(Request $request, int $id): RedirectResponse
+    public function attachImages(Request $request, Product $product): RedirectResponse
     {
         $request->validate([
             'image_ids' => 'required|array|min:1',
@@ -995,7 +1019,6 @@ class ProductController extends Controller
         ]);
 
         try {
-            $product = Product::findOrFail($id);
             $imageIds = $request->input('image_ids');
 
             // Get current max position
@@ -1021,7 +1044,7 @@ class ProductController extends Controller
     /**
      * Inertia: Upload new images and attach to product
      */
-    public function uploadImages(Request $request, int $id): RedirectResponse
+    public function uploadImages(Request $request, Product $product): RedirectResponse
     {
         $request->validate([
             'images' => 'required|array|min:1|max:50',
@@ -1029,7 +1052,6 @@ class ProductController extends Controller
         ]);
 
         try {
-            $product = Product::findOrFail($id);
 
             /**
              * @var User $user
@@ -1079,12 +1101,11 @@ class ProductController extends Controller
     /**
      * Inertia: Detach image from product
      */
-    public function detachImage(int $id, int $productImageId): RedirectResponse
+    public function detachImage(Product $product, int $productImageId): RedirectResponse
     {
         try {
-            $product = Product::findOrFail($id);
             $productImage = ProductImage::where('id', $productImageId)
-                ->where('product_id', $id)
+                ->where('product_id', $product->id)
                 ->firstOrFail();
 
             $productImage->delete();
@@ -1098,7 +1119,7 @@ class ProductController extends Controller
     /**
      * Inertia: Reorder product images
      */
-    public function reorderImages(Request $request, int $id): RedirectResponse
+    public function reorderImages(Request $request, Product $product): RedirectResponse
     {
         $request->validate([
             'image_ids' => 'required|array|min:1',
@@ -1106,12 +1127,11 @@ class ProductController extends Controller
         ]);
 
         try {
-            $product = Product::findOrFail($id);
             $imageIds = $request->input('image_ids');
 
             foreach ($imageIds as $position => $imageId) {
                 ProductImage::where('id', $imageId)
-                    ->where('product_id', $id)
+                    ->where('product_id', $product->id)
                     ->update(['position' => $position + 1]);
             }
 

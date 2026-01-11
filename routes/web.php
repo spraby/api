@@ -65,7 +65,7 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
             Route::get('/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('products.create');
             Route::post('/store', [App\Http\Controllers\Admin\ProductController::class, 'store'])->name('products.store');
 
-            Route::prefix('{id}')->group(function () {
+            Route::prefix('{product}')->group(function () {
                 Route::get('/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('products.edit');
                 Route::put('/', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('products.update');
 
