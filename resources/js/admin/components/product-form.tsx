@@ -3,7 +3,7 @@
  *
  * Allows selecting option values for a product variant based on category options
  */
-import {type FormEventHandler, useEffect, useMemo} from "react";
+import {type FormEventHandler, useEffect, useMemo, useRef} from "react";
 
 import {useForm, router} from '@inertiajs/react';
 
@@ -24,6 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {useLang} from '@/lib/lang';
+import {generateVariantValuesFromOptions} from '@/lib/variant-utils';
 import type {Product} from "@/types/models.ts";
 
 
@@ -41,9 +42,57 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         return brandCategories[0]
     }, [product, brandCategories])
 
+    // Track if variant values have been initialized to prevent overwriting user changes
+    const variantsInitialized = useRef(false);
+
     useEffect(() => {
         if (!product?.category_id && !!category?.id) setData('category_id', category?.id);
     }, [product, category]);
+
+    // Auto-generate variant values ONLY on initial load (not on every change)
+    useEffect(() => {
+        // Skip if already initialized or no data
+        if (variantsInitialized.current || !category?.options?.length || !product?.variants?.length) {
+            return;
+        }
+
+        let hasChanges = false;
+
+        const updatedVariants = product.variants.map((variant, index) => {
+            // Skip variants that already have an ID (existing variants)
+            if (variant?.id) {
+                return variant;
+            }
+
+            // Skip variants that already have values (user might have set them)
+            if (variant.values && variant.values.length > 0) {
+                return variant;
+            }
+
+            // Get all other variants (excluding current one being processed)
+            const otherVariants = (product.variants ?? []).filter((_, i) => i !== index);
+
+            // Generate first unique combination for this variant
+            const generatedValues = generateVariantValuesFromOptions(
+                category.options ?? [],
+                otherVariants
+            );
+
+            // If no available combinations, keep variant as is
+            if (!generatedValues) {
+                return variant;
+            }
+
+            hasChanges = true;
+
+            return { ...variant, values: generatedValues };
+        });
+
+        if (hasChanges) {
+            setData('variants', updatedVariants);
+            variantsInitialized.current = true; // Mark as initialized
+        }
+    }, [category, product.variants, setData]);
 
     /**
      *
@@ -178,11 +227,6 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                         setData('variants', [...v])
                     }}
                     options={category?.options ?? []}
-
-                    // productImages={product?.images ?? []}
-                    // categoryOptions={product?.category?.options ?? []}
-                    // variants={product.variants}
-                    // disabled={processing}
                 />
             }
 

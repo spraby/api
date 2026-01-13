@@ -9,6 +9,7 @@ import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
+import {generateVariantValuesFromOptions, hasAvailableVariantCombinations} from '@/lib/variant-utils';
 import type {Option, Product, Variant} from '@/types/models';
 
 // Extended Variant type with temporary ID for new variants
@@ -160,8 +161,28 @@ export function ProductVariantList({
 
     /**
      * Add new variant with temporary ID
+     * Automatically generates values based on available options
      */
+    /**
+     * Check if adding new variant is possible
+     */
+    const canAddVariant = hasAvailableVariantCombinations(
+        options,
+        product.variants ?? []
+    );
+
     const addVariant = () => {
+        // Generate first unique combination that doesn't exist in current variants
+        const generatedValues = generateVariantValuesFromOptions(
+            options,
+            product.variants ?? []
+        );
+
+        // If no combinations available, button should be disabled (shouldn't reach here)
+        if (!generatedValues) {
+            return;
+        }
+
         const newVariant: VariantWithTempId = {
             _tempId: uuidv4(),
             product_id: product.id ?? 0,
@@ -170,7 +191,7 @@ export function ProductVariantList({
             final_price: '0.00',
             enabled: false,
             image_id: null,
-            values: [],
+            values: generatedValues as any,
         };
 
         onUpdate([...(product.variants ?? []), newVariant as Variant]);
@@ -208,6 +229,7 @@ export function ProductVariantList({
                         type="button"
                         variant="outline"
                         onClick={addVariant}
+                        disabled={!canAddVariant}
                     >
                         <PlusIcon className="size-4"/>
                         {t('admin.products_edit.actions.add_variant')}

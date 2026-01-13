@@ -98,7 +98,7 @@ export interface Variant extends BaseModel {
 }
 
 export interface VariantValue extends BaseModel {
-    variant_id: number;
+    variant_id?: number;
     option_id: number;
     option_value_id: number;
     variant?: Variant;
