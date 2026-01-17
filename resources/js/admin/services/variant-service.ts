@@ -285,6 +285,62 @@ class VariantServiceClass {
     }
 
     /**
+     * Find groups of duplicate variants (variants with identical option values)
+     * Returns array of arrays, where each inner array contains indices of duplicate variants
+     *
+     * @param variants - Array of variants to check
+     * @returns Array of duplicate groups (each group is array of variant indices)
+     */
+    findDuplicateGroups(variants: Variant[]): number[][] {
+        const duplicateGroups: number[][] = [];
+        const processedIndices = new Set<number>();
+
+        for (let i = 0; i < variants.length; i++) {
+            if (processedIndices.has(i)) {
+                continue;
+            }
+
+            const currentValues = variants[i].values;
+
+            // Skip variants without values
+            if (!currentValues || currentValues.length === 0) {
+                continue;
+            }
+
+            const group: number[] = [i];
+
+            for (let j = i + 1; j < variants.length; j++) {
+                if (processedIndices.has(j)) {
+                    continue;
+                }
+
+                const compareValues = variants[j].values;
+
+                if (!compareValues || compareValues.length === 0) {
+                    continue;
+                }
+
+                // Compare using existing method
+                if (this.compareValues(currentValues, compareValues.map(v => ({
+                    option_id: v.option_id,
+                    option_value_id: v.option_value_id,
+                })))) {
+                    group.push(j);
+                    processedIndices.add(j);
+                }
+            }
+
+            // Only add groups with more than 1 variant (actual duplicates)
+            if (group.length > 1) {
+                duplicateGroups.push(group);
+                processedIndices.add(i);
+            }
+        }
+
+        return duplicateGroups;
+    }
+
+    /**
      * Get option values map for quick lookup
      *
      * @param options - Array of options

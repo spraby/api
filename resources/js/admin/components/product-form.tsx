@@ -6,6 +6,7 @@
 import {type FormEventHandler, useEffect, useMemo, useRef} from "react";
 
 import {useForm, router} from '@inertiajs/react';
+import {toast} from "sonner";
 
 import {ProductImagesManager} from "@/components/product-images-manager.tsx";
 import {ProductVariantList} from "@/components/product-variant-list.tsx";
@@ -42,6 +43,13 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
         return brandCategories[0]
     }, [product, brandCategories])
+
+    // Check for duplicate variants
+    const hasDuplicateVariants = useMemo(() => {
+        const duplicateGroups = VariantService.findDuplicateGroups(product.variants ?? []);
+
+        return duplicateGroups.length > 0;
+    }, [product.variants]);
 
     // Track if variant values have been initialized to prevent overwriting user changes
     const variantsInitialized = useRef(false);
@@ -96,11 +104,17 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     }, [category, product.variants, setData]);
 
     /**
-     *
-     * @param e
+     * Handle form submission with duplicate validation
      */
     const onSubmit: FormEventHandler = (e) => {
         e.preventDefault();
+
+        // Prevent saving if there are duplicate variants
+        if (hasDuplicateVariants) {
+            toast.error(t('admin.products_edit.errors.duplicate_variants'));
+
+            return;
+        }
 
         if (product?.id) {
             put(route('sb.admin.products.update', product.id), {
@@ -249,7 +263,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                 >
                     {t('admin.products_edit.actions.cancel')}
                 </Button>
-                <Button type="submit" disabled={processing} className="w-full sm:w-auto">
+                <Button type="submit" disabled={processing || hasDuplicateVariants} className="w-full sm:w-auto">
                     {processing
                         ? t('admin.products_edit.actions.saving')
                         : t('admin.products_edit.actions.save')}

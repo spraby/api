@@ -1,10 +1,11 @@
-import {useState} from "react";
+import {useMemo, useState} from "react";
 
 import {router} from '@inertiajs/react';
 import {PlusIcon} from 'lucide-react';
 import {toast} from "sonner";
 import {v4 as uuidv4} from 'uuid';
 
+import {DuplicateVariantsAlert} from "@/components/duplicate-variants-alert.tsx";
 import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
@@ -180,6 +181,25 @@ export function ProductVariantList({
         product.variants ?? []
     );
 
+    /**
+     * Find duplicate variant groups and create a Set of duplicate indices
+     */
+    const duplicateGroups = useMemo(() => {
+        return VariantService.findDuplicateGroups(product.variants ?? []);
+    }, [product.variants]);
+
+    const duplicateIndices = useMemo(() => {
+        const indices = new Set<number>();
+
+        for (const group of duplicateGroups) {
+            for (const index of group) {
+                indices.add(index);
+            }
+        }
+
+        return indices;
+    }, [duplicateGroups]);
+
     const addVariant = () => {
         // Generate first unique combination that doesn't exist in current variants
         const generatedValues = VariantService.generateVariantValues(
@@ -208,7 +228,7 @@ export function ProductVariantList({
 
     return <>
         <div className="col-span-9 flex flex-col gap-5">
-            {/*<DuplicateVariantsAlert duplicateGroups={duplicateVariants}/>*/}
+            <DuplicateVariantsAlert duplicateGroups={duplicateGroups}/>
 
             {(product.variants ?? []).map((variant, index) => {
                 const variantWithTempId = variant as VariantWithTempId;
@@ -229,6 +249,7 @@ export function ProductVariantList({
                         }}
                         index={index}
                         disabled={false}
+                        isDuplicate={duplicateIndices.has(index)}
                     />
                 );
             })}

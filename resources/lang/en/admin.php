@@ -245,6 +245,7 @@ return [
             'save_variant_first' => 'Please save the product first to add variant images',
             'image_not_attached' => 'This image is not attached to the product. Please attach it first.',
             'all_combinations_used' => 'All possible option combinations are already used. Cannot add more variants.',
+            'duplicate_variants' => 'Cannot save product with duplicate variants. Please ensure each variant has a unique combination of options.',
         ],
         'hints' => [
             'save_to_add_image' => 'Save product first to add images',
