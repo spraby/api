@@ -11,5 +11,6 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function parseNum(val: string | number) {
     const n = typeof val === 'string' ? parseFloat(val) : val;
+
     return isNaN(n) ? 0 : n;
 }

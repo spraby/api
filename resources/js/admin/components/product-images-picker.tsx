@@ -86,7 +86,7 @@ export function ProductImagesPicker({
                       isSelected && 'ring-2 ring-primary'
                     )}
                     onClick={() => {
-                        if(productImage?.id) setSelectedImageId(productImage.id);
+                        if(productImage?.id) {setSelectedImageId(productImage.id);}
                     }}
                   >
                     <CardContent className="p-0">

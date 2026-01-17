@@ -53,7 +53,7 @@ export type BrandSettingsType = 'refund' | 'addresses' | 'delivery' | 'phones' |
 export interface BrandSettings extends BaseModel {
     brand_id: number;
     type: BrandSettingsType;
-    data: any;
+    data: Record<string, unknown>;
     brand?: Brand;
 }
 

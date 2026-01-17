@@ -24,7 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {useLang} from '@/lib/lang';
-import {generateVariantValuesFromOptions} from '@/lib/variant-utils';
+import {VariantService} from '@/services/variant-service';
 import type {Product} from "@/types/models.ts";
 
 
@@ -33,12 +33,13 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
     const {data: product, setData, errors, put, post, processing} = useForm(defaultProduct);
     const isEditMode = useMemo(() => !!product?.id, [product?.id]);
-    const brandCategories = useMemo(() => defaultProduct?.brand?.categories ?? [], [product?.brand?.categories]);
+    const brandCategories = useMemo(() => defaultProduct?.brand?.categories ?? [], [defaultProduct?.brand?.categories]);
     const category = useMemo(() => {
-        if (!brandCategories?.length) return null;
+        if (!brandCategories?.length) {return null;}
         if (product?.category_id) {
             return brandCategories.find(i => i.id === product.category_id);
         }
+
         return brandCategories[0]
     }, [product, brandCategories])
 
@@ -46,8 +47,8 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     const variantsInitialized = useRef(false);
 
     useEffect(() => {
-        if (!product?.category_id && !!category?.id) setData('category_id', category?.id);
-    }, [product, category]);
+        if (!product?.category_id && !!category?.id) {setData('category_id', category?.id);}
+    }, [product, category, setData]);
 
     // Auto-generate variant values ONLY on initial load (not on every change)
     useEffect(() => {
@@ -73,7 +74,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             const otherVariants = (product.variants ?? []).filter((_, i) => i !== index);
 
             // Generate first unique combination for this variant
-            const generatedValues = generateVariantValuesFromOptions(
+            const generatedValues = VariantService.generateVariantValues(
                 category.options ?? [],
                 otherVariants
             );
@@ -162,7 +163,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                         {!!errors.enabled && <p className="text-xs text-destructive">{errors.enabled}</p>}
                     </div>
                     {
-                        !!category?.id ?
+                        category?.id ?
                             <div className="gap-2 flex flex-col">
                                 <Label htmlFor="category">{t('admin.products_edit.fields.category')}</Label>
                                 <Select

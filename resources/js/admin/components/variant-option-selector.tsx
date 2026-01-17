@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useLang } from '@/lib/lang';
-import type { Option, VariantValue } from '@/types/models';
+import type { Option, OptionValue, VariantValue } from '@/types/models';
 
 interface VariantOptionSelectorProps {
   options: Option[];
@@ -46,8 +46,8 @@ export function VariantOptionSelector({
     <div className="space-y-4">
       <h4 className="text-sm font-medium">{t('admin.products_edit.variant_options.title')}</h4>
       <div className="grid gap-4 sm:grid-cols-2">
-        {options.filter(i => !!i.id).map((option) => {
-          const selectedValue = getSelectedValue(option.id as number);
+        {options.filter((i): i is Option & { id: number } => !!i.id).map((option) => {
+          const selectedValue = getSelectedValue(option.id);
 
           return (
             <div key={option.id} className="space-y-2">
@@ -60,7 +60,7 @@ export function VariantOptionSelector({
                 value={selectedValue}
                 onValueChange={(value) => {
                   if (value) {
-                    onValueChange(option.id as number, Number(value));
+                    onValueChange(option.id, Number(value));
                   }
                 }}
               >
@@ -70,8 +70,8 @@ export function VariantOptionSelector({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {option.values?.filter(i => !!i.id).map((optionValue) => (
-                    <SelectItem key={optionValue.id} value={(optionValue.id as number).toString()}>
+                  {option.values?.filter((i): i is OptionValue & { id: number } => !!i.id).map((optionValue) => (
+                    <SelectItem key={optionValue.id} value={optionValue.id.toString()}>
                       {optionValue.value}
                     </SelectItem>
                   ))}

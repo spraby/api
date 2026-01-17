@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLang } from '@/lib/lang';
@@ -46,9 +47,14 @@ export function PricingSection({
 
         if (p > 0 && f >= 0) {
             const calculatedDiscount = Math.round(((p - f) / p) * 100);
-            if (calculatedDiscount !== discountInput) {
-                setDiscountInput(Math.max(0, Math.min(100, calculatedDiscount)));
-            }
+
+            setDiscountInput((current) => {
+                if (calculatedDiscount !== current) {
+                    return Math.max(0, Math.min(100, calculatedDiscount));
+                }
+
+                return current;
+            });
         }
     }, [price, finalPrice]);
 
@@ -61,8 +67,10 @@ export function PricingSection({
         const d = discountInput;
 
         let newFinal = finalPrice;
+
         if (p > 0) {
             const calculatedFinal = p - (p * d) / 100;
+
             newFinal = calculatedFinal.toFixed(2);
         }
 
@@ -79,13 +87,14 @@ export function PricingSection({
      */
     const handleDiscountChange = (newDiscount: number) => {
         const d = Math.max(0, Math.min(100, newDiscount)); // Ограничение 0-100
+
         setDiscountInput(d);
 
         const p = parseNum(price);
         const calculatedFinal = p - (p * d) / 100;
 
         onChange({
-            price: price,
+            price,
             final_price: calculatedFinal.toFixed(2),
             discount: d.toString()
         });
@@ -97,7 +106,7 @@ export function PricingSection({
      */
     const handleFinalPriceChange = (newFinalPrice: string) => {
         onChange({
-            price: price,
+            price,
             final_price: newFinalPrice,
             discount: discountInput.toString()
         });
@@ -108,7 +117,7 @@ export function PricingSection({
             <div className="space-y-2">
                 <Label className="flex items-center gap-1" htmlFor={`${idPrefix}price`}>
                     {t('admin.products_edit.fields.price')}
-                    {required && <span className="text-destructive">*</span>}
+                    {!!required && <span className="text-destructive">*</span>}
                 </Label>
                 <Input
                     required={required}
@@ -141,7 +150,7 @@ export function PricingSection({
             <div className="space-y-2">
                 <Label className="flex items-center gap-1" htmlFor={`${idPrefix}final-price`}>
                     {t('admin.products_edit.fields.final_price')}
-                    {required && <span className="text-destructive">*</span>}
+                    {!!required && <span className="text-destructive">*</span>}
                 </Label>
                 <Input
                     required={required}

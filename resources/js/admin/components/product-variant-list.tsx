@@ -9,8 +9,8 @@ import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
-import {generateVariantValuesFromOptions, hasAvailableVariantCombinations} from '@/lib/variant-utils';
-import type {Option, Product, Variant} from '@/types/models';
+import {VariantService} from '@/services/variant-service';
+import type {Option, Product, Variant, VariantValue} from '@/types/models';
 
 // Extended Variant type with temporary ID for new variants
 type VariantWithTempId = Variant & { _tempId?: string };
@@ -19,7 +19,7 @@ type VariantWithTempId = Variant & { _tempId?: string };
 interface ProductVariantListProps {
     product: Product,
     options: Option[],
-    onUpdate: (variants: Variant[]) => any
+    onUpdate: (variants: Variant[]) => void
 }
 
 export function ProductVariantList({
@@ -64,10 +64,11 @@ export function ProductVariantList({
             return;
         }
 
-        const variant = variantImagePicker.variant;
+        const {variant} = variantImagePicker;
 
         if (!variant?.id) {
             toast.error(t('admin.products_edit.errors.save_variant_first'));
+
             return;
         }
 
@@ -107,34 +108,40 @@ export function ProductVariantList({
 
         const key = getVariantKey(variant);
 
+        // Create a copy of the variant to avoid mutating the parameter
+        const updatedVariant = { ...variant };
+
         // Initialize values array if it doesn't exist
-        if (!variant.values) {
-            variant.values = [];
+        if (!updatedVariant.values) {
+            updatedVariant.values = [];
+        } else {
+            updatedVariant.values = [...updatedVariant.values];
         }
 
         // Find existing value for this option
-        const existingValueIndex = variant.values.findIndex((v) => v.option_id === optionId);
+        const existingValueIndex = updatedVariant.values.findIndex((v) => v.option_id === optionId);
 
         if (existingValueIndex >= 0) {
             // Update existing value
-            variant.values[existingValueIndex] = {
-                ...variant.values[existingValueIndex],
+            updatedVariant.values[existingValueIndex] = {
+                ...updatedVariant.values[existingValueIndex],
                 variant_id: variant.id ?? 0,
                 option_id: optionId,
                 option_value_id: optionValueId,
             };
         } else {
             // Add new value
-            variant.values.push({
+            updatedVariant.values.push({
                 variant_id: variant.id ?? 0,
                 option_id: optionId,
                 option_value_id: optionValueId,
-            } as any);
+            } as VariantValue);
         }
 
         const newVariants = [...(product.variants ?? []).map(v =>
-            getVariantKey(v as VariantWithTempId) === key ? variant : v
+            getVariantKey(v as VariantWithTempId) === key ? updatedVariant : v
         )];
+
         onUpdate(newVariants);
     };
 
@@ -144,6 +151,7 @@ export function ProductVariantList({
      */
     const removeVariant = (variant: VariantWithTempId) => {
         const key = getVariantKey(variant);
+
         onUpdate((product.variants ?? []).filter(v => getVariantKey(v as VariantWithTempId) !== key));
     };
 
@@ -152,8 +160,9 @@ export function ProductVariantList({
      * @param variant
      * @param values
      */
-    const updateVariant = (variant: VariantWithTempId, values: any) => {
+    const updateVariant = (variant: VariantWithTempId, values: Partial<Variant>) => {
         const key = getVariantKey(variant);
+
         onUpdate((product.variants ?? []).map(v =>
             getVariantKey(v as VariantWithTempId) === key ? {...v, ...values} : v
         ));
@@ -166,14 +175,14 @@ export function ProductVariantList({
     /**
      * Check if adding new variant is possible
      */
-    const canAddVariant = hasAvailableVariantCombinations(
+    const canAddVariant = VariantService.hasAvailableCombinations(
         options,
         product.variants ?? []
     );
 
     const addVariant = () => {
         // Generate first unique combination that doesn't exist in current variants
-        const generatedValues = generateVariantValuesFromOptions(
+        const generatedValues = VariantService.generateVariantValues(
             options,
             product.variants ?? []
         );
@@ -191,7 +200,7 @@ export function ProductVariantList({
             final_price: '0.00',
             enabled: false,
             image_id: null,
-            values: generatedValues as any,
+            values: generatedValues as VariantValue[],
         };
 
         onUpdate([...(product.variants ?? []), newVariant as Variant]);
@@ -203,16 +212,17 @@ export function ProductVariantList({
 
             {(product.variants ?? []).map((variant, index) => {
                 const variantWithTempId = variant as VariantWithTempId;
+
                 return (
                     <ProductVariantItem
                         key={getVariantKey(variantWithTempId)}
                         variant={variant}
-                        onUpdate={(values: any) => {
+                        onUpdate={(values: Partial<Variant>) => {
                             updateVariant(variantWithTempId, values);
                         }}
                         onRemove={(product.variants ?? [])?.length > 1 ? () => removeVariant(variantWithTempId) : null}
                         onImageRemove={() => removeVariantImage(variant)}
-                        onImageSelect={() => setVariantImagePicker({open: true, variant: variant})}
+                        onImageSelect={() => setVariantImagePicker({open: true, variant})}
                         options={options}
                         onOptionValueChange={(optionId, optionValueId) => {
                             updateVariantOptionValue(variantWithTempId, optionId, optionValueId);
@@ -222,8 +232,7 @@ export function ProductVariantList({
                     />
                 );
             })}
-            {
-                <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end">
                     <Button
                         size="sm"
                         type="button"
@@ -235,7 +244,6 @@ export function ProductVariantList({
                         {t('admin.products_edit.actions.add_variant')}
                     </Button>
                 </div>
-            }
         </div>
         {
             !!product?.images?.length && (

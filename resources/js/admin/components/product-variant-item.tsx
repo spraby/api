@@ -6,14 +6,14 @@ import {Button} from '@/components/ui/button';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
+import {VariantOptionSelector} from "@/components/variant-option-selector.tsx";
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
 import type {Option, Variant} from '@/types/models';
-import {VariantOptionSelector} from "@/components/variant-option-selector.tsx";
 
 interface ProductVariantItemProps {
     variant: Variant;
-    onUpdate: (values: any) => void;
+    onUpdate: (values: Partial<Variant>) => void;
     onRemove: (() => void) | null
     onImageRemove: () => void;
     onImageSelect: () => void;
@@ -167,8 +167,7 @@ export function ProductVariantItem({
                     }
 
                     <div className="col-span-12 space-y-2">
-                        {
-                            <PricingSection
+                        <PricingSection
                                 required
                                 idPrefix={`variant-${index}-`}
                                 disabled={disabled}
@@ -177,7 +176,6 @@ export function ProductVariantItem({
                                 finalPrice={variant.final_price}
                                 onChange={onUpdate}
                             />
-                        }
                     </div>
 
                     {/* Variant Option Values */}
