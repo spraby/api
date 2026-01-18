@@ -5,6 +5,7 @@ return [
         'dashboard' => 'Панель управления',
         'users' => 'Пользователи',
         'products' => 'Товары',
+        'orders' => 'Заказы',
         'media' => 'Медиатека',
         'settings' => 'Настройки',
         'documents' => 'Документы',
@@ -317,6 +318,71 @@ return [
             'description' => 'Следующие варианты имеют одинаковые значения опций. Каждый вариант должен иметь уникальную комбинацию опций.',
             'group_label' => 'Варианты',
         ],
+    ],
+
+    'orders' => [
+        'title' => 'Заказы',
+        'description' => 'Управление заказами клиентов',
+    ],
+
+    'orders_table' => [
+        'columns' => [
+            'order' => 'Заказ',
+            'customer' => 'Клиент',
+            'total' => 'Сумма',
+            'status' => 'Статус',
+            'delivery' => 'Доставка',
+            'payment' => 'Оплата',
+            'created' => 'Создан',
+        ],
+        'items' => 'товар(ов)',
+        'status' => [
+            'pending' => 'Ожидает',
+            'confirmed' => 'Подтверждён',
+            'processing' => 'В обработке',
+            'completed' => 'Выполнен',
+            'cancelled' => 'Отменён',
+            'archived' => 'Архив',
+        ],
+        'delivery_status' => [
+            'pending' => 'Ожидает',
+            'packing' => 'Упаковка',
+            'shipped' => 'Отправлен',
+            'transit' => 'В пути',
+            'delivered' => 'Доставлен',
+        ],
+        'financial_status' => [
+            'unpaid' => 'Не оплачен',
+            'paid' => 'Оплачен',
+            'partial_paid' => 'Частично',
+            'refunded' => 'Возврат',
+        ],
+        'actions' => [
+            'view' => 'Просмотр',
+            'open_menu' => 'Открыть меню',
+        ],
+        'bulk' => [
+            'selected' => 'выбрано',
+            'clear_selection' => 'Очистить выбор',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Поиск по номеру заказа...',
+            'all_statuses' => 'Все статусы',
+            'all_payments' => 'Все оплаты',
+            'columns' => 'Колонки',
+        ],
+        'pagination' => [
+            'rows_selected' => 'из',
+            'row' => 'строк',
+            'rows_per_page' => 'Строк на странице',
+            'page' => 'Страница',
+            'of' => 'из',
+            'go_first' => 'На первую страницу',
+            'go_previous' => 'На предыдущую страницу',
+            'go_next' => 'На следующую страницу',
+            'go_last' => 'На последнюю страницу',
+        ],
+        'empty' => 'Заказы не найдены.',
     ],
 
     'image_upload' => [

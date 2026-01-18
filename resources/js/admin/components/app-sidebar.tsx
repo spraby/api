@@ -11,6 +11,7 @@ import {
   LayoutDashboardIcon,
   PackageIcon,
   SettingsIcon,
+  ShoppingCartIcon,
   UserIcon,
 } from "lucide-react"
 
@@ -114,6 +115,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         title: t('admin.nav.products'),
         url: "/sb/admin/products",
         icon: PackageIcon,
+      },
+      {
+        title: t('admin.nav.orders'),
+        url: "/sb/admin/orders",
+        icon: ShoppingCartIcon,
       },
       {
         title: t('admin.nav.media'),

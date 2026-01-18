@@ -5,6 +5,7 @@ return [
         'dashboard' => 'Dashboard',
         'users' => 'Users',
         'products' => 'Products',
+        'orders' => 'Orders',
         'media' => 'Media',
         'settings' => 'Settings',
         'documents' => 'Documents',
@@ -317,6 +318,71 @@ return [
             'description' => 'The following variants have identical option values. Each variant should have a unique combination of options.',
             'group_label' => 'Variants',
         ],
+    ],
+
+    'orders' => [
+        'title' => 'Orders',
+        'description' => 'Manage customer orders',
+    ],
+
+    'orders_table' => [
+        'columns' => [
+            'order' => 'Order',
+            'customer' => 'Customer',
+            'total' => 'Total',
+            'status' => 'Status',
+            'delivery' => 'Delivery',
+            'payment' => 'Payment',
+            'created' => 'Created',
+        ],
+        'items' => 'item(s)',
+        'status' => [
+            'pending' => 'Pending',
+            'confirmed' => 'Confirmed',
+            'processing' => 'Processing',
+            'completed' => 'Completed',
+            'cancelled' => 'Cancelled',
+            'archived' => 'Archived',
+        ],
+        'delivery_status' => [
+            'pending' => 'Pending',
+            'packing' => 'Packing',
+            'shipped' => 'Shipped',
+            'transit' => 'In Transit',
+            'delivered' => 'Delivered',
+        ],
+        'financial_status' => [
+            'unpaid' => 'Unpaid',
+            'paid' => 'Paid',
+            'partial_paid' => 'Partial',
+            'refunded' => 'Refunded',
+        ],
+        'actions' => [
+            'view' => 'View',
+            'open_menu' => 'Open menu',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Search by order number...',
+            'all_statuses' => 'All statuses',
+            'all_payments' => 'All payments',
+            'columns' => 'Columns',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'row(s)',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No orders found.',
     ],
 
     'image_upload' => [

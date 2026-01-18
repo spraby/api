@@ -82,6 +82,8 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
 
         });
 
+        Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders');
+
         Route::prefix('media')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
             Route::get('/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');
