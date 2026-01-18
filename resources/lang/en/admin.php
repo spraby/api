@@ -385,6 +385,57 @@ return [
         'empty' => 'No orders found.',
     ],
 
+    'order_show' => [
+        'title' => 'Order Details',
+        'back' => 'Back to Orders',
+        'sections' => [
+            'customer' => 'Customer Information',
+            'items' => 'Order Items',
+            'shipping' => 'Shipping Information',
+            'timeline' => 'Order History',
+        ],
+        'customer' => [
+            'name' => 'Name',
+            'email' => 'Email',
+            'phone' => 'Phone',
+            'no_customer' => 'No customer information',
+        ],
+        'items' => [
+            'product' => 'Product',
+            'variant' => 'Variant',
+            'quantity' => 'Qty',
+            'price' => 'Price',
+            'total' => 'Total',
+            'no_items' => 'No items in this order',
+        ],
+        'shipping' => [
+            'name' => 'Recipient',
+            'phone' => 'Phone',
+            'note' => 'Note',
+            'no_shipping' => 'No shipping information',
+        ],
+        'timeline' => [
+            'event' => [
+                'created' => 'Created',
+                'updated' => 'Updated',
+                'deleted' => 'Deleted',
+            ],
+            'by' => 'by',
+            'system' => 'System',
+            'no_history' => 'No history available',
+        ],
+        'totals' => [
+            'subtotal' => 'Subtotal',
+            'total' => 'Total',
+        ],
+        'note' => 'Note',
+        'no_note' => 'No note',
+        'created_at' => 'Created',
+        'updated_at' => 'Updated',
+        'status_updated' => 'Status updated successfully',
+        'status_update_failed' => 'Failed to update status',
+    ],
+
     'image_upload' => [
         'title' => 'Upload Images',
         'description' => 'Upload new images to your product',

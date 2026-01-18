@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
   CheckCircle2Icon,
   CircleDollarSignIcon,
@@ -258,11 +258,10 @@ const createOrderColumns = (
   {
     id: "actions",
     cell: ({ row }) => {
-      const _order = row.original
+      const order = row.original
 
       const handleView = () => {
-        // TODO: Navigate to order detail page when implemented
-        // router.visit(`/sb/admin/orders/${_order.id}`)
+        router.visit(`/sb/admin/orders/${order.id}`)
       }
 
       return (

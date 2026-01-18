@@ -242,6 +242,24 @@ export interface Customer extends BaseModel {
 }
 
 // ============================================================================
+// Audit
+// ============================================================================
+
+export type AuditEvent = 'created' | 'updated' | 'deleted';
+
+export interface Audit extends BaseModel {
+    event: AuditEvent;
+    message: string;
+    old_values: Record<string, unknown> | null;
+    new_values: Record<string, unknown> | null;
+    auditable_id: number;
+    auditable_type: string;
+    user_id: number | null;
+    // Relations
+    user?: User | null;
+}
+
+// ============================================================================
 // Pagination
 // ============================================================================
 
