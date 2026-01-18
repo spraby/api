@@ -58,16 +58,19 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
 
 
         Route::prefix('products')->group(function () {
-            Route::get('/', function () {
-                return Inertia::render('Products', []);
-            })->name('products');
+            Route::get('/', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('products');
 
             Route::get('/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('products.create');
             Route::post('/store', [App\Http\Controllers\Admin\ProductController::class, 'store'])->name('products.store');
 
+            // Bulk operations (Inertia)
+            Route::post('/bulk-delete', [App\Http\Controllers\Admin\ProductController::class, 'bulkDestroy'])->name('products.bulk-delete');
+            Route::post('/bulk-update-status', [App\Http\Controllers\Admin\ProductController::class, 'bulkUpdateStatus'])->name('products.bulk-update-status');
+
             Route::prefix('{product}')->group(function () {
                 Route::get('/edit', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('products.edit');
                 Route::put('/', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('products.update');
+                Route::delete('/', [App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('products.destroy');
 
                 Route::prefix('images')->group(function () {
                     Route::post('/attach', [App\Http\Controllers\Admin\ProductController::class, 'attachImages'])->name('products.images.attach');
@@ -77,14 +80,6 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
                 });
             });
 
-            //deprecate
-            Route::get('/api', [App\Http\Controllers\Admin\ProductController::class, 'apiIndex'])->name('products.api.index');
-            Route::post('/api', [App\Http\Controllers\Admin\ProductController::class, 'apiStore'])->name('products.api.store');
-            Route::get('/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiShow'])->name('products.api.show');
-            Route::put('/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiUpdate'])->name('products.api.update');
-            Route::delete('/{id}/api', [App\Http\Controllers\Admin\ProductController::class, 'apiDestroy'])->name('products.api.destroy');
-            Route::post('/bulk-delete/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkDelete'])->name('products.api.bulk-delete');
-            Route::post('/bulk-update-status/api', [App\Http\Controllers\Admin\ProductController::class, 'apiBulkUpdateStatus'])->name('products.api.bulk-update-status');
         });
 
         Route::prefix('media')->group(function () {

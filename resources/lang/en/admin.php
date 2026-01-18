@@ -179,6 +179,16 @@ return [
             'delete_many' => 'Are you sure you want to delete',
             'products' => 'product(s)?',
         ],
+        'success' => [
+            'deleted' => 'Product deleted successfully',
+            'bulk_deleted' => 'Products deleted successfully',
+            'status_updated' => 'Product status updated successfully',
+        ],
+        'errors' => [
+            'delete_failed' => 'Failed to delete product',
+            'bulk_delete_failed' => 'Failed to delete products',
+            'status_update_failed' => 'Failed to update product status',
+        ],
     ],
 
     'products_edit' => [

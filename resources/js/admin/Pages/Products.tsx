@@ -1,10 +1,10 @@
 import * as React from "react"
 
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { CheckCircle2Icon, ImageIcon, MoreVerticalIcon, PackageIcon, PlusIcon, Trash2Icon, XCircleIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import { ResourceList } from '@/components/resource-list';
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,11 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useProducts } from '@/lib/hooks/api/useProducts';
-import { useBulkDeleteProducts, useBulkUpdateProductStatus, useDeleteProduct } from '@/lib/hooks/mutations/useProductMutations';
 import { useLang } from '@/lib/lang';
-import type { Product } from '@/types/api';
 import type { BulkAction, Filter, ResourceListTranslations } from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
@@ -34,12 +30,38 @@ import AdminLayout from '../layouts/AdminLayout.tsx';
 import type { ColumnDef } from "@tanstack/react-table"
 
 // ============================================
+// TYPES
+// ============================================
+
+interface Product {
+  id: number;
+  title: string;
+  description: string | null;
+  price: string;
+  final_price: string;
+  enabled: boolean;
+  brand_id: number;
+  category_id: number | null;
+  brand: {
+    id: number;
+    name: string;
+  } | null;
+  category: {
+    id: number;
+    name: string;
+  } | null;
+  image_url: string | null;
+  created_at: string;
+}
+
+// ============================================
 // COLUMN DEFINITIONS
 // ============================================
 
 const createProductColumns = (
   t: (key: string) => string,
-  deleteProduct: ReturnType<typeof useDeleteProduct>
+  onDelete: (product: Product) => void,
+  isDeleting: boolean
 ): ColumnDef<Product>[] => [
   {
     id: "select",
@@ -220,7 +242,7 @@ const createProductColumns = (
           return
         }
 
-        deleteProduct.mutate(product.id);
+        onDelete(product)
       }
 
       return (
@@ -229,7 +251,7 @@ const createProductColumns = (
             <DropdownMenuTrigger asChild>
               <Button
                 className="size-8 text-muted-foreground data-[state=open]:bg-muted"
-                disabled={deleteProduct.isPending}
+                disabled={isDeleting}
                 size="icon"
                 variant="ghost"
               >
@@ -278,15 +300,29 @@ function BulkStatusSelect({ selectedStatus, setSelectedStatus, t }: BulkStatusSe
 
 export default function Products() {
   const { t } = useLang();
+  const { products } = usePage<{ products: Product[] }>().props;
 
-  // API Hooks
-  const { data: products, isLoading, error } = useProducts();
-  const bulkDelete = useBulkDeleteProducts();
-  const bulkUpdateStatus = useBulkUpdateProductStatus();
-  const deleteProduct = useDeleteProduct();
-
-  // State for bulk status change
+  // State for operations
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const [selectedStatus, setSelectedStatus] = React.useState<string>("")
+
+  // Delete single product
+  const handleDelete = React.useCallback((product: Product) => {
+    setIsDeleting(true);
+
+    router.delete(route('sb.admin.products.destroy', { product: product.id }), {
+      preserveScroll: true,
+      onSuccess: () => {
+        toast.success(t('admin.products_table.success.deleted'));
+      },
+      onError: () => {
+        toast.error(t('admin.products_table.errors.delete_failed'));
+      },
+      onFinish: () => {
+        setIsDeleting(false);
+      },
+    });
+  }, [t]);
 
   // Bulk actions slot renderer
   const renderBulkActionsSlot = React.useCallback(() => (
@@ -302,8 +338,8 @@ export default function Products() {
   // ============================================
 
   const columns = React.useMemo(
-    () => createProductColumns(t, deleteProduct),
-    [t, deleteProduct]
+    () => createProductColumns(t, handleDelete, isDeleting),
+    [t, handleDelete, isDeleting]
   );
 
   // ============================================
@@ -321,13 +357,18 @@ export default function Products() {
       action: async (selectedProducts: Product[]) => {
         const productIds = selectedProducts.map(p => p.id)
 
-        bulkUpdateStatus.mutate({
+        router.post(route('sb.admin.products.bulk-update-status'), {
           product_ids: productIds,
           enabled: selectedStatus === "enabled"
         }, {
+          preserveScroll: true,
           onSuccess: () => {
-            setSelectedStatus("")
-          }
+            toast.success(t('admin.products_table.success.status_updated'));
+            setSelectedStatus("");
+          },
+          onError: () => {
+            toast.error(t('admin.products_table.errors.status_update_failed'));
+          },
         });
       },
     },
@@ -342,10 +383,20 @@ export default function Products() {
       action: async (selectedProducts: Product[]) => {
         const productIds = selectedProducts.map(p => p.id)
 
-        bulkDelete.mutate({ product_ids: productIds });
+        router.post(route('sb.admin.products.bulk-delete'), {
+          product_ids: productIds
+        }, {
+          preserveScroll: true,
+          onSuccess: () => {
+            toast.success(t('admin.products_table.success.bulk_deleted'));
+          },
+          onError: () => {
+            toast.error(t('admin.products_table.errors.bulk_delete_failed'));
+          },
+        });
       },
     },
-  ], [t, selectedStatus, bulkDelete, bulkUpdateStatus]);
+  ], [t, selectedStatus]);
 
   // ============================================
   // FILTERS
@@ -399,38 +450,6 @@ export default function Products() {
     columns: t('admin.products_table.filters.columns'),
     clearSelection: t('admin.products_table.bulk.clear_selection'),
   }), [t]);
-
-  // ============================================
-  // LOADING & ERROR STATES
-  // ============================================
-
-  if (isLoading) {
-    return (
-      <AdminLayout title={t('admin.products.title')}>
-        <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-4 w-64" />
-            </div>
-          </div>
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <AdminLayout title={t('admin.products.title')}>
-        <div className="@container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
-          <Alert variant="destructive">
-            <AlertDescription>{error.message}</AlertDescription>
-          </Alert>
-        </div>
-      </AdminLayout>
-    );
-  }
 
   // ============================================
   // RENDER

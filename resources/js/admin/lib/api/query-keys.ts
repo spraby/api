@@ -31,19 +31,6 @@ export const userKeys = {
 };
 
 // ============================================
-// PRODUCT QUERY KEYS (для будущего расширения)
-// ============================================
-
-export const productKeys = {
-  all: ['products'] as const,
-  lists: () => [...productKeys.all, 'list'] as const,
-  list: (filters?: Record<string, unknown>) =>
-    [...productKeys.lists(), filters] as const,
-  details: () => [...productKeys.all, 'detail'] as const,
-  detail: (id: number) => [...productKeys.details(), id] as const,
-};
-
-// ============================================
 // CATEGORY QUERY KEYS (для будущего расширения)
 // ============================================
 
@@ -64,12 +51,10 @@ export const categoryKeys = {
  * Invalidate all queries for a specific entity
  * Example: invalidateEntity(queryClient, 'users')
  */
-export const getEntityKeys = (entity: 'users' | 'products' | 'categories') => {
+export const getEntityKeys = (entity: 'users' | 'categories') => {
   switch (entity) {
     case 'users':
       return userKeys.all;
-    case 'products':
-      return productKeys.all;
     case 'categories':
       return categoryKeys.all;
   }

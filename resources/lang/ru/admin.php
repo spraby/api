@@ -179,6 +179,16 @@ return [
             'delete_many' => 'Вы уверены, что хотите удалить',
             'products' => 'товаров?',
         ],
+        'success' => [
+            'deleted' => 'Товар успешно удалён',
+            'bulk_deleted' => 'Товары успешно удалены',
+            'status_updated' => 'Статус товаров успешно обновлён',
+        ],
+        'errors' => [
+            'delete_failed' => 'Не удалось удалить товар',
+            'bulk_delete_failed' => 'Не удалось удалить товары',
+            'status_update_failed' => 'Не удалось обновить статус товаров',
+        ],
     ],
 
     'products_edit' => [
