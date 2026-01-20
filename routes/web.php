@@ -86,6 +86,10 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         Route::get('/orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
 
+        // Brand Requests
+        Route::get('/brand-requests', [App\Http\Controllers\Admin\BrandRequestController::class, 'index'])->name('brand-requests');
+        Route::get('/brand-requests/{brandRequest}', [App\Http\Controllers\Admin\BrandRequestController::class, 'show'])->name('brand-requests.show');
+
         Route::prefix('media')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
             Route::get('/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');

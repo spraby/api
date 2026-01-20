@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $user_id
  * @property string $name
  * @property string|null $description
+ // * @property string|null $instagram
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read User|null $user
@@ -37,6 +38,7 @@ class Brand extends Model
         'user_id',
         'name',
         'description',
+        // 'instagram',
     ];
 
     protected $casts = [

@@ -8,6 +8,7 @@ import {
   FileIcon,
   FileTextIcon,
   ImageIcon,
+  InboxIcon,
   LayoutDashboardIcon,
   PackageIcon,
   SettingsIcon,
@@ -104,34 +105,42 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const { t } = useLang()
 
+  const navMain = [
+    {
+      title: t('admin.nav.dashboard'),
+      url: "/sb/admin/dashboard",
+      icon: LayoutDashboardIcon,
+    },
+    {
+      title: t('admin.nav.products'),
+      url: "/sb/admin/products",
+      icon: PackageIcon,
+    },
+    {
+      title: t('admin.nav.orders'),
+      url: "/sb/admin/orders",
+      icon: ShoppingCartIcon,
+    },
+    {
+      title: t('admin.nav.media'),
+      url: "/sb/admin/media",
+      icon: ImageIcon,
+    },
+    {
+      title: t('admin.nav.users'),
+      url: "/sb/admin/users",
+      icon: UserIcon,
+    },
+    // Brand Requests - only visible for admins
+    ...(user?.is_admin ? [{
+      title: t('admin.nav.brand_requests'),
+      url: "/sb/admin/brand-requests",
+      icon: InboxIcon,
+    }] : []),
+  ]
+
   const data = {
-    navMain: [
-      {
-        title: t('admin.nav.dashboard'),
-        url: "/sb/admin/dashboard",
-        icon: LayoutDashboardIcon,
-      },
-      {
-        title: t('admin.nav.products'),
-        url: "/sb/admin/products",
-        icon: PackageIcon,
-      },
-      {
-        title: t('admin.nav.orders'),
-        url: "/sb/admin/orders",
-        icon: ShoppingCartIcon,
-      },
-      {
-        title: t('admin.nav.media'),
-        url: "/sb/admin/media",
-        icon: ImageIcon,
-      },
-      {
-        title: t('admin.nav.users'),
-        url: "/sb/admin/users",
-        icon: UserIcon,
-      },
-    ],
+    navMain,
     navClouds,
     navSecondary: [
       {

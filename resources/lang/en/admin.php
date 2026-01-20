@@ -8,7 +8,7 @@ return [
         'orders' => 'Orders',
         'media' => 'Media',
         'settings' => 'Settings',
-        'documents' => 'Documents',
+        'documents' => 'Documents', 'brand_requests' => 'Brand Requests',
     ],
 
     'user' => [
@@ -498,5 +498,76 @@ return [
         'next' => 'Next',
         'page_of' => 'Page :current of :total',
         'showing' => 'Showing :from to :to of :total',
+    ],
+
+    'brand_requests' => [
+        'title' => 'Brand Requests',
+        'description' => 'Manage brand creation requests',
+    ],
+
+    'brand_requests_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'email' => 'Email',
+            'phone' => 'Phone',
+            'name' => 'Name',
+            'brand_name' => 'Brand Name',
+            'status' => 'Status',
+            'created' => 'Created',
+        ],
+        'status' => [
+            'pending' => 'Pending',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+        ],
+        'actions' => [
+            'view' => 'View',
+            'open_menu' => 'Open menu',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Search by email or name...',
+            'all_statuses' => 'All statuses',
+            'columns' => 'Columns',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'row(s)',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No brand requests found.',
+    ],
+
+    'brand_request_show' => [
+        'title' => 'Brand Request',
+        'sections' => [
+            'request_info' => 'Request Information',
+            'status_info' => 'Status Information',
+            'linked_entities' => 'Linked Entities',
+        ],
+        'fields' => [
+            'email' => 'Email',
+            'phone' => 'Phone',
+            'name' => 'Contact Name',
+            'brand_name' => 'Requested Brand Name',
+            'status' => 'Status',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+            'approved_at' => 'Approved At',
+            'rejected_at' => 'Rejected At',
+            'reviewed_by' => 'Reviewed By',
+            'rejection_reason' => 'Rejection Reason',
+            'created_user' => 'Created User',
+            'created_brand' => 'Created Brand',
+        ],
     ],
 ];

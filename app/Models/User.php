@@ -80,6 +80,8 @@ class User extends Authenticatable
         'WRITE_OPTION_VALUES' => 'write_option_values',
         'READ_IMAGES' => 'read_images',
         'WRITE_IMAGES' => 'write_images',
+        'READ_BRAND_REQUESTS' => 'read_brand_requests',
+        'WRITE_BRAND_REQUESTS' => 'write_brand_requests',
     ];
 
     /**
@@ -120,6 +122,8 @@ class User extends Authenticatable
         self::PERMISSIONS['READ_OPTION_VALUES'],
         self::PERMISSIONS['READ_IMAGES'],
         self::PERMISSIONS['WRITE_IMAGES'],
+        self::PERMISSIONS['READ_BRAND_REQUESTS'],
+        self::PERMISSIONS['WRITE_BRAND_REQUESTS'],
     ];
 
     public function isAdmin(): bool

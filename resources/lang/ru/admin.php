@@ -9,6 +9,7 @@ return [
         'media' => 'Медиатека',
         'settings' => 'Настройки',
         'documents' => 'Документы',
+        'brand_requests' => 'Заявки',
     ],
 
     'user' => [
@@ -498,5 +499,76 @@ return [
         'next' => 'Следующая',
         'page_of' => 'Страница :current из :total',
         'showing' => 'Показано с :from по :to из :total',
+    ],
+
+    'brand_requests' => [
+        'title' => 'Заявки на бренд',
+        'description' => 'Управление заявками на создание бренда',
+    ],
+
+    'brand_requests_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'email' => 'Email',
+            'phone' => 'Телефон',
+            'name' => 'Имя',
+            'brand_name' => 'Название бренда',
+            'status' => 'Статус',
+            'created' => 'Создана',
+        ],
+        'status' => [
+            'pending' => 'Ожидает',
+            'approved' => 'Одобрена',
+            'rejected' => 'Отклонена',
+        ],
+        'actions' => [
+            'view' => 'Просмотр',
+            'open_menu' => 'Открыть меню',
+        ],
+        'bulk' => [
+            'selected' => 'выбрано',
+            'clear_selection' => 'Очистить выбор',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Поиск по email или имени...',
+            'all_statuses' => 'Все статусы',
+            'columns' => 'Колонки',
+        ],
+        'pagination' => [
+            'rows_selected' => 'из',
+            'row' => 'строк',
+            'rows_per_page' => 'Строк на странице',
+            'page' => 'Страница',
+            'of' => 'из',
+            'go_first' => 'На первую страницу',
+            'go_previous' => 'На предыдущую страницу',
+            'go_next' => 'На следующую страницу',
+            'go_last' => 'На последнюю страницу',
+        ],
+        'empty' => 'Заявки не найдены.',
+    ],
+
+    'brand_request_show' => [
+        'title' => 'Заявка на бренд',
+        'sections' => [
+            'request_info' => 'Информация о заявке',
+            'status_info' => 'Информация о статусе',
+            'linked_entities' => 'Связанные объекты',
+        ],
+        'fields' => [
+            'email' => 'Email',
+            'phone' => 'Телефон',
+            'name' => 'Контактное имя',
+            'brand_name' => 'Запрашиваемое название бренда',
+            'status' => 'Статус',
+            'created_at' => 'Дата создания',
+            'updated_at' => 'Дата обновления',
+            'approved_at' => 'Дата одобрения',
+            'rejected_at' => 'Дата отклонения',
+            'reviewed_by' => 'Рассмотрел',
+            'rejection_reason' => 'Причина отклонения',
+            'created_user' => 'Созданный пользователь',
+            'created_brand' => 'Созданный бренд',
+        ],
     ],
 ];
