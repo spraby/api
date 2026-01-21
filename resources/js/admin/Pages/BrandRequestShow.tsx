@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { router } from '@inertiajs/react';
 import {
   ArrowLeftIcon,
@@ -5,6 +7,7 @@ import {
   CalendarIcon,
   CheckCircle2Icon,
   ClockIcon,
+  Loader2Icon,
   MailIcon,
   PhoneIcon,
   UserIcon,
@@ -19,7 +22,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -102,6 +115,30 @@ function StatusBadge({ status, t }: { status: string; t: (key: string) => string
 
 export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps) {
   const { t } = useLang();
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+
+  const handleApprove = () => {
+    setIsApproving(true);
+    router.post(`/sb/admin/brand-requests/${brandRequest.id}/approve`, {}, {
+      onFinish: () => setIsApproving(false),
+    });
+  };
+
+  const handleReject = () => {
+    setIsRejecting(true);
+    router.post(`/sb/admin/brand-requests/${brandRequest.id}/reject`, {
+      rejection_reason: rejectionReason,
+    }, {
+      onSuccess: () => {
+        setIsRejectModalOpen(false);
+        setRejectionReason('');
+      },
+      onFinish: () => setIsRejecting(false),
+    });
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -162,6 +199,31 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
                 </span>
               </div>
             </div>
+
+            {/* Action Buttons */}
+            {brandRequest.status === 'pending' ? (
+              <div className="flex items-center gap-2">
+                <Button
+                  disabled={isApproving || isRejecting}
+                  variant="outline"
+                  onClick={() => setIsRejectModalOpen(true)}
+                >
+                  <XCircleIcon className="mr-2 size-4" />
+                  {t('admin.brand_request_show.actions.reject')}
+                </Button>
+                <Button
+                  disabled={isApproving || isRejecting}
+                  onClick={handleApprove}
+                >
+                  {isApproving ? (
+                    <Loader2Icon className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2Icon className="mr-2 size-4" />
+                  )}
+                  {t('admin.brand_request_show.actions.approve')}
+                </Button>
+              </div>
+            ) : null}
           </div>
 
           {/* Main Content Grid */}
@@ -330,6 +392,53 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
           </div>
         </div>
       </div>
+
+      {/* Reject Modal */}
+      <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('admin.brand_request_show.reject_modal.title')}</DialogTitle>
+            <DialogDescription>
+              {t('admin.brand_request_show.reject_modal.description')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejection_reason">
+                {t('admin.brand_request_show.reject_modal.reason_label')}
+              </Label>
+              <Textarea
+                id="rejection_reason"
+                placeholder={t('admin.brand_request_show.reject_modal.reason_placeholder')}
+                rows={4}
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              disabled={isRejecting}
+              variant="outline"
+              onClick={() => setIsRejectModalOpen(false)}
+            >
+              {t('admin.brand_request_show.reject_modal.cancel')}
+            </Button>
+            <Button
+              disabled={isRejecting}
+              variant="destructive"
+              onClick={handleReject}
+            >
+              {isRejecting ? (
+                <Loader2Icon className="mr-2 size-4 animate-spin" />
+              ) : (
+                <XCircleIcon className="mr-2 size-4" />
+              )}
+              {t('admin.brand_request_show.reject_modal.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

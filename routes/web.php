@@ -89,6 +89,8 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         // Brand Requests
         Route::get('/brand-requests', [App\Http\Controllers\Admin\BrandRequestController::class, 'index'])->name('brand-requests');
         Route::get('/brand-requests/{brandRequest}', [App\Http\Controllers\Admin\BrandRequestController::class, 'show'])->name('brand-requests.show');
+        Route::post('/brand-requests/{brandRequest}/approve', [App\Http\Controllers\Admin\BrandRequestController::class, 'approve'])->name('brand-requests.approve');
+        Route::post('/brand-requests/{brandRequest}/reject', [App\Http\Controllers\Admin\BrandRequestController::class, 'reject'])->name('brand-requests.reject');
 
         Route::prefix('media')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');

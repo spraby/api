@@ -569,5 +569,17 @@ return [
             'created_user' => 'Created User',
             'created_brand' => 'Created Brand',
         ],
+        'actions' => [
+            'approve' => 'Approve',
+            'reject' => 'Reject',
+        ],
+        'reject_modal' => [
+            'title' => 'Reject Brand Request',
+            'description' => 'Please provide a reason for rejecting this brand request. This will be visible to the applicant.',
+            'reason_label' => 'Rejection Reason',
+            'reason_placeholder' => 'Enter the reason for rejection...',
+            'cancel' => 'Cancel',
+            'confirm' => 'Reject Request',
+        ],
     ],
 ];

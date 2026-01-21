@@ -1,16 +1,16 @@
 {
   "resources/css/admin.css": {
-    "file": "assets/admin-DYlpamTb.css",
+    "file": "assets/admin-Ez2goKZ9.css",
     "src": "resources/css/admin.css",
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-D3ZH3oi9.css",
+    "file": "assets/app-DSr4iST6.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/admin/app.tsx": {
-    "file": "assets/app-Ii57nzor.js",
+    "file": "assets/app-DNTa4Nva.js",
     "name": "app",
     "src": "resources/js/admin/app.tsx",
     "isEntry": true
