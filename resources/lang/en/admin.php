@@ -7,8 +7,10 @@ return [
         'products' => 'Products',
         'orders' => 'Orders',
         'media' => 'Media',
+        'brands' => 'Brands',
         'settings' => 'Settings',
-        'documents' => 'Documents', 'brand_requests' => 'Brand Requests',
+        'documents' => 'Documents',
+        'brand_requests' => 'Brand Requests',
     ],
 
     'user' => [
@@ -580,6 +582,91 @@ return [
             'reason_placeholder' => 'Enter the reason for rejection...',
             'cancel' => 'Cancel',
             'confirm' => 'Reject Request',
+        ],
+    ],
+
+    'brands' => [
+        'title' => 'Brands',
+        'description' => 'Manage brands',
+        'actions' => [
+            'create' => 'Create Brand',
+        ],
+    ],
+
+    'brands_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'name' => 'Name',
+            'owner' => 'Owner',
+            'products' => 'Products',
+            'created' => 'Created',
+        ],
+        'actions' => [
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+            'open_menu' => 'Open menu',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'delete_selected' => 'Delete Selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Search by name...',
+            'columns' => 'Columns',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'row(s)',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No brands found.',
+        'confirm' => [
+            'delete_one' => 'Are you sure you want to delete',
+            'delete_many' => 'Are you sure you want to delete',
+            'brands' => 'brand(s)?',
+        ],
+        'success' => [
+            'deleted' => 'Brand deleted successfully',
+            'bulk_deleted' => 'Brands deleted successfully',
+        ],
+        'errors' => [
+            'delete_failed' => 'Failed to delete brand',
+            'bulk_delete_failed' => 'Failed to delete brands',
+        ],
+    ],
+
+    'brands_edit' => [
+        'title' => 'Edit Brand',
+        'description' => 'Update brand information',
+        'fields' => [
+            'name' => 'Name',
+            'description' => 'Description',
+        ],
+        'placeholders' => [
+            'name' => 'Enter brand name',
+            'description' => 'Enter brand description...',
+        ],
+        'required_fields' => 'Required fields',
+        'actions' => [
+            'cancel' => 'Cancel',
+            'save' => 'Save Changes',
+            'saving' => 'Saving...',
+        ],
+    ],
+
+    'brands_create' => [
+        'title' => 'Create Brand',
+        'description' => 'Add a new brand',
+        'actions' => [
+            'create' => 'Create Brand',
+            'creating' => 'Creating...',
         ],
     ],
 ];

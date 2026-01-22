@@ -82,6 +82,20 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
 
         });
 
+        // Brands
+        Route::prefix('brands')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\BrandController::class, 'index'])->name('brands');
+            Route::get('/create', [App\Http\Controllers\Admin\BrandController::class, 'create'])->name('brands.create');
+            Route::post('/store', [App\Http\Controllers\Admin\BrandController::class, 'store'])->name('brands.store');
+            Route::post('/bulk-delete', [App\Http\Controllers\Admin\BrandController::class, 'bulkDestroy'])->name('brands.bulk-delete');
+
+            Route::prefix('{brand}')->group(function () {
+                Route::get('/edit', [App\Http\Controllers\Admin\BrandController::class, 'edit'])->name('brands.edit');
+                Route::put('/', [App\Http\Controllers\Admin\BrandController::class, 'update'])->name('brands.update');
+                Route::delete('/', [App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('brands.destroy');
+            });
+        });
+
         Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders');
         Route::get('/orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');

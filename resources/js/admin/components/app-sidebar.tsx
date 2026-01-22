@@ -13,6 +13,7 @@ import {
   PackageIcon,
   SettingsIcon,
   ShoppingCartIcon,
+  StoreIcon,
   UserIcon,
 } from "lucide-react"
 
@@ -131,6 +132,12 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       url: "/sb/admin/users",
       icon: UserIcon,
     },
+    // Brands - only visible for admins
+    ...(user?.is_admin ? [{
+      title: t('admin.nav.brands'),
+      url: "/sb/admin/brands",
+      icon: StoreIcon,
+    }] : []),
     // Brand Requests - only visible for admins
     ...(user?.is_admin ? [{
       title: t('admin.nav.brand_requests'),

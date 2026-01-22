@@ -7,6 +7,7 @@ return [
         'products' => 'Товары',
         'orders' => 'Заказы',
         'media' => 'Медиатека',
+        'brands' => 'Бренды',
         'settings' => 'Настройки',
         'documents' => 'Документы',
         'brand_requests' => 'Заявки',
@@ -581,6 +582,91 @@ return [
             'reason_placeholder' => 'Введите причину отклонения...',
             'cancel' => 'Отмена',
             'confirm' => 'Отклонить заявку',
+        ],
+    ],
+
+    'brands' => [
+        'title' => 'Бренды',
+        'description' => 'Управление брендами',
+        'actions' => [
+            'create' => 'Создать бренд',
+        ],
+    ],
+
+    'brands_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'name' => 'Название',
+            'owner' => 'Владелец',
+            'products' => 'Товары',
+            'created' => 'Создан',
+        ],
+        'actions' => [
+            'edit' => 'Редактировать',
+            'delete' => 'Удалить',
+            'open_menu' => 'Открыть меню',
+        ],
+        'bulk' => [
+            'selected' => 'выбрано',
+            'delete_selected' => 'Удалить выбранные',
+            'clear_selection' => 'Очистить выбор',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Поиск по названию...',
+            'columns' => 'Колонки',
+        ],
+        'pagination' => [
+            'rows_selected' => 'из',
+            'row' => 'строк',
+            'rows_per_page' => 'Строк на странице',
+            'page' => 'Страница',
+            'of' => 'из',
+            'go_first' => 'На первую страницу',
+            'go_previous' => 'На предыдущую страницу',
+            'go_next' => 'На следующую страницу',
+            'go_last' => 'На последнюю страницу',
+        ],
+        'empty' => 'Бренды не найдены.',
+        'confirm' => [
+            'delete_one' => 'Вы уверены, что хотите удалить',
+            'delete_many' => 'Вы уверены, что хотите удалить',
+            'brands' => 'брендов?',
+        ],
+        'success' => [
+            'deleted' => 'Бренд успешно удалён',
+            'bulk_deleted' => 'Бренды успешно удалены',
+        ],
+        'errors' => [
+            'delete_failed' => 'Не удалось удалить бренд',
+            'bulk_delete_failed' => 'Не удалось удалить бренды',
+        ],
+    ],
+
+    'brands_edit' => [
+        'title' => 'Редактирование бренда',
+        'description' => 'Изменение информации о бренде',
+        'fields' => [
+            'name' => 'Название',
+            'description' => 'Описание',
+        ],
+        'placeholders' => [
+            'name' => 'Введите название бренда',
+            'description' => 'Введите описание бренда...',
+        ],
+        'required_fields' => 'Обязательные поля',
+        'actions' => [
+            'cancel' => 'Отмена',
+            'save' => 'Сохранить изменения',
+            'saving' => 'Сохранение...',
+        ],
+    ],
+
+    'brands_create' => [
+        'title' => 'Создание бренда',
+        'description' => 'Добавление нового бренда',
+        'actions' => [
+            'create' => 'Создать бренд',
+            'creating' => 'Создание...',
         ],
     ],
 ];
