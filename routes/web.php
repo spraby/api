@@ -112,6 +112,48 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
             Route::delete('/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
         });
 
+        // Collections
+        Route::prefix('collections')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\CollectionController::class, 'index'])->name('collections');
+            Route::get('/create', [App\Http\Controllers\Admin\CollectionController::class, 'create'])->name('collections.create');
+            Route::post('/store', [App\Http\Controllers\Admin\CollectionController::class, 'store'])->name('collections.store');
+            Route::post('/bulk-delete', [App\Http\Controllers\Admin\CollectionController::class, 'bulkDestroy'])->name('collections.bulk-delete');
+
+            Route::prefix('{collection}')->group(function () {
+                Route::get('/edit', [App\Http\Controllers\Admin\CollectionController::class, 'edit'])->name('collections.edit');
+                Route::put('/', [App\Http\Controllers\Admin\CollectionController::class, 'update'])->name('collections.update');
+                Route::delete('/', [App\Http\Controllers\Admin\CollectionController::class, 'destroy'])->name('collections.destroy');
+            });
+        });
+
+        // Categories
+        Route::prefix('categories')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('categories');
+            Route::get('/create', [App\Http\Controllers\Admin\CategoryController::class, 'create'])->name('categories.create');
+            Route::post('/store', [App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('categories.store');
+            Route::post('/bulk-delete', [App\Http\Controllers\Admin\CategoryController::class, 'bulkDestroy'])->name('categories.bulk-delete');
+
+            Route::prefix('{category}')->group(function () {
+                Route::get('/edit', [App\Http\Controllers\Admin\CategoryController::class, 'edit'])->name('categories.edit');
+                Route::put('/', [App\Http\Controllers\Admin\CategoryController::class, 'update'])->name('categories.update');
+                Route::delete('/', [App\Http\Controllers\Admin\CategoryController::class, 'destroy'])->name('categories.destroy');
+            });
+        });
+
+        // Options
+        Route::prefix('options')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\OptionController::class, 'index'])->name('options');
+            Route::get('/create', [App\Http\Controllers\Admin\OptionController::class, 'create'])->name('options.create');
+            Route::post('/store', [App\Http\Controllers\Admin\OptionController::class, 'store'])->name('options.store');
+            Route::post('/bulk-delete', [App\Http\Controllers\Admin\OptionController::class, 'bulkDestroy'])->name('options.bulk-delete');
+
+            Route::prefix('{option}')->group(function () {
+                Route::get('/edit', [App\Http\Controllers\Admin\OptionController::class, 'edit'])->name('options.edit');
+                Route::put('/', [App\Http\Controllers\Admin\OptionController::class, 'update'])->name('options.update');
+                Route::delete('/', [App\Http\Controllers\Admin\OptionController::class, 'destroy'])->name('options.destroy');
+            });
+        });
+
         // Variant image management
         Route::put('/variants/{id}/image', [App\Http\Controllers\Admin\VariantController::class, 'setImage'])->name('variants.image.set');
         Route::put('/variants/{id}/image/api', [App\Http\Controllers\Admin\VariantController::class, 'apiSetImage'])->name('variants.api.image.set');

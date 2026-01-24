@@ -7,6 +7,9 @@ return [
         'products' => 'Products',
         'orders' => 'Orders',
         'media' => 'Media',
+        'categories' => 'Categories',
+        'collections' => 'Collections',
+        'options' => 'Options',
         'brands' => 'Brands',
         'settings' => 'Settings',
         'documents' => 'Documents',
@@ -666,6 +669,288 @@ return [
         'description' => 'Add a new brand',
         'actions' => [
             'create' => 'Create Brand',
+            'creating' => 'Creating...',
+        ],
+    ],
+
+    'collections' => [
+        'title' => 'Collections',
+        'description' => 'Manage product collections',
+        'actions' => [
+            'create' => 'Create Collection',
+        ],
+    ],
+
+    'collections_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'name' => 'Name',
+            'title' => 'Title',
+            'categories' => 'Categories',
+            'created' => 'Created',
+        ],
+        'actions' => [
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+            'open_menu' => 'Open menu',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'delete_selected' => 'Delete Selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Search by name...',
+            'columns' => 'Columns',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'row(s)',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No collections found.',
+        'confirm' => [
+            'delete_one' => 'Are you sure you want to delete',
+            'delete_many' => 'Are you sure you want to delete',
+            'collections' => 'collection(s)?',
+        ],
+        'success' => [
+            'deleted' => 'Collection deleted successfully',
+            'bulk_deleted' => 'Collections deleted successfully',
+        ],
+        'errors' => [
+            'delete_failed' => 'Failed to delete collection',
+            'bulk_delete_failed' => 'Failed to delete collections',
+        ],
+    ],
+
+    'collections_edit' => [
+        'title' => 'Edit Collection',
+        'description' => 'Update collection information',
+        'fields' => [
+            'name' => 'Name',
+            'handle' => 'Handle',
+            'title' => 'Title',
+            'header' => 'Header',
+            'description' => 'Description',
+        ],
+        'placeholders' => [
+            'name' => 'Enter collection name',
+            'handle' => 'e.g., summer-sale',
+            'title' => 'Enter collection title',
+            'header' => 'Enter collection header',
+            'description' => 'Enter collection description...',
+        ],
+        'hints' => [
+            'handle' => 'Leave empty to auto-generate from name',
+        ],
+        'required_fields' => 'Required fields',
+        'actions' => [
+            'cancel' => 'Cancel',
+            'save' => 'Save Changes',
+            'saving' => 'Saving...',
+        ],
+    ],
+
+    'collections_create' => [
+        'title' => 'Create Collection',
+        'description' => 'Add a new collection',
+        'actions' => [
+            'create' => 'Create Collection',
+            'creating' => 'Creating...',
+        ],
+    ],
+
+    'categories' => [
+        'title' => 'Categories',
+        'description' => 'Manage product categories',
+        'actions' => [
+            'create' => 'Create Category',
+        ],
+    ],
+
+    'categories_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'name' => 'Name',
+            'title' => 'Title',
+            'products' => 'Products',
+            'created' => 'Created',
+        ],
+        'actions' => [
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+            'open_menu' => 'Open menu',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'delete_selected' => 'Delete Selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Search by name...',
+            'columns' => 'Columns',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'row(s)',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No categories found.',
+        'confirm' => [
+            'delete_one' => 'Are you sure you want to delete',
+            'delete_many' => 'Are you sure you want to delete',
+            'categories' => 'category(ies)?',
+        ],
+        'success' => [
+            'deleted' => 'Category deleted successfully',
+            'bulk_deleted' => 'Categories deleted successfully',
+        ],
+        'errors' => [
+            'delete_failed' => 'Failed to delete category',
+            'bulk_delete_failed' => 'Failed to delete categories',
+        ],
+    ],
+
+    'categories_edit' => [
+        'title' => 'Edit Category',
+        'description' => 'Update category information',
+        'fields' => [
+            'name' => 'Name',
+            'handle' => 'Handle',
+            'title' => 'Title',
+            'header' => 'Header',
+            'description' => 'Description',
+        ],
+        'placeholders' => [
+            'name' => 'Enter category name',
+            'handle' => 'e.g., summer-dresses',
+            'title' => 'Enter category title',
+            'header' => 'Enter category header',
+            'description' => 'Enter category description...',
+        ],
+        'hints' => [
+            'handle' => 'Leave empty to auto-generate from name',
+        ],
+        'required_fields' => 'Required fields',
+        'actions' => [
+            'cancel' => 'Cancel',
+            'save' => 'Save Changes',
+            'saving' => 'Saving...',
+        ],
+    ],
+
+    'categories_create' => [
+        'title' => 'Create Category',
+        'description' => 'Add a new category',
+        'actions' => [
+            'create' => 'Create Category',
+            'creating' => 'Creating...',
+        ],
+    ],
+
+    'options' => [
+        'title' => 'Options',
+        'description' => 'Manage product options (Size, Color, etc.)',
+        'actions' => [
+            'create' => 'Create Option',
+        ],
+    ],
+
+    'options_table' => [
+        'columns' => [
+            'id' => 'ID',
+            'name' => 'Name',
+            'values' => 'Values',
+            'created' => 'Created',
+        ],
+        'actions' => [
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+            'open_menu' => 'Open menu',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'delete_selected' => 'Delete Selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'filters' => [
+            'search_placeholder' => 'Search by name...',
+            'columns' => 'Columns',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'row(s)',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No options found.',
+        'confirm' => [
+            'delete_one' => 'Are you sure you want to delete',
+            'delete_many' => 'Are you sure you want to delete',
+            'options' => 'option(s)?',
+        ],
+        'success' => [
+            'deleted' => 'Option deleted successfully',
+            'bulk_deleted' => 'Options deleted successfully',
+        ],
+        'errors' => [
+            'delete_failed' => 'Failed to delete option',
+            'bulk_delete_failed' => 'Failed to delete options',
+        ],
+    ],
+
+    'options_edit' => [
+        'title' => 'Edit Option',
+        'description' => 'Update option information',
+        'fields' => [
+            'name' => 'Name',
+            'title' => 'Title',
+            'description' => 'Description',
+        ],
+        'placeholders' => [
+            'name' => 'e.g., Size, Color',
+            'title' => 'Enter option title',
+            'description' => 'Enter option description...',
+        ],
+        'values' => [
+            'title' => 'Option Values',
+            'description' => 'Add values for this option (e.g., S, M, L for Size)',
+            'add' => 'Add Value',
+            'add_first' => 'Add First Value',
+            'empty' => 'No values added yet',
+            'placeholder' => 'Enter value (e.g., Small, Red, 42)',
+        ],
+        'required_fields' => 'Required fields',
+        'actions' => [
+            'cancel' => 'Cancel',
+            'save' => 'Save Changes',
+            'saving' => 'Saving...',
+        ],
+    ],
+
+    'options_create' => [
+        'title' => 'Create Option',
+        'description' => 'Add a new option',
+        'actions' => [
+            'create' => 'Create Option',
             'creating' => 'Creating...',
         ],
     ],

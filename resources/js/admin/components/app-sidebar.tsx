@@ -7,12 +7,15 @@ import {
   FileCodeIcon,
   FileIcon,
   FileTextIcon,
+  FolderOpenIcon,
   ImageIcon,
   InboxIcon,
   LayoutDashboardIcon,
+  ListTreeIcon,
   PackageIcon,
   SettingsIcon,
   ShoppingCartIcon,
+  SlidersHorizontalIcon,
   StoreIcon,
   UserIcon,
 } from "lucide-react"
@@ -132,6 +135,24 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       url: "/sb/admin/users",
       icon: UserIcon,
     },
+    // Categories - only visible for admins
+    ...(user?.is_admin ? [{
+      title: t('admin.nav.categories'),
+      url: "/sb/admin/categories",
+      icon: ListTreeIcon,
+    }] : []),
+    // Collections - only visible for admins
+    ...(user?.is_admin ? [{
+      title: t('admin.nav.collections'),
+      url: "/sb/admin/collections",
+      icon: FolderOpenIcon,
+    }] : []),
+    // Options - only visible for admins
+    ...(user?.is_admin ? [{
+      title: t('admin.nav.options'),
+      url: "/sb/admin/options",
+      icon: SlidersHorizontalIcon,
+    }] : []),
     // Brands - only visible for admins
     ...(user?.is_admin ? [{
       title: t('admin.nav.brands'),
