@@ -11,6 +11,12 @@ export interface User {
   is_manager: boolean;
 }
 
+export interface Impersonator {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface LangTranslations {
   nav: {
     dashboard: string;
@@ -38,6 +44,7 @@ export interface LangTranslations {
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
   auth: {
     user: User;
+    impersonator?: Impersonator | null;
   };
   ziggy?: Config;
   errors?: Record<string, string>;

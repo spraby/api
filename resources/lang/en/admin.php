@@ -954,4 +954,10 @@ return [
             'creating' => 'Creating...',
         ],
     ],
+
+    'impersonation' => [
+        'impersonate' => 'Impersonate',
+        'stop' => 'Stop Impersonating',
+        'banner_text' => 'You are impersonating',
+    ],
 ];

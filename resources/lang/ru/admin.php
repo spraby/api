@@ -954,4 +954,10 @@ return [
             'creating' => 'Создание...',
         ],
     ],
+
+    'impersonation' => [
+        'impersonate' => 'Войти как',
+        'stop' => 'Выйти из режима',
+        'banner_text' => 'Вы вошли как',
+    ],
 ];

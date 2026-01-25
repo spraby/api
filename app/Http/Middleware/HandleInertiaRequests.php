@@ -42,6 +42,20 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $impersonatorId = $request->session()->get('impersonator_id');
+        $impersonator = null;
+
+        if ($impersonatorId) {
+            $impersonatorUser = \App\Models\User::find($impersonatorId);
+            if ($impersonatorUser) {
+                $impersonator = [
+                    'id' => $impersonatorUser->id,
+                    'name' => $impersonatorUser->first_name.' '.$impersonatorUser->last_name,
+                    'email' => $impersonatorUser->email,
+                ];
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -55,6 +69,7 @@ class HandleInertiaRequests extends Middleware
                     'is_admin' => $request->user()->isAdmin(),
                     'is_manager' => $request->user()->isManager(),
                 ] : null,
+                'impersonator' => $impersonator,
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

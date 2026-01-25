@@ -161,5 +161,9 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
+
+        // Impersonation routes (stop must be before {user} to avoid matching "stop" as a user id)
+        Route::post('/impersonate/stop', [App\Http\Controllers\Admin\ImpersonateController::class, 'stopImpersonating'])->name('impersonate.stop');
+        Route::post('/impersonate/{user}', [App\Http\Controllers\Admin\ImpersonateController::class, 'impersonate'])->name('impersonate');
     });
 });

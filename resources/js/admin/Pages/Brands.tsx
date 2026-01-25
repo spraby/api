@@ -1,25 +1,26 @@
 import * as React from "react"
 
-import { router, usePage } from '@inertiajs/react';
-import { MoreVerticalIcon, PlusIcon, Trash2Icon } from "lucide-react"
-import { toast } from "sonner"
+import {router, usePage} from '@inertiajs/react';
+import {MoreVerticalIcon, PlusIcon, Trash2Icon, UserCheckIcon} from "lucide-react"
+import {toast} from "sonner"
 
-import { ResourceList } from '@/components/resource-list';
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import {ResourceList} from '@/components/resource-list';
+import {Button} from "@/components/ui/button"
+import {Checkbox} from "@/components/ui/checkbox"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useLang } from '@/lib/lang';
-import type { BulkAction, Filter, ResourceListTranslations } from '@/types/resource-list';
+import {useLang} from '@/lib/lang';
+import type {PageProps} from '@/types/inertia';
+import type {BulkAction, Filter, ResourceListTranslations} from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
 
-import type { ColumnDef } from "@tanstack/react-table"
+import type {ColumnDef} from "@tanstack/react-table"
 
 // ============================================
 // TYPES
@@ -43,9 +44,11 @@ interface Brand {
 // ============================================
 
 const createBrandColumns = (
-  t: (key: string) => string,
-  onDelete: (brand: Brand) => void,
-  isDeleting: boolean
+    t: (key: string) => string,
+    onDelete: (brand: Brand) => void,
+    onImpersonate: (userId: number) => void,
+    isDeleting: boolean,
+    canImpersonate: boolean
 ): ColumnDef<Brand>[] => [
   {
     id: "select",
@@ -108,26 +111,33 @@ const createBrandColumns = (
     },
     enableHiding: false,
   },
-  {
-    accessorKey: "user",
-    header: t('admin.brands_table.columns.owner'),
-    cell: ({ row }) => {
-      const brand = row.original
+    {
+        accessorKey: "user",
+        header: t('admin.brands_table.columns.owner'),
+        cell: ({row}) => {
+            const brand = row.original
 
-      return (
-        <div className="text-sm">
-          {brand.user ? (
-            <div className="flex flex-col">
-              <span>{brand.user.name}</span>
-              <span className="text-muted-foreground">{brand.user.email}</span>
-            </div>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-        </div>
-      )
+            return (
+                <div className="text-sm">
+                    {brand.user ? (
+                        <a
+                            className="flex flex-col hover:underline cursor-pointer"
+                            href={`/sb/admin/users/${brand.user.id}/edit`}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                router.visit(e.currentTarget.href)
+                            }}
+                        >
+                            <span className="font-medium text-primary">{brand.user.name}</span>
+                            <span className="text-muted-foreground">{brand.user.email}</span>
+                        </a>
+                    ) : (
+                        <span className="text-muted-foreground">—</span>
+                    )}
+                </div>
+            )
+        },
     },
-  },
   {
     accessorKey: "products_count",
     header: t('admin.brands_table.columns.products'),
@@ -154,50 +164,67 @@ const createBrandColumns = (
       )
     },
   },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const brand = row.original
+    {
+        id: "actions",
+        cell: ({row}) => {
+            const brand = row.original
 
-      const handleEdit = () => {
-        router.visit(`/sb/admin/brands/${brand.id}/edit`)
-      }
+            const handleEdit = () => {
+                router.visit(`/sb/admin/brands/${brand.id}/edit`)
+            }
 
-      const handleDelete = () => {
-        // eslint-disable-next-line no-alert
-        if (!confirm(`${t('admin.brands_table.confirm.delete_one')} ${brand.name}?`)) {
-          return
-        }
+            const handleDelete = () => {
+                // eslint-disable-next-line no-alert
+                if (!confirm(`${t('admin.brands_table.confirm.delete_one')} ${brand.name}?`)) {
+                    return
+                }
 
-        onDelete(brand)
-      }
+                onDelete(brand)
+            }
 
-      return (
-        <div className="flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                className="size-8 text-muted-foreground data-[state=open]:bg-muted"
-                disabled={isDeleting}
-                size="icon"
-                variant="ghost"
-              >
-                <MoreVerticalIcon className="size-4" />
-                <span className="sr-only">{t('admin.brands_table.actions.open_menu')}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem onClick={handleEdit}>{t('admin.brands_table.actions.edit')}</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
-                {t('admin.brands_table.actions.delete')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )
+            const handleImpersonate = () => {
+                if (brand.user) {
+                    onImpersonate(brand.user.id)
+                }
+            }
+
+            return (
+                <div className="flex justify-end">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                className="size-8 text-muted-foreground data-[state=open]:bg-muted"
+                                disabled={isDeleting}
+                                size="icon"
+                                variant="ghost"
+                            >
+                                <MoreVerticalIcon className="size-4"/>
+                                <span className="sr-only">{t('admin.brands_table.actions.open_menu')}</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={handleEdit}>
+                                {t('admin.brands_table.actions.edit')}
+                            </DropdownMenuItem>
+                            {canImpersonate && brand.user ? (
+                                <>
+                                    <DropdownMenuSeparator/>
+                                    <DropdownMenuItem onClick={handleImpersonate}>
+                                        <UserCheckIcon className="mr-2 size-4"/>
+                                        {t('admin.impersonation.impersonate') || 'Impersonate'}
+                                    </DropdownMenuItem>
+                                </>
+                            ) : null}
+                            <DropdownMenuSeparator/>
+                            <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
+                                {t('admin.brands_table.actions.delete')}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            )
+        },
     },
-  },
 ]
 
 // ============================================
@@ -205,38 +232,48 @@ const createBrandColumns = (
 // ============================================
 
 export default function Brands() {
-  const { t } = useLang();
-  const { brands } = usePage<{ brands: Brand[] }>().props;
+    const {t} = useLang();
+    const {brands, auth} = usePage<PageProps & { brands: Brand[] }>().props;
 
-  // State for operations
-  const [isDeleting, setIsDeleting] = React.useState(false);
+    // State for operations
+    const [isDeleting, setIsDeleting] = React.useState(false);
 
-  // Delete single brand
-  const handleDelete = React.useCallback((brand: Brand) => {
-    setIsDeleting(true);
+    // Check if current user can impersonate (admins only)
+    const canImpersonate = auth?.user?.is_admin ?? false;
 
-    router.delete(route('sb.admin.brands.destroy', { brand: brand.id }), {
-      preserveScroll: true,
-      onSuccess: () => {
-        toast.success(t('admin.brands_table.success.deleted'));
-      },
-      onError: () => {
-        toast.error(t('admin.brands_table.errors.delete_failed'));
-      },
-      onFinish: () => {
-        setIsDeleting(false);
-      },
-    });
-  }, [t]);
+    // Delete single brand
+    const handleDelete = React.useCallback((brand: Brand) => {
+        setIsDeleting(true);
 
-  // ============================================
-  // COLUMNS
-  // ============================================
+        router.delete(route('sb.admin.brands.destroy', {brand: brand.id}), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(t('admin.brands_table.success.deleted'));
+            },
+            onError: () => {
+                toast.error(t('admin.brands_table.errors.delete_failed'));
+            },
+            onFinish: () => {
+                setIsDeleting(false);
+            },
+        });
+    }, [t]);
 
-  const columns = React.useMemo(
-    () => createBrandColumns(t, handleDelete, isDeleting),
-    [t, handleDelete, isDeleting]
-  );
+    // Impersonate user
+    const handleImpersonate = React.useCallback((userId: number) => {
+        router.post(route('sb.admin.impersonate', {user: userId}), {}, {
+            preserveScroll: true,
+        });
+    }, []);
+
+    // ============================================
+    // COLUMNS
+    // ============================================
+
+    const columns = React.useMemo(
+        () => createBrandColumns(t, handleDelete, handleImpersonate, isDeleting, canImpersonate),
+        [t, handleDelete, handleImpersonate, isDeleting, canImpersonate]
+    );
 
   // ============================================
   // BULK ACTIONS
