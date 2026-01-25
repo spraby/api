@@ -1,12 +1,13 @@
 import { useState } from 'react';
 
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
   ArrowLeftIcon,
   BuildingIcon,
   CalendarIcon,
   CheckCircle2Icon,
   ClockIcon,
+  ExternalLinkIcon,
   Loader2Icon,
   MailIcon,
   PhoneIcon,
@@ -341,26 +342,38 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
                   {brandRequest.user ? (
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">{t('admin.brand_request_show.fields.created_user')}</p>
-                      <div className="flex items-center gap-3 rounded-lg border p-3">
-                        <UserIcon className="size-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{getUserName()}</p>
-                          <p className="text-sm text-muted-foreground">{brandRequest.user.email}</p>
+                      <Link
+                        href={`/sb/admin/users/${brandRequest.user.id}/edit`}
+                        className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <UserIcon className="size-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{getUserName()}</p>
+                            <p className="text-sm text-muted-foreground">{brandRequest.user.email}</p>
+                          </div>
                         </div>
-                      </div>
+                        <ExternalLinkIcon className="size-4 text-muted-foreground" />
+                      </Link>
                     </div>
                   ) : null}
 
                   {brandRequest.brand ? (
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">{t('admin.brand_request_show.fields.created_brand')}</p>
-                      <div className="flex items-center gap-3 rounded-lg border p-3">
-                        <BuildingIcon className="size-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{brandRequest.brand.name}</p>
-                          <p className="text-sm text-muted-foreground">ID: {brandRequest.brand.id}</p>
+                      <Link
+                        href={`/sb/admin/brands/${brandRequest.brand.id}/edit`}
+                        className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <BuildingIcon className="size-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{brandRequest.brand.name}</p>
+                            <p className="text-sm text-muted-foreground">ID: {brandRequest.brand.id}</p>
+                          </div>
                         </div>
-                      </div>
+                        <ExternalLinkIcon className="size-4 text-muted-foreground" />
+                      </Link>
                     </div>
                   ) : null}
                 </CardContent>

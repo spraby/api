@@ -30,6 +30,7 @@ class OptionValue extends Model
     protected $fillable = [
         'option_id',
         'value',
+        'position',
     ];
 
     protected $casts = [

@@ -73,10 +73,11 @@ class OptionController extends Controller
 
             // Create values
             $values = $request->input('values', []);
-            foreach ($values as $valueData) {
+            foreach ($values as $index => $valueData) {
                 if (!empty($valueData['value'])) {
                     $option->values()->create([
                         'value' => $valueData['value'],
+                        'position' => $index,
                     ]);
                 }
             }
@@ -95,7 +96,9 @@ class OptionController extends Controller
     {
         $this->authorize('view', Option::class);
 
-        $option->load('values');
+        $option->load(['values' => function ($query) {
+            $query->orderBy('position');
+        }]);
 
         return Inertia::render('OptionEdit', [
             'option' => [
@@ -107,6 +110,7 @@ class OptionController extends Controller
                     return [
                         'id' => $value->id,
                         'value' => $value->value,
+                        'position' => $value->position,
                     ];
                 })->toArray(),
                 'created_at' => $option->created_at->toISOString(),
@@ -134,7 +138,7 @@ class OptionController extends Controller
             $existingValueIds = $option->values()->pluck('id')->toArray();
             $submittedValueIds = [];
 
-            foreach ($submittedValues as $valueData) {
+            foreach ($submittedValues as $index => $valueData) {
                 if (empty($valueData['value'])) {
                     continue;
                 }
@@ -143,12 +147,14 @@ class OptionController extends Controller
                     // Update existing value
                     OptionValue::where('id', $valueData['id'])->update([
                         'value' => $valueData['value'],
+                        'position' => $index,
                     ]);
                     $submittedValueIds[] = $valueData['id'];
                 } else {
                     // Create new value
                     $newValue = $option->values()->create([
                         'value' => $valueData['value'],
+                        'position' => $index,
                     ]);
                     $submittedValueIds[] = $newValue->id;
                 }

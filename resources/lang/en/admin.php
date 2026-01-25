@@ -127,6 +127,9 @@ return [
         'messages' => [
             'update_failed' => 'Failed to update user. Please check the form for errors.',
         ],
+        'brands' => [
+            'title' => 'Brands',
+        ],
     ],
 
     'products' => [

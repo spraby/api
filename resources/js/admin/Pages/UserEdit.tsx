@@ -1,20 +1,15 @@
 import type { FormEventHandler} from 'react';
 import { useEffect, useState } from 'react';
 
-import { router } from '@inertiajs/react';
-import { ArrowLeftIcon } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { ArrowLeftIcon, BuildingIcon, ExternalLinkIcon } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@/lib/hooks/api/useUsers';
 import { useUpdateUser } from '@/lib/hooks/mutations/useUserMutations';
@@ -38,7 +33,6 @@ export default function UserEdit({ userId }: UserEditProps) {
     first_name: '',
     last_name: '',
     email: '',
-    role: '',
   });
 
   // Update form when user data loads
@@ -48,7 +42,6 @@ export default function UserEdit({ userId }: UserEditProps) {
         first_name: user.first_name ?? '',
         last_name: user.last_name ?? '',
         email: user.email,
-        role: user.role ?? '',
       });
     }
   }, [user]);
@@ -176,21 +169,14 @@ export default function UserEdit({ userId }: UserEditProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role">{t('admin.users_edit.fields.role')}</Label>
-                <Select
-                  disabled={updateUser.isPending}
-                  value={formData.role ?? 'none'}
-                  onValueChange={(value) => { setFormData({ ...formData, role: value === 'none' ? '' : value }); }}
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue placeholder={t('admin.users_edit.placeholders.role')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{t('admin.users_edit.roles.none')}</SelectItem>
-                    <SelectItem value="admin">{t('admin.users_edit.roles.admin')}</SelectItem>
-                    <SelectItem value="manager">{t('admin.users_edit.roles.manager')}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>{t('admin.users_edit.fields.role')}</Label>
+                <div className="flex h-9 items-center">
+                  <Badge variant={user?.role ? 'default' : 'secondary'}>
+                    {user?.role
+                      ? t(`admin.users_edit.roles.${user.role}`)
+                      : t('admin.users_edit.roles.none')}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -216,6 +202,35 @@ export default function UserEdit({ userId }: UserEditProps) {
             </div>
           </form>
         </div>
+
+        {/* Brands Section */}
+        {user?.brands && user.brands.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BuildingIcon className="size-5" />
+                {t('admin.users_edit.brands.title')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                {user.brands.map((brand) => (
+                  <Link
+                    key={brand.id}
+                    href={`/sb/admin/brands/${brand.id}/edit`}
+                    className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <BuildingIcon className="size-4 text-muted-foreground" />
+                      <span className="font-medium">{brand.name}</span>
+                    </div>
+                    <ExternalLinkIcon className="size-4 text-muted-foreground" />
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </AdminLayout>
   );

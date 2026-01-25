@@ -70,7 +70,7 @@ class UserController extends Controller
      */
     public function apiShow(int $id): JsonResponse
     {
-        $user = User::with('roles')->findOrFail($id);
+        $user = User::with(['roles', 'brands'])->findOrFail($id);
 
         return response()->json([
             'id' => $user->id,
@@ -78,6 +78,10 @@ class UserController extends Controller
             'last_name' => $user->last_name,
             'email' => $user->email,
             'role' => $user->roles->first()?->name ?? null,
+            'brands' => $user->brands->map(fn ($brand) => [
+                'id' => $brand->id,
+                'name' => $brand->name,
+            ])->toArray(),
             'created_at' => $user->created_at->toISOString(),
         ]);
     }

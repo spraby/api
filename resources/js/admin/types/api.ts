@@ -8,12 +8,18 @@
 // USER TYPES
 // ============================================
 
+export interface UserBrand {
+  id: number;
+  name: string;
+}
+
 export interface User {
   id: number;
   first_name: string | null;
   last_name: string | null;
   email: string;
   role: string | null;
+  brands?: UserBrand[];
   created_at: string;
   updated_at?: string;
 }

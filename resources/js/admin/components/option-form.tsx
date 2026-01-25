@@ -1,8 +1,25 @@
 import type { FormEventHandler } from "react";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useForm, router } from '@inertiajs/react';
-import { PlusIcon, Trash2Icon } from 'lucide-react';
+import { GripVerticalIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import { Button } from "@/components/ui/button.tsx";
 import { Card } from "@/components/ui/card.tsx";
@@ -14,6 +31,7 @@ import { useLang } from '@/lib/lang';
 interface OptionValue {
   id?: number;
   value: string;
+  position?: number;
 }
 
 interface OptionFormData {
@@ -28,6 +46,70 @@ interface OptionFormProps {
   option: OptionFormData;
 }
 
+interface SortableValueItemProps {
+  valueItem: OptionValue;
+  index: number;
+  onUpdate: (index: number, value: string) => void;
+  onRemove: (index: number) => void;
+  placeholder: string;
+}
+
+function SortableValueItem({
+  valueItem,
+  index,
+  onUpdate,
+  onRemove,
+  placeholder,
+}: SortableValueItemProps) {
+  const sortableId = valueItem.id ?? `new-${index}`;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: sortableId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 ${isDragging ? 'opacity-50' : ''}`}
+    >
+      <button
+        type="button"
+        className="shrink-0 cursor-grab touch-none p-1 text-muted-foreground hover:text-foreground active:cursor-grabbing"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVerticalIcon className="size-4" />
+      </button>
+      <Input
+        placeholder={placeholder}
+        type="text"
+        value={valueItem.value}
+        onChange={e => onUpdate(index, e.target.value)}
+        className="flex-1"
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="shrink-0 text-muted-foreground hover:text-destructive"
+        onClick={() => onRemove(index)}
+      >
+        <Trash2Icon className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
 export function OptionForm({ option: defaultOption }: OptionFormProps) {
   const { t } = useLang();
 
@@ -36,6 +118,13 @@ export function OptionForm({ option: defaultOption }: OptionFormProps) {
     values: defaultOption.values || [],
   });
   const isEditMode = useMemo(() => !!option?.id, [option?.id]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const submitButtonText = useMemo(() => {
     if (processing) {
@@ -51,27 +140,54 @@ export function OptionForm({ option: defaultOption }: OptionFormProps) {
    * Add a new value
    */
   const handleAddValue = () => {
-    setData('values', [...option.values, { value: '' }]);
+    setData('values', [...option.values, { value: '', position: option.values.length }]);
   };
 
   /**
    * Update a value
    */
-  const handleUpdateValue = (index: number, value: string) => {
+  const handleUpdateValue = useCallback((index: number, value: string) => {
     const newValues = [...option.values];
 
     newValues[index] = { ...newValues[index], value };
     setData('values', newValues);
-  };
+  }, [option.values, setData]);
 
   /**
    * Remove a value
    */
-  const handleRemoveValue = (index: number) => {
+  const handleRemoveValue = useCallback((index: number) => {
     const newValues = option.values.filter((_, i) => i !== index);
 
     setData('values', newValues);
+  }, [option.values, setData]);
+
+  /**
+   * Handle drag end - reorder values
+   */
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = option.values.findIndex(
+        (item) => (item.id ?? `new-${option.values.indexOf(item)}`) === active.id
+      );
+      const newIndex = option.values.findIndex(
+        (item) => (item.id ?? `new-${option.values.indexOf(item)}`) === over.id
+      );
+
+      const newValues = arrayMove(option.values, oldIndex, newIndex);
+
+      setData('values', newValues);
+    }
   };
+
+  /**
+   * Get sortable IDs for the values
+   */
+  const sortableIds = useMemo(() => {
+    return option.values.map((item, index) => item.id ?? `new-${index}`);
+  }, [option.values]);
 
   /**
    * Handle form submission
@@ -174,28 +290,29 @@ export function OptionForm({ option: defaultOption }: OptionFormProps) {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              {option.values.map((valueItem, index) => (
-                <div key={valueItem.id ?? `new-${index}`} className="flex items-center gap-2">
-                  <Input
-                    placeholder={t('admin.options_edit.values.placeholder')}
-                    type="text"
-                    value={valueItem.value}
-                    onChange={e => handleUpdateValue(index, e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleRemoveValue(index)}
-                  >
-                    <Trash2Icon className="size-4" />
-                  </Button>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={sortableIds}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="flex flex-col gap-3">
+                  {option.values.map((valueItem, index) => (
+                    <SortableValueItem
+                      key={valueItem.id ?? `new-${index}`}
+                      valueItem={valueItem}
+                      index={index}
+                      onUpdate={handleUpdateValue}
+                      onRemove={handleRemoveValue}
+                      placeholder={t('admin.options_edit.values.placeholder')}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
         </Card>
       </div>
