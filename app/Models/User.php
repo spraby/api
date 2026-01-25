@@ -84,6 +84,8 @@ class User extends Authenticatable
         'WRITE_IMAGES' => 'write_images',
         'READ_BRAND_REQUESTS' => 'read_brand_requests',
         'WRITE_BRAND_REQUESTS' => 'write_brand_requests',
+        'READ_ORDERS' => 'read_orders',
+        'WRITE_ORDERS' => 'write_orders',
     ];
 
     /**
@@ -100,6 +102,8 @@ class User extends Authenticatable
         self::PERMISSIONS['READ_OPTION_VALUES'],
         self::PERMISSIONS['READ_IMAGES'],
         self::PERMISSIONS['WRITE_IMAGES'],
+        self::PERMISSIONS['READ_ORDERS'],
+        self::PERMISSIONS['WRITE_ORDERS'],
     ];
 
     /**
@@ -126,6 +130,8 @@ class User extends Authenticatable
         self::PERMISSIONS['WRITE_IMAGES'],
         self::PERMISSIONS['READ_BRAND_REQUESTS'],
         self::PERMISSIONS['WRITE_BRAND_REQUESTS'],
+        self::PERMISSIONS['READ_ORDERS'],
+        self::PERMISSIONS['WRITE_ORDERS'],
     ];
 
     public function isAdmin(): bool

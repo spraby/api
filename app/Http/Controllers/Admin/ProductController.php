@@ -27,6 +27,8 @@ class ProductController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', Product::class);
+
         /**
          * @var User $user
          * @var Brand $brand
@@ -80,6 +82,8 @@ class ProductController extends Controller
      */
     public function create(): Response
     {
+        $this->authorize('create', Product::class);
+
         /**
          * @var User $user
          * @var Brand $brand
@@ -121,6 +125,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product): Response
     {
+        $this->authorize('view', Product::class);
+
         /**
          * @var User $user
          * @var Brand $brand
@@ -165,6 +171,8 @@ class ProductController extends Controller
      */
     public function update(Product $product, UpdateProductRequest $request): RedirectResponse
     {
+        $this->authorize('update', Product::class);
+
         try {
             /**
              * @var User $user
@@ -264,6 +272,8 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request): RedirectResponse
     {
+        $this->authorize('create', Product::class);
+
         try {
             /**
              * @var User $user
@@ -318,6 +328,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product): RedirectResponse
     {
+        $this->authorize('delete', Product::class);
+
         try {
             /**
              * @var User $user
@@ -344,6 +356,8 @@ class ProductController extends Controller
      */
     public function bulkDestroy(Request $request): RedirectResponse
     {
+        $this->authorize('delete', Product::class);
+
         $request->validate([
             'product_ids' => 'required|array',
             'product_ids.*' => 'required|integer|exists:products,id',
@@ -377,6 +391,8 @@ class ProductController extends Controller
      */
     public function bulkUpdateStatus(Request $request): RedirectResponse
     {
+        $this->authorize('update', Product::class);
+
         $request->validate([
             'product_ids' => 'required|array',
             'product_ids.*' => 'required|integer|exists:products,id',
@@ -416,6 +432,8 @@ class ProductController extends Controller
      */
     public function attachImages(Request $request, Product $product): RedirectResponse
     {
+        $this->authorize('update', Product::class);
+
         $request->validate([
             'image_ids' => 'required|array|min:1',
             'image_ids.*' => 'required|integer|exists:images,id',
@@ -449,6 +467,8 @@ class ProductController extends Controller
      */
     public function uploadImages(Request $request, Product $product): RedirectResponse
     {
+        $this->authorize('update', Product::class);
+
         $request->validate([
             'images' => 'required|array|min:1|max:50',
             'images.*' => 'required|image|max:10240', // 10MB per image
@@ -506,6 +526,8 @@ class ProductController extends Controller
      */
     public function detachImage(Product $product, int $productImageId): RedirectResponse
     {
+        $this->authorize('update', Product::class);
+
         try {
             $productImage = ProductImage::where('id', $productImageId)
                 ->where('product_id', $product->id)
@@ -524,6 +546,8 @@ class ProductController extends Controller
      */
     public function reorderImages(Request $request, Product $product): RedirectResponse
     {
+        $this->authorize('update', Product::class);
+
         $request->validate([
             'image_ids' => 'required|array|min:1',
             'image_ids.*' => 'required|integer|exists:product_images,id',
