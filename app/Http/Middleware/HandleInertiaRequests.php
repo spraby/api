@@ -7,25 +7,7 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that is loaded on the first page visit.
-     *
-     * @var string
-     */
-    protected $rootView = 'app';
-
-    /**
-     * Determine the root view.
-     */
-    public function rootView(Request $request): string
-    {
-        // Use react-admin view for /sb/admin routes
-        if ($request->is('sb/admin*')) {
-            return 'admin';
-        }
-
-        return $this->rootView;
-    }
+    protected $rootView = 'admin';
 
     /**
      * Determine the current asset version.

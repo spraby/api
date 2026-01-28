@@ -57,7 +57,7 @@ export default function UserEdit({ userId }: UserEditProps) {
       {
         onSuccess: () => {
           // Redirect to users list on success
-          router.visit('/sb/admin/users');
+          router.visit('/admin/users');
         },
       }
     );
@@ -88,7 +88,7 @@ export default function UserEdit({ userId }: UserEditProps) {
           <Alert variant="destructive">
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
-          <Button variant="outline" onClick={() => { router.visit('/sb/admin/users'); }}>
+          <Button variant="outline" onClick={() => { router.visit('/admin/users'); }}>
             <ArrowLeftIcon className="mr-2 size-4" />
             {t('admin.users_edit.actions.back')}
           </Button>
@@ -107,7 +107,7 @@ export default function UserEdit({ userId }: UserEditProps) {
                 className="size-8"
                 size="icon"
                 variant="ghost"
-                onClick={() => { router.visit('/sb/admin/users'); }}
+                onClick={() => { router.visit('/admin/users'); }}
               >
                 <ArrowLeftIcon className="size-4" />
               </Button>
@@ -189,7 +189,7 @@ export default function UserEdit({ userId }: UserEditProps) {
                   disabled={updateUser.isPending}
                   type="button"
                   variant="outline"
-                  onClick={() => { router.visit('/sb/admin/users'); }}
+                  onClick={() => { router.visit('/admin/users'); }}
                 >
                   {t('admin.users_edit.actions.cancel')}
                 </Button>
@@ -217,7 +217,7 @@ export default function UserEdit({ userId }: UserEditProps) {
                 {user.brands.map((brand) => (
                   <Link
                     key={brand.id}
-                    href={`/sb/admin/brands/${brand.id}/edit`}
+                    href={`/admin/brands/${brand.id}/edit`}
                     className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
                   >
                     <div className="flex items-center gap-3">

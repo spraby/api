@@ -41,7 +41,7 @@ export default function OptionEdit({ option }: OptionEditProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/sb/admin/options');
+                    router.visit('/admin/options');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

@@ -133,7 +133,7 @@ function OrderStatusSelect({
 
   const handleChange = (newStatus: OrderStatus) => {
     router.put(
-      `/sb/admin/orders/${orderId}/status`,
+      `/admin/orders/${orderId}/status`,
       { status: newStatus },
       {
         preserveScroll: true,
@@ -189,7 +189,7 @@ function DeliveryStatusSelect({
 
   const handleChange = (newStatus: DeliveryStatus) => {
     router.put(
-      `/sb/admin/orders/${orderId}/status`,
+      `/admin/orders/${orderId}/status`,
       { delivery_status: newStatus },
       {
         preserveScroll: true,
@@ -237,7 +237,7 @@ function FinancialStatusSelect({
 }) {
   const handleChange = (newStatus: FinancialStatus) => {
     router.put(
-      `/sb/admin/orders/${orderId}/status`,
+      `/admin/orders/${orderId}/status`,
       { financial_status: newStatus },
       {
         preserveScroll: true,
@@ -362,7 +362,7 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/sb/admin/orders');
+                    router.visit('/admin/orders');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

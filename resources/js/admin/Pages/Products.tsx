@@ -233,7 +233,7 @@ const createProductColumns = (
       const product = row.original
 
       const handleEdit = () => {
-        router.visit(`/sb/admin/products/${product.id}/edit`)
+        router.visit(`/admin/products/${product.id}/edit`)
       }
 
       const handleDelete = () => {
@@ -310,7 +310,7 @@ export default function Products() {
   const handleDelete = React.useCallback((product: Product) => {
     setIsDeleting(true);
 
-    router.delete(route('sb.admin.products.destroy', { product: product.id }), {
+    router.delete(route('admin.products.destroy', { product: product.id }), {
       preserveScroll: true,
       onSuccess: () => {
         toast.success(t('admin.products_table.success.deleted'));
@@ -357,7 +357,7 @@ export default function Products() {
       action: async (selectedProducts: Product[]) => {
         const productIds = selectedProducts.map(p => p.id)
 
-        router.post(route('sb.admin.products.bulk-update-status'), {
+        router.post(route('admin.products.bulk-update-status'), {
           product_ids: productIds,
           enabled: selectedStatus === "enabled"
         }, {
@@ -383,7 +383,7 @@ export default function Products() {
       action: async (selectedProducts: Product[]) => {
         const productIds = selectedProducts.map(p => p.id)
 
-        router.post(route('sb.admin.products.bulk-delete'), {
+        router.post(route('admin.products.bulk-delete'), {
           product_ids: productIds
         }, {
           preserveScroll: true,
@@ -467,7 +467,7 @@ export default function Products() {
           </div>
           <Button
             onClick={() => {
-              router.visit('/sb/admin/products/create');
+              router.visit('/admin/products/create');
             }}
           >
             <PlusIcon className="size-4" />

@@ -19,8 +19,6 @@ use Illuminate\Support\Facades\DB;
  * @property string $title
  * @property string|null $description
  * @property bool $enabled
- * @property string $price
- * @property string $final_price
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property string $externalUrl
@@ -46,14 +44,10 @@ class Product extends Model
         'title',
         'description',
         'enabled',
-        'price',
-        'final_price',
     ];
 
     protected $casts = [
         'enabled' => 'boolean',
-        'price' => 'decimal:2',
-        'final_price' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

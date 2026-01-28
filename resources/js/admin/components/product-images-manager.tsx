@@ -34,7 +34,7 @@ export function ProductImagesManager({
     const handleMediaSelect = (imageIds: number[]) => {
         setIsProcessing(true);
         router.post(
-            route('sb.admin.products.images.attach', productId),
+            route('admin.products.images.attach', productId),
             {image_ids: imageIds},
             {
                 preserveScroll: true,
@@ -50,7 +50,7 @@ export function ProductImagesManager({
     const handleUpload = (files: File[]) => {
         setIsProcessing(true);
         router.post(
-            route('sb.admin.products.images.upload', productId),
+            route('admin.products.images.upload', productId),
             {images: files},
             {
                 preserveScroll: true,
@@ -66,7 +66,7 @@ export function ProductImagesManager({
     const handleDelete = (productImageId: number) => {
         setIsProcessing(true);
         router.delete(
-            route('sb.admin.products.images.detach', {id: productId, productImageId}),
+            route('admin.products.images.detach', {id: productId, productImageId}),
             {
                 preserveScroll: true,
                 preserveState: false,
@@ -106,7 +106,7 @@ export function ProductImagesManager({
 
         setIsProcessing(true);
         router.put(
-            route('sb.admin.products.images.reorder', productId),
+            route('admin.products.images.reorder', productId),
             {image_ids: imageIds},
             {
                 preserveScroll: true,

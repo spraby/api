@@ -79,7 +79,7 @@ export default function Media({ images }: MediaProps) {
       formData.append(`images[${index}]`, file);
     });
 
-    router.post(route('sb.admin.media.store'), formData, {
+    router.post(route('admin.media.store'), formData, {
       onSuccess: () => {
         setUploadDialogOpen(false);
         setSelectedFiles([]);
@@ -102,7 +102,7 @@ export default function Media({ images }: MediaProps) {
   const handleDelete = () => {
     if (!imageToDelete) {return;}
 
-    router.delete(route('sb.admin.media.destroy', { image: imageToDelete.id }), {
+    router.delete(route('admin.media.destroy', { image: imageToDelete.id }), {
       onSuccess: () => {
         setDeleteDialogOpen(false);
         setImageToDelete(null);
@@ -190,7 +190,7 @@ export default function Media({ images }: MediaProps) {
               disabled={images.current_page === 1}
               variant="outline"
               onClick={() => {
-                router.get(route('sb.admin.media'), { page: images.current_page - 1 });
+                router.get(route('admin.media'), { page: images.current_page - 1 });
               }}
             >
               {trans('admin.pagination.previous')}
@@ -205,7 +205,7 @@ export default function Media({ images }: MediaProps) {
               disabled={images.current_page === images.last_page}
               variant="outline"
               onClick={() => {
-                router.get(route('sb.admin.media'), { page: images.current_page + 1 });
+                router.get(route('admin.media'), { page: images.current_page + 1 });
               }}
             >
               {trans('admin.pagination.next')}

@@ -151,7 +151,7 @@ const createCategoryColumns = (
       const category = row.original
 
       const handleEdit = () => {
-        router.visit(`/sb/admin/categories/${category.id}/edit`)
+        router.visit(`/admin/categories/${category.id}/edit`)
       }
 
       const handleDelete = () => {
@@ -206,7 +206,7 @@ export default function Categories() {
   const handleDelete = React.useCallback((category: Category) => {
     setIsDeleting(true);
 
-    router.delete(route('sb.admin.categories.destroy', { category: category.id }), {
+    router.delete(route('admin.categories.destroy', { category: category.id }), {
       preserveScroll: true,
       onSuccess: () => {
         toast.success(t('admin.categories_table.success.deleted'));
@@ -245,7 +245,7 @@ export default function Categories() {
       action: async (selectedCategories: Category[]) => {
         const categoryIds = selectedCategories.map(c => c.id)
 
-        router.post(route('sb.admin.categories.bulk-delete'), {
+        router.post(route('admin.categories.bulk-delete'), {
           category_ids: categoryIds
         }, {
           preserveScroll: true,
@@ -309,7 +309,7 @@ export default function Categories() {
           </div>
           <Button
             onClick={() => {
-              router.visit('/sb/admin/categories/create');
+              router.visit('/admin/categories/create');
             }}
           >
             <PlusIcon className="size-4" />

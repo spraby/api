@@ -123,14 +123,14 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
 
   const handleApprove = () => {
     setIsApproving(true);
-    router.post(`/sb/admin/brand-requests/${brandRequest.id}/approve`, {}, {
+    router.post(`/admin/brand-requests/${brandRequest.id}/approve`, {}, {
       onFinish: () => setIsApproving(false),
     });
   };
 
   const handleReject = () => {
     setIsRejecting(true);
-    router.post(`/sb/admin/brand-requests/${brandRequest.id}/reject`, {
+    router.post(`/admin/brand-requests/${brandRequest.id}/reject`, {
       rejection_reason: rejectionReason,
     }, {
       onSuccess: () => {
@@ -184,7 +184,7 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/sb/admin/brand-requests');
+                    router.visit('/admin/brand-requests');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />
@@ -343,7 +343,7 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">{t('admin.brand_request_show.fields.created_user')}</p>
                       <Link
-                        href={`/sb/admin/users/${brandRequest.user.id}/edit`}
+                        href={`/admin/users/${brandRequest.user.id}/edit`}
                         className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
                       >
                         <div className="flex items-center gap-3">
@@ -362,7 +362,7 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">{t('admin.brand_request_show.fields.created_brand')}</p>
                       <Link
-                        href={`/sb/admin/brands/${brandRequest.brand.id}/edit`}
+                        href={`/admin/brands/${brandRequest.brand.id}/edit`}
                         className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
                       >
                         <div className="flex items-center gap-3">

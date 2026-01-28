@@ -26,7 +26,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('sb.admin.dashboard'));
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     public function register(Request $request)
@@ -45,7 +45,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('sb.admin.dashboard');
+        return redirect()->route('admin.dashboard');
     }
 
     public function logout(Request $request)
@@ -55,6 +55,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('sb.admin.login');
+        return redirect()->route('admin.login');
     }
 }

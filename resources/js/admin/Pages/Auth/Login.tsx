@@ -22,7 +22,7 @@ export default function Login() {
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    post('/sb/admin/login');
+    post('/admin/login');
   };
 
   return (
@@ -86,7 +86,7 @@ export default function Login() {
                 Don&apos;t have an account?{' '}
                 <Link
                   className="text-(--primary) underline-offset-4 hover:underline"
-                  href="/sb/admin/register"
+                  href="/admin/register"
                 >
                   Register
                 </Link>

@@ -46,11 +46,11 @@ export function CategoryForm({ category: defaultCategory }: CategoryFormProps) {
     e.preventDefault();
 
     if (category?.id) {
-      put(route('sb.admin.categories.update', category.id), {
+      put(route('admin.categories.update', category.id), {
         preserveScroll: true,
       });
     } else {
-      post(route('sb.admin.categories.store'));
+      post(route('admin.categories.store'));
     }
   }
 
@@ -151,7 +151,7 @@ export function CategoryForm({ category: defaultCategory }: CategoryFormProps) {
             disabled={processing}
             className="w-full sm:w-auto"
             onClick={() => {
-              router.visit(route('sb.admin.categories'));
+              router.visit(route('admin.categories'));
             }}
           >
             {t('admin.categories_edit.actions.cancel')}

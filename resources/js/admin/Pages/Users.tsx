@@ -165,7 +165,7 @@ const createUserColumns = (
       const user = row.original
 
       const handleEdit = () => {
-        router.visit(`/sb/admin/users/${user.id}/edit`)
+        router.visit(`/admin/users/${user.id}/edit`)
       }
 
       const handleDelete = () => {

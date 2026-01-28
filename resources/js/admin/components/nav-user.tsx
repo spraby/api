@@ -39,7 +39,7 @@ export function NavUser({
   const { t } = useLang()
 
   const handleLogout = () => {
-    router.post('/sb/admin/logout')
+    router.post('/admin/logout')
   }
 
   return (

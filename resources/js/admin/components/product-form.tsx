@@ -117,14 +117,14 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         }
 
         if (product?.id) {
-            put(route('sb.admin.products.update', product.id), {
+            put(route('admin.products.update', product.id), {
                 preserveScroll: true,
                 onSuccess: (page) => {
                     setData(page.props['product'] as Product);
                 },
             });
         } else {
-            post(route('sb.admin.products.store'));
+            post(route('admin.products.store'));
         }
     }
 
@@ -258,7 +258,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                     disabled={processing}
                     className="w-full sm:w-auto"
                     onClick={() => {
-                        router.visit(route('sb.admin.products'));
+                        router.visit(route('admin.products'));
                     }}
                 >
                     {t('admin.products_edit.actions.cancel')}

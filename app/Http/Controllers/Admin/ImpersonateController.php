@@ -37,7 +37,7 @@ class ImpersonateController extends Controller
         // Login as the target user
         Auth::login($user);
 
-        return redirect()->route('sb.admin.dashboard')
+        return redirect()->route('admin.dashboard')
             ->with('success', "You are now impersonating {$user->first_name} {$user->last_name}.");
     }
 
@@ -49,7 +49,7 @@ class ImpersonateController extends Controller
         $impersonatorId = session()->get('impersonator_id');
 
         if (! $impersonatorId) {
-            return redirect()->route('sb.admin.dashboard')
+            return redirect()->route('admin.dashboard')
                 ->with('error', 'You are not impersonating anyone.');
         }
 
@@ -59,7 +59,7 @@ class ImpersonateController extends Controller
         if (! $originalUser) {
             session()->forget('impersonator_id');
 
-            return redirect()->route('sb.admin.dashboard')
+            return redirect()->route('admin.dashboard')
                 ->with('error', 'Original user not found.');
         }
 
@@ -69,7 +69,7 @@ class ImpersonateController extends Controller
         // Login back as the original admin
         Auth::login($originalUser);
 
-        return redirect()->route('sb.admin.dashboard')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'You have stopped impersonating.');
     }
 }

@@ -217,7 +217,7 @@ const createBrandRequestColumns = (
       const request = row.original
 
       const handleView = () => {
-        router.visit(`/sb/admin/brand-requests/${request.id}`)
+        router.visit(`/admin/brand-requests/${request.id}`)
       }
 
       return (

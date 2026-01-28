@@ -37,7 +37,7 @@ export default function CollectionEdit({ collection }: CollectionEditProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/sb/admin/collections');
+                    router.visit('/admin/collections');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />
