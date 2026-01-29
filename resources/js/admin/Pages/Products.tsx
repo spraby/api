@@ -106,17 +106,26 @@ const createProductColumns = (
 
       return (
         <div className="flex items-center justify-center">
-          {product.image_url ? (
-            <img
-              alt={product.title}
-              className="size-12 rounded-md border object-cover"
-              src={product.image_url}
-            />
-          ) : (
-            <div className="flex size-12 items-center justify-center rounded-md border bg-muted">
-              <ImageIcon className="size-6 text-muted-foreground" />
-            </div>
-          )}
+          <button
+            type="button"
+            className="cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            onClick={() => {
+              router.visit(`/sb/admin/products/${product.id}/edit`)
+            }}
+            aria-label={t('admin.products_table.actions.edit')}
+          >
+            {product.image_url ? (
+              <img
+                alt={product.title}
+                className="size-12 rounded-md border object-cover"
+                src={product.image_url}
+              />
+            ) : (
+              <div className="flex size-12 items-center justify-center rounded-md border bg-muted">
+                <ImageIcon className="size-6 text-muted-foreground" />
+              </div>
+            )}
+          </button>
         </div>
       )
     },

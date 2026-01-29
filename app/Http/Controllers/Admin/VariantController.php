@@ -12,6 +12,32 @@ use Illuminate\Support\Facades\Redirect;
 
 class VariantController extends Controller
 {
+    private function shouldEnableVariant(Variant $variant): bool
+    {
+        $variant->loadMissing(['values', 'product.category.options.values']);
+
+        $hasTitle = trim((string) $variant->title) !== '';
+        $hasPrice = (float) $variant->price > 0;
+        $hasFinalPrice = (float) $variant->final_price > 0;
+        $hasImage = ! is_null($variant->image_id);
+
+        if (! $hasTitle || ! $hasPrice || ! $hasFinalPrice || ! $hasImage) {
+            return false;
+        }
+
+        $options = $variant->product?->category?->options ?? collect();
+        $optionsWithValues = $options->filter(fn ($option) => $option->values && $option->values->count() > 0);
+
+        foreach ($optionsWithValues as $option) {
+            $hasValue = $variant->values->contains(fn ($value) => $value->option_id === $option->id && $value->option_value_id);
+            if (! $hasValue) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Inertia: Set image for variant
      */
@@ -32,9 +58,11 @@ class VariantController extends Controller
                     ->firstOrFail();
 
                 $variant->image_id = $productImage->id;
+                $variant->enabled = $this->shouldEnableVariant($variant);
             } else {
                 // Allow removing image
                 $variant->image_id = null;
+                $variant->enabled = false;
             }
 
             $variant->save();
@@ -65,9 +93,11 @@ class VariantController extends Controller
                     ->firstOrFail();
 
                 $variant->image_id = $productImage->id;
+                $variant->enabled = $this->shouldEnableVariant($variant);
             } else {
                 // Allow removing image
                 $variant->image_id = null;
+                $variant->enabled = false;
             }
 
             $variant->save();

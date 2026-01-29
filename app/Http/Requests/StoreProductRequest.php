@@ -43,6 +43,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.price' => ['required', 'numeric', 'min:0'],
             'variants.*.final_price' => ['required', 'numeric', 'min:0'],
             'variants.*.enabled' => ['required', 'boolean'],
+            'variants.*.image_id' => ['nullable', 'integer', 'exists:product_images,id'],
             'variants.*.values' => ['nullable', 'array'],
             'variants.*.values.*.option_id' => ['required', 'exists:options,id'],
             'variants.*.values.*.option_value_id' => ['required', 'exists:option_values,id'],

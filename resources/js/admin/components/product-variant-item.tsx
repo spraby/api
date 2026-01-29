@@ -17,6 +17,9 @@ interface ProductVariantItemProps {
     onRemove: (() => void) | null
     onImageRemove: () => void;
     onImageSelect: () => void;
+    imageUrl?: string | null;
+    hasImages?: boolean;
+    canEnable?: boolean;
     options?: Option[];
     onOptionValueChange?: (optionId: number, optionValueId: number) => void;
 
@@ -32,6 +35,9 @@ export function ProductVariantItem({
                                        onRemove,
                                        onImageRemove,
                                        onImageSelect,
+                                       imageUrl = null,
+                                       hasImages = false,
+                                       canEnable = true,
                                        options,
                                        onOptionValueChange,
 
@@ -40,6 +46,9 @@ export function ProductVariantItem({
                                        isDuplicate = false,
                                    }: ProductVariantItemProps) {
     const {t} = useLang();
+    const canEnableVariant = canEnable ?? true;
+    const enableDisabled = disabled || (!variant.enabled && !canEnableVariant);
+    const resolvedImageUrl = imageUrl ?? variant.image?.image?.url ?? null;
 
 
     return (
@@ -59,13 +68,16 @@ export function ProductVariantItem({
                         <div className="flex items-center gap-2 sm:col-span-3">
                             <Checkbox
                                 checked={variant.enabled}
-                                disabled={disabled}
+                                disabled={enableDisabled}
                                 id={`variant-enabled-${index}`}
                                 onCheckedChange={(checked) => {
+                                    if (checked && !canEnableVariant) {
+                                        return;
+                                    }
                                     onUpdate({enabled: checked as boolean});
                                 }}
                             />
-                            <Label className="cursor-pointer" htmlFor={`variant-enabled-${index}`}>
+                            <Label className={cn("cursor-pointer", enableDisabled && "cursor-not-allowed opacity-70")} htmlFor={`variant-enabled-${index}`}>
                                 {t('admin.products_edit.fields.variant_enabled')}
                             </Label>
                         </div>
@@ -89,14 +101,14 @@ export function ProductVariantItem({
 
             <div className="grid grid-cols-12 gap-5">
                 {
-                    (typeof onRemove === 'function') && !!variant.id && (
+                    (typeof onRemove === 'function') && (
                         <div className="col-span-3 flex flex-col gap-2">
-                            {variant.image?.image?.url ? (
+                            {resolvedImageUrl ? (
                                 <div className="group relative w-full">
                                     <img
                                         alt={variant.title || `Variant ${index + 1}`}
                                         className="aspect-square w-full rounded-md border object-cover"
-                                        src={variant.image?.image?.url}
+                                        src={resolvedImageUrl}
                                     />
                                     <div
                                         className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
@@ -106,7 +118,7 @@ export function ProductVariantItem({
                                             trigger={
                                                 <Button
                                                     className="p-1"
-                                                    disabled={disabled || !variant.id}
+                                                    disabled={disabled}
                                                     size="icon"
                                                     type="button"
                                                     variant="secondary"
@@ -121,16 +133,16 @@ export function ProductVariantItem({
                             ) : (
                                 <div
                                     className="flex aspect-square w-full items-center justify-center rounded-md border-2 border-dashed">
-                                    {!variant.id ? (
+                                    {!hasImages ? (
                                         <div className="flex flex-col items-center gap-2">
                                             <ImageIcon className="size-8 text-muted-foreground"/>
                                             <span className="text-xs text-center text-muted-foreground px-2">
-                                        {t('admin.products_edit.hints.save_to_add_image')}
+                                        {t('admin.product_images_picker.add_images_first')}
                                     </span>
                                         </div>
                                     ) : (
                                         <Button
-                                            disabled={disabled}
+                                            disabled={disabled || !hasImages}
                                             size="sm"
                                             type="button"
                                             variant="secondary"
@@ -146,7 +158,7 @@ export function ProductVariantItem({
                     )
                 }
                 <div
-                    className={`${typeof onRemove === 'function' && !!variant.id ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
+                    className={`${typeof onRemove === 'function' ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
                     {
                         (typeof onRemove === 'function') &&
                         <div className="col-span-12 space-y-2">

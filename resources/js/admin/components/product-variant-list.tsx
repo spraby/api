@@ -2,7 +2,6 @@ import {useMemo, useState} from "react";
 
 import {router} from '@inertiajs/react';
 import {PlusIcon} from 'lucide-react';
-import {toast} from "sonner";
 import {v4 as uuidv4} from 'uuid';
 
 import {DuplicateVariantsAlert} from "@/components/duplicate-variants-alert.tsx";
@@ -10,6 +9,7 @@ import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
+import {parseNum} from "@/lib/utils.ts";
 import {VariantService} from '@/services/variant-service';
 import type {Option, Product, Variant, VariantValue} from '@/types/models';
 
@@ -32,15 +32,18 @@ export function ProductVariantList({
 
     const [variantImagePicker, setVariantImagePicker] = useState<{
         open: boolean;
-        variant: Variant | null;
-    }>({open: false, variant: null});
+        variantKey: string | number | null;
+    }>({open: false, variantKey: null});
+    const [manuallyDisabledKeys, setManuallyDisabledKeys] = useState<Set<string | number>>(new Set());
 
     /**
      * Remove image from variant using Inertia
      * @param variant
      */
-    const removeVariantImage = (variant: Variant) => {
+    const removeVariantImage = (variant: VariantWithTempId) => {
         if (!variant.id) {
+            updateVariant(variant, {image_id: null});
+
             return;
         }
 
@@ -61,14 +64,15 @@ export function ProductVariantList({
      * @param productImageId
      */
     const handleVariantImageSelect = (productImageId: number) => {
-        if (!variantImagePicker.variant) {
+        const variant = getVariantByKey(variantImagePicker.variantKey);
+
+        if (!variant) {
             return;
         }
 
-        const {variant} = variantImagePicker;
-
         if (!variant?.id) {
-            toast.error(t('admin.products_edit.errors.save_variant_first'));
+            updateVariant(variant, {image_id: productImageId});
+            setVariantImagePicker({open: false, variantKey: null});
 
             return;
         }
@@ -82,7 +86,7 @@ export function ProductVariantList({
                 preserveScroll: true,
                 preserveState: false,
                 onSuccess: () => {
-                    setVariantImagePicker({open: false, variant: null});
+                    setVariantImagePicker({open: false, variantKey: null});
                 },
             }
         );
@@ -94,6 +98,16 @@ export function ProductVariantList({
      */
     const getVariantKey = (variant: VariantWithTempId): string | number => {
         return variant.id ?? variant._tempId ?? '';
+    };
+
+    const getVariantByKey = (key: string | number | null): VariantWithTempId | null => {
+        if (!key) {
+            return null;
+        }
+
+        return (product.variants ?? []).find(
+            (v) => getVariantKey(v as VariantWithTempId) === key
+        ) as VariantWithTempId ?? null;
     };
 
     /**
@@ -139,8 +153,10 @@ export function ProductVariantList({
             } as VariantValue);
         }
 
+        const normalizedVariant = applyEnabledRules(updatedVariant, key);
+
         const newVariants = [...(product.variants ?? []).map(v =>
-            getVariantKey(v as VariantWithTempId) === key ? updatedVariant : v
+            getVariantKey(v as VariantWithTempId) === key ? normalizedVariant : v
         )];
 
         onUpdate(newVariants);
@@ -165,8 +181,85 @@ export function ProductVariantList({
         const key = getVariantKey(variant);
 
         onUpdate((product.variants ?? []).map(v =>
-            getVariantKey(v as VariantWithTempId) === key ? {...v, ...values} : v
+            getVariantKey(v as VariantWithTempId) === key
+                ? (() => {
+                    const updatedVariant = { ...v, ...values };
+
+                    return applyEnabledRules(updatedVariant, key, values);
+                })()
+                : v
         ));
+
+        if (typeof values.enabled === 'boolean') {
+            setManuallyDisabledKeys((prev) => {
+                const next = new Set(prev);
+
+                if (values.enabled) {
+                    next.delete(key);
+                } else {
+                    next.add(key);
+                }
+
+                return next;
+            });
+        }
+    };
+
+    const productImages = product.images ?? [];
+    const hasProductImages = productImages.length > 0;
+
+    const optionsWithValues = useMemo(() => {
+        return options.filter((option) => (option.values?.length ?? 0) > 0);
+    }, [options]);
+
+    const getVariantImageUrl = (variant: Variant): string | null => {
+        if (variant.image?.image?.url) {
+            return variant.image.image.url;
+        }
+
+        if (!variant.image_id) {
+            return null;
+        }
+
+        const productImage = productImages.find((image) => image.id === variant.image_id);
+
+        return productImage?.image?.url ?? null;
+    };
+
+    const isVariantComplete = (variant: Variant): boolean => {
+        const hasTitle = !!(variant.title ?? '').trim();
+        const hasPrice = parseNum(variant.price) > 0;
+        const hasFinalPrice = parseNum(variant.final_price) > 0;
+        const hasImage = !!variant.image_id;
+        const hasAllOptions = optionsWithValues.length === 0 || optionsWithValues.every((option) => {
+            const value = (variant.values ?? []).find((item) => item.option_id === option.id);
+
+            return !!value?.option_value_id;
+        });
+
+        return hasTitle && hasPrice && hasFinalPrice && hasImage && hasAllOptions;
+    };
+
+    const applyEnabledRules = (
+        variant: Variant,
+        key: string | number,
+        nextValues?: Partial<Variant>
+    ): Variant => {
+        const complete = isVariantComplete(variant);
+
+        if (!complete) {
+            return { ...variant, enabled: false };
+        }
+
+        const manualDisabled = typeof nextValues?.enabled === 'boolean'
+            ? nextValues.enabled === false
+            : manuallyDisabledKeys.has(key);
+
+        if (manualDisabled) {
+            return { ...variant, enabled: false };
+        }
+
+        return { ...variant, enabled: true };
     };
 
     /**
@@ -200,6 +293,18 @@ export function ProductVariantList({
         return indices;
     }, [duplicateGroups]);
 
+    const duplicateGroupMap = useMemo(() => {
+        const map = new Map<number, number[]>();
+
+        for (const group of duplicateGroups) {
+            for (const index of group) {
+                map.set(index, group);
+            }
+        }
+
+        return map;
+    }, [duplicateGroups]);
+
     const addVariant = () => {
         // Generate first unique combination that doesn't exist in current variants
         const generatedValues = VariantService.generateVariantValues(
@@ -228,29 +333,37 @@ export function ProductVariantList({
 
     return <>
         <div className="col-span-9 flex flex-col gap-5">
-            <DuplicateVariantsAlert duplicateGroups={duplicateGroups}/>
-
             {(product.variants ?? []).map((variant, index) => {
                 const variantWithTempId = variant as VariantWithTempId;
+                const duplicateGroup = duplicateGroupMap.get(index);
 
                 return (
-                    <ProductVariantItem
-                        key={getVariantKey(variantWithTempId)}
-                        variant={variant}
-                        onUpdate={(values: Partial<Variant>) => {
-                            updateVariant(variantWithTempId, values);
-                        }}
-                        onRemove={(product.variants ?? [])?.length > 1 ? () => removeVariant(variantWithTempId) : null}
-                        onImageRemove={() => removeVariantImage(variant)}
-                        onImageSelect={() => setVariantImagePicker({open: true, variant})}
-                        options={options}
-                        onOptionValueChange={(optionId, optionValueId) => {
-                            updateVariantOptionValue(variantWithTempId, optionId, optionValueId);
-                        }}
-                        index={index}
-                        disabled={false}
-                        isDuplicate={duplicateIndices.has(index)}
-                    />
+                    <div key={getVariantKey(variantWithTempId)} className="flex flex-col gap-3">
+                        {!!duplicateGroup && (
+                            <DuplicateVariantsAlert duplicateGroups={[duplicateGroup]} />
+                        )}
+                        <ProductVariantItem
+                            variant={variant}
+                            onUpdate={(values: Partial<Variant>) => {
+                                updateVariant(variantWithTempId, values);
+                            }}
+                            onRemove={(product.variants ?? [])?.length > 1 ? () => removeVariant(variantWithTempId) : null}
+                            onImageRemove={() => removeVariantImage(variantWithTempId)}
+                            onImageSelect={() => {
+                                setVariantImagePicker({open: true, variantKey: getVariantKey(variantWithTempId)});
+                            }}
+                            options={options}
+                            onOptionValueChange={(optionId, optionValueId) => {
+                                updateVariantOptionValue(variantWithTempId, optionId, optionValueId);
+                            }}
+                            index={index}
+                            disabled={false}
+                            isDuplicate={duplicateIndices.has(index)}
+                            hasImages={hasProductImages}
+                            imageUrl={getVariantImageUrl(variant)}
+                            canEnable={isVariantComplete(variant)}
+                        />
+                    </div>
                 );
             })}
             <div className="flex items-center justify-end">
@@ -269,11 +382,11 @@ export function ProductVariantList({
         {
             !!product?.images?.length && (
                 <ProductImagesPicker
-                    currentImageId={variantImagePicker?.variant?.image_id ?? null}
+                    currentImageId={getVariantByKey(variantImagePicker.variantKey)?.image_id ?? null}
                     open={variantImagePicker.open}
                     productImages={product?.images || []}
                     onOpenChange={(open) => {
-                        setVariantImagePicker({open, variant: null});
+                        setVariantImagePicker({open, variantKey: null});
                     }}
                     onSelect={handleVariantImageSelect}
                 />

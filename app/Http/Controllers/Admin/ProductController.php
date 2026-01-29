@@ -214,23 +214,47 @@ class ProductController extends Controller
                     $variant = $product->variants()->where('id', $variantData['id'])->first();
 
                     if ($variant) {
+                        $imageId = $variantData['image_id'] ?? null;
+                        if ($imageId) {
+                            $productImage = ProductImage::where('id', $imageId)
+                                ->where('product_id', $product->id)
+                                ->first();
+
+                            if (! $productImage) {
+                                throw new \Exception('Selected variant image is not attached to this product');
+                            }
+                        }
+
                         $variant->update([
                             'title' => $variantData['title'] ?? null,
                             'price' => $variantData['price'],
                             'final_price' => $variantData['final_price'],
                             'enabled' => $variantData['enabled'],
+                            'image_id' => $imageId,
                         ]);
                         $submittedVariantIds[] = $variantData['id'];
                     }
                 } else {
 
                     // Create new variant
+                    $imageId = $variantData['image_id'] ?? null;
+                    if ($imageId) {
+                        $productImage = ProductImage::where('id', $imageId)
+                            ->where('product_id', $product->id)
+                            ->first();
+
+                        if (! $productImage) {
+                            throw new \Exception('Selected variant image is not attached to this product');
+                        }
+                    }
+
                     $variant = Variant::create([
                         'product_id' => $product->id,
                         'title' => $variantData['title'] ?? null,
                         'price' => $variantData['price'],
                         'final_price' => $variantData['final_price'],
                         'enabled' => $variantData['enabled'],
+                        'image_id' => $imageId,
                     ]);
                     $submittedVariantIds[] = $variant->id;
                 }
@@ -299,11 +323,23 @@ class ProductController extends Controller
 
             // Create variants
             foreach ($request->input('variants') as $variantData) {
+                $imageId = $variantData['image_id'] ?? null;
+                if ($imageId) {
+                    $productImage = ProductImage::where('id', $imageId)
+                        ->where('product_id', $product->id)
+                        ->first();
+
+                    if (! $productImage) {
+                        throw new \Exception('Selected variant image is not attached to this product');
+                    }
+                }
+
                 $variant = $product->variants()->create([
                     'title' => $variantData['title'] ?? null,
                     'price' => $variantData['price'],
                     'final_price' => $variantData['final_price'],
                     'enabled' => $variantData['enabled'],
+                    'image_id' => $imageId,
                 ]);
 
                 // Create variant values
