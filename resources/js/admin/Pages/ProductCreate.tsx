@@ -15,7 +15,7 @@ export default function ProductCreate({product}: { product: Product }) {
         <AdminLayout title={t('admin.products_edit.title')}>
             <div className="flex items-center flex-col gap-5">
                 <div
-                    className="max-w-[1200px] min-w-[1200px] @container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
+                    className="max-w-[1200px] w-full @container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
