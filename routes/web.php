@@ -109,6 +109,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::prefix('media')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
             Route::get('/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');
+            Route::post('/', [App\Http\Controllers\Admin\MediaController::class, 'store'])->name('media.store');
             Route::delete('/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
         });
 
