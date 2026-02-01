@@ -31,7 +31,7 @@ export default function BrandCreate({ brand }: BrandCreateProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/sb/admin/brands');
+                    router.visit('/admin/brands');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

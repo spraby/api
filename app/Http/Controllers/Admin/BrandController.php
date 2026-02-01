@@ -72,7 +72,7 @@ class BrandController extends Controller
                 'description' => $request->input('description'),
             ]);
 
-            return redirect()->route('sb.admin.brands.edit', $brand->id)
+            return redirect()->route('admin.brands.edit', $brand->id)
                 ->with('success', 'Brand created successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to create brand: ' . $e->getMessage());
@@ -118,7 +118,7 @@ class BrandController extends Controller
                 'description' => $request->input('description'),
             ]);
 
-            return Redirect::route('sb.admin.brands.edit', $brand->id)
+            return Redirect::route('admin.brands.edit', $brand->id)
                 ->with('success', 'Brand updated successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to update brand: ' . $e->getMessage());
@@ -135,7 +135,7 @@ class BrandController extends Controller
         try {
             $brand->delete();
 
-            return Redirect::route('sb.admin.brands')->with('success', 'Brand deleted successfully');
+            return Redirect::route('admin.brands')->with('success', 'Brand deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete brand: ' . $e->getMessage());
         }
@@ -156,7 +156,7 @@ class BrandController extends Controller
         try {
             Brand::whereIn('id', $request->input('brand_ids'))->delete();
 
-            return Redirect::route('sb.admin.brands')->with('success', 'Brands deleted successfully');
+            return Redirect::route('admin.brands')->with('success', 'Brands deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete brands: ' . $e->getMessage());
         }

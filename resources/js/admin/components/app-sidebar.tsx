@@ -113,61 +113,61 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
     const navMain = [
         {
             title: t('admin.nav.dashboard'),
-            url: "/sb/admin/dashboard",
+            url: "/admin/dashboard",
             icon: LayoutDashboardIcon,
         },
         // Users - requires read_users permission
         ...(can(user, Permission.READ_USERS) ? [{
             title: t('admin.nav.users'),
-            url: "/sb/admin/users",
+            url: "/admin/users",
             icon: UserIcon,
         }] : []),
         // Brands - requires read_brands permission (admin only)
         ...(can(user, Permission.READ_BRANDS) ? [{
             title: t('admin.nav.brands'),
-            url: "/sb/admin/brands",
+            url: "/admin/brands",
             icon: StoreIcon,
         }] : []),
         // Categories - requires write_categories permission (admin only)
         ...(can(user, Permission.WRITE_CATEGORIES) ? [{
             title: t('admin.nav.categories'),
-            url: "/sb/admin/categories",
+            url: "/admin/categories",
             icon: ListTreeIcon,
         }] : []),
         // Collections - requires write_collections permission (admin only)
         ...(can(user, Permission.WRITE_COLLECTIONS) ? [{
             title: t('admin.nav.collections'),
-            url: "/sb/admin/collections",
+            url: "/admin/collections",
             icon: FolderOpenIcon,
         }] : []),
         // Options - requires write_options permission (admin only)
         ...(can(user, Permission.WRITE_OPTIONS) ? [{
             title: t('admin.nav.options'),
-            url: "/sb/admin/options",
+            url: "/admin/options",
             icon: SlidersHorizontalIcon,
         }] : []),
-        // Media - requires read_images permission
+        // Media - requires read_images permission (manager only)
         ...(can(user, Permission.READ_IMAGES) ? [{
             title: t('admin.nav.media'),
-            url: "/sb/admin/media",
+            url: "/admin/media",
             icon: ImageIcon,
         }] : []),
-        // Products - requires read_products permission
+        // Products - requires read_products permission (manager only)
         ...(can(user, Permission.READ_PRODUCTS) ? [{
             title: t('admin.nav.products'),
-            url: "/sb/admin/products",
+            url: "/admin/products",
             icon: PackageIcon,
         }] : []),
-        // Orders - requires read_orders permission
+        // Orders - requires read_orders permission (manager only)
         ...(can(user, Permission.READ_ORDERS) ? [{
             title: t('admin.nav.orders'),
-            url: "/sb/admin/orders",
+            url: "/admin/orders",
             icon: ShoppingCartIcon,
         }] : []),
         // Brand Requests - requires read_brand_requests permission (admin only)
         ...(can(user, Permission.READ_BRAND_REQUESTS) ? [{
             title: t('admin.nav.brand_requests'),
-            url: "/sb/admin/brand-requests",
+            url: "/admin/brand-requests",
             icon: InboxIcon,
         }] : []),
     ]

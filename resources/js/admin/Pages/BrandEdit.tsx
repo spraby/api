@@ -36,7 +36,7 @@ export default function BrandEdit({brand}: BrandEditProps) {
 
     const handleImpersonate = () => {
         if (brand.user) {
-            router.post(route('sb.admin.impersonate', {user: brand.user.id}));
+            router.post(route('admin.impersonate', {user: brand.user.id}));
         }
     };
 
@@ -52,7 +52,7 @@ export default function BrandEdit({brand}: BrandEditProps) {
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => {
-                                        router.visit('/sb/admin/brands');
+                                        router.visit('/admin/brands');
                                     }}
                                 >
                                     <ArrowLeftIcon className="size-4"/>
@@ -85,7 +85,7 @@ export default function BrandEdit({brand}: BrandEditProps) {
                             <CardContent>
                                 <a
                                     className="flex flex-col hover:underline cursor-pointer"
-                                    href={`/sb/admin/users/${brand.user.id}/edit`}
+                                    href={`/admin/users/${brand.user.id}/edit`}
                                     onClick={(e) => {
                                         e.preventDefault()
                                         router.visit(e.currentTarget.href)

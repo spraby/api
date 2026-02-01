@@ -46,11 +46,11 @@ export function CollectionForm({ collection: defaultCollection }: CollectionForm
     e.preventDefault();
 
     if (collection?.id) {
-      put(route('sb.admin.collections.update', collection.id), {
+      put(route('admin.collections.update', collection.id), {
         preserveScroll: true,
       });
     } else {
-      post(route('sb.admin.collections.store'));
+      post(route('admin.collections.store'));
     }
   }
 
@@ -151,7 +151,7 @@ export function CollectionForm({ collection: defaultCollection }: CollectionForm
             disabled={processing}
             className="w-full sm:w-auto"
             onClick={() => {
-              router.visit(route('sb.admin.collections'));
+              router.visit(route('admin.collections'));
             }}
           >
             {t('admin.collections_edit.actions.cancel')}

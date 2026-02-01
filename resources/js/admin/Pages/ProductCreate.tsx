@@ -24,7 +24,7 @@ export default function ProductCreate({product}: { product: Product }) {
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => {
-                                        router.visit('/sb/admin/products');
+                                        router.visit('/admin/products');
                                     }}
                                 >
                                     <ArrowLeftIcon className="size-4"/>

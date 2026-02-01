@@ -5,10 +5,10 @@ use Inertia\Inertia;
 
 // Redirect to admin panel
 Route::get('/', function () {
-    return redirect('/sb/admin');
+    return redirect('/admin');
 });
 
-// Language switcher - restore original functionality
+// Language switcher
 Route::get('/set-locale/{locale}', function ($locale) {
     if (in_array($locale, ['en', 'ru'])) {
         session()->put('locale', $locale);
@@ -18,7 +18,7 @@ Route::get('/set-locale/{locale}', function ($locale) {
 })->name('set-locale');
 
 // React Admin routes with Inertia
-Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('/login', function () {
             return Inertia::render('Auth/Login');
@@ -109,6 +109,7 @@ Route::prefix('sb/admin')->name('sb.admin.')->middleware('inertia')->group(funct
         Route::prefix('media')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
             Route::get('/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');
+            Route::post('/', [App\Http\Controllers\Admin\MediaController::class, 'store'])->name('media.store');
             Route::delete('/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
         });
 

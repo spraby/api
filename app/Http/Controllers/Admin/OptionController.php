@@ -82,7 +82,7 @@ class OptionController extends Controller
                 }
             }
 
-            return redirect()->route('sb.admin.options.edit', $option->id)
+            return redirect()->route('admin.options.edit', $option->id)
                 ->with('success', 'Option created successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to create option: ' . $e->getMessage());
@@ -166,7 +166,7 @@ class OptionController extends Controller
                 OptionValue::whereIn('id', $valuesToDelete)->delete();
             }
 
-            return Redirect::route('sb.admin.options.edit', $option->id)
+            return Redirect::route('admin.options.edit', $option->id)
                 ->with('success', 'Option updated successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to update option: ' . $e->getMessage());
@@ -183,7 +183,7 @@ class OptionController extends Controller
         try {
             $option->delete();
 
-            return Redirect::route('sb.admin.options')->with('success', 'Option deleted successfully');
+            return Redirect::route('admin.options')->with('success', 'Option deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete option: ' . $e->getMessage());
         }
@@ -204,7 +204,7 @@ class OptionController extends Controller
         try {
             Option::whereIn('id', $request->input('option_ids'))->delete();
 
-            return Redirect::route('sb.admin.options')->with('success', 'Options deleted successfully');
+            return Redirect::route('admin.options')->with('success', 'Options deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete options: ' . $e->getMessage());
         }

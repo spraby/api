@@ -122,7 +122,7 @@ const createBrandColumns = (
                     {brand.user ? (
                         <a
                             className="flex flex-col hover:underline cursor-pointer"
-                            href={`/sb/admin/users/${brand.user.id}/edit`}
+                            href={`/admin/users/${brand.user.id}/edit`}
                             onClick={(e) => {
                                 e.preventDefault()
                                 router.visit(e.currentTarget.href)
@@ -170,7 +170,7 @@ const createBrandColumns = (
             const brand = row.original
 
             const handleEdit = () => {
-                router.visit(`/sb/admin/brands/${brand.id}/edit`)
+                router.visit(`/admin/brands/${brand.id}/edit`)
             }
 
             const handleDelete = () => {
@@ -245,7 +245,7 @@ export default function Brands() {
     const handleDelete = React.useCallback((brand: Brand) => {
         setIsDeleting(true);
 
-        router.delete(route('sb.admin.brands.destroy', {brand: brand.id}), {
+        router.delete(route('admin.brands.destroy', {brand: brand.id}), {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(t('admin.brands_table.success.deleted'));
@@ -261,7 +261,7 @@ export default function Brands() {
 
     // Impersonate user
     const handleImpersonate = React.useCallback((userId: number) => {
-        router.post(route('sb.admin.impersonate', {user: userId}), {}, {
+        router.post(route('admin.impersonate', {user: userId}), {}, {
             preserveScroll: true,
         });
     }, []);
@@ -291,7 +291,7 @@ export default function Brands() {
       action: async (selectedBrands: Brand[]) => {
         const brandIds = selectedBrands.map(b => b.id)
 
-        router.post(route('sb.admin.brands.bulk-delete'), {
+        router.post(route('admin.brands.bulk-delete'), {
           brand_ids: brandIds
         }, {
           preserveScroll: true,
@@ -355,7 +355,7 @@ export default function Brands() {
           </div>
           <Button
             onClick={() => {
-              router.visit('/sb/admin/brands/create');
+              router.visit('/admin/brands/create');
             }}
           >
             <PlusIcon className="size-4" />

@@ -440,7 +440,7 @@ export interface Product {
 import fetchClient from '../fetch-client';
 
 export async function getProducts(): Promise<Product[]> {
-  const response = await fetchClient.get<Product[]>('/sb/admin/products/api');
+  const response = await fetchClient.get<Product[]>('/admin/products/api');
   return response.data;
 }
 ```

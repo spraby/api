@@ -196,11 +196,11 @@ export function OptionForm({ option: defaultOption }: OptionFormProps) {
     e.preventDefault();
 
     if (option?.id) {
-      put(route('sb.admin.options.update', option.id), {
+      put(route('admin.options.update', option.id), {
         preserveScroll: true,
       });
     } else {
-      post(route('sb.admin.options.store'));
+      post(route('admin.options.store'));
     }
   }
 
@@ -328,7 +328,7 @@ export function OptionForm({ option: defaultOption }: OptionFormProps) {
             disabled={processing}
             className="w-full sm:w-auto"
             onClick={() => {
-              router.visit(route('sb.admin.options'));
+              router.visit(route('admin.options'));
             }}
           >
             {t('admin.options_edit.actions.cancel')}

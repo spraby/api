@@ -222,13 +222,13 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
         ignoreNextVisitRef.current = true;
         if (product?.id) {
-            put(route('sb.admin.products.update', product.id), {
+            put(route('admin.products.update', product.id), {
                 preserveScroll: true,
                 onSuccess: handleSuccess,
                 onError: handleError,
             });
         } else {
-            post(route('sb.admin.products.store'), {
+            post(route('admin.products.store'), {
                 onSuccess: handleSuccess,
                 onError: handleError,
             });
@@ -402,7 +402,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                         disabled={processing}
                         className="w-full sm:w-auto"
                         onClick={() => {
-                            router.visit(route('sb.admin.products'));
+                        router.visit(route('admin.products'));
                         }}
                     >
                         {t('admin.products_edit.actions.cancel')}

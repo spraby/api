@@ -43,11 +43,11 @@ export function BrandForm({ brand: defaultBrand }: BrandFormProps) {
     e.preventDefault();
 
     if (brand?.id) {
-      put(route('sb.admin.brands.update', brand.id), {
+      put(route('admin.brands.update', brand.id), {
         preserveScroll: true,
       });
     } else {
-      post(route('sb.admin.brands.store'));
+      post(route('admin.brands.store'));
     }
   }
 
@@ -100,7 +100,7 @@ export function BrandForm({ brand: defaultBrand }: BrandFormProps) {
             disabled={processing}
             className="w-full sm:w-auto"
             onClick={() => {
-              router.visit(route('sb.admin.brands'));
+              router.visit(route('admin.brands'));
             }}
           >
             {t('admin.brands_edit.actions.cancel')}

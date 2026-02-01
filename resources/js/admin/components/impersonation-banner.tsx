@@ -13,7 +13,7 @@ export function ImpersonationBanner({user}: ImpersonationBannerProps) {
     const {t} = useLang()
 
     const handleStopImpersonating = () => {
-        router.post("/sb/admin/impersonate/stop")
+        router.post("/admin/impersonate/stop")
     }
 
     const userName = `${user.first_name} ${user.last_name}`.trim() || user.email

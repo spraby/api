@@ -34,7 +34,7 @@ export default function CategoryCreate({ category }: CategoryCreateProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/sb/admin/categories');
+                    router.visit('/admin/categories');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

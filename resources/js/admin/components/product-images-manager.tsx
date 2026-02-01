@@ -1,11 +1,10 @@
 import {useState} from 'react';
 
 import {router} from '@inertiajs/react';
-import {GripVerticalIcon, ImageIcon, PlusIcon, Trash2Icon, UploadIcon} from 'lucide-react';
+import {GripVerticalIcon, ImageIcon, ImagesIcon, Trash2Icon} from 'lucide-react';
 
 import {ConfirmationPopover} from '@/components/confirmation-popover';
-import {ImageUploadDialog} from '@/components/image-upload-dialog';
-import {MediaPickerDialog} from '@/components/media-picker-dialog';
+import {ImagePicker} from '@/components/image-picker';
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
@@ -23,8 +22,7 @@ export function ProductImagesManager({
                                          disabled = false,
                                      }: ProductImagesManagerProps) {
     const {t} = useLang();
-    const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
-    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+    const [imagePickerOpen, setImagePickerOpen] = useState(false);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -33,7 +31,7 @@ export function ProductImagesManager({
 
     const handleMediaSelect = (imageIds: number[]) => {
         router.post(
-            route('sb.admin.products.images.attach', productId),
+            route('admin.products.images.attach', productId),
             {image_ids: imageIds},
             {
                 preserveScroll: true,
@@ -43,7 +41,7 @@ export function ProductImagesManager({
                 },
                 onFinish: () => {
                     setIsProcessing(false);
-                    setMediaPickerOpen(false);
+                    setImagePickerOpen(false);
                 },
             }
         );
@@ -51,7 +49,7 @@ export function ProductImagesManager({
 
     const handleUpload = (files: File[]) => {
         router.post(
-            route('sb.admin.products.images.upload', productId),
+            route('admin.products.images.upload', productId),
             {images: files},
             {
                 preserveScroll: true,
@@ -61,7 +59,7 @@ export function ProductImagesManager({
                 },
                 onFinish: () => {
                     setIsProcessing(false);
-                    setUploadDialogOpen(false);
+                    setImagePickerOpen(false);
                 },
             }
         );
@@ -69,7 +67,7 @@ export function ProductImagesManager({
 
     const handleDelete = (productImageId: number) => {
         router.delete(
-            route('sb.admin.products.images.detach', {id: productId, productImageId}),
+            route('admin.products.images.detach', {id: productId, productImageId}),
             {
                 preserveScroll: true,
                 preserveState: false,
@@ -111,7 +109,7 @@ export function ProductImagesManager({
         const imageIds = newImages.map((img) => img.id);
 
         router.put(
-            route('sb.admin.products.images.reorder', productId),
+            route('admin.products.images.reorder', productId),
             {image_ids: imageIds},
             {
                 preserveScroll: true,
@@ -138,26 +136,11 @@ export function ProductImagesManager({
             type="button"
             variant="secondary"
             onClick={() => {
-                setMediaPickerOpen(true);
+                setImagePickerOpen(true);
             }}
-            title={t('admin.products_edit.images.add_from_media')}
+            title={t('admin.products_edit.images.add_images')}
         >
-            <PlusIcon className="size-4"/>
-        </Button>
-    )
-
-    const uploadButtonMarkup = (
-        <Button
-            disabled={disabled || isProcessing}
-            size="sm"
-            type="button"
-            variant="secondary"
-            onClick={() => {
-                setUploadDialogOpen(true);
-            }}
-            title={t('admin.products_edit.images.upload_new')}
-        >
-            <UploadIcon className="size-4"/>
+            <ImagesIcon className="size-4"/>
         </Button>
     )
 
@@ -242,7 +225,6 @@ export function ProductImagesManager({
                     <div className="group relative overflow-hidden transition-all col-span-2 row-span-2">
                         <div className="flex justify-center items-center gap-2 rounded-lg border-2 border-dashed aspect-square w-full">
                             {addButtonMarkup}
-                            {uploadButtonMarkup}
                         </div>
                     </div>
                 </div>
@@ -251,7 +233,6 @@ export function ProductImagesManager({
                     <ImageIcon className="mb-3 size-16 text-muted-foreground"/>
                     <div className="flex justify-end flex-wrap gap-2">
                         {addButtonMarkup}
-                        {uploadButtonMarkup}
                     </div>
                     <p className="text-sm text-muted-foreground">
                         {t('admin.products_edit.images.no_images')}
@@ -259,19 +240,14 @@ export function ProductImagesManager({
                 </div>
             )}
 
-            {/* Dialogs */}
-            <MediaPickerDialog
+            {/* Image Picker Dialog */}
+            <ImagePicker
                 excludeImageIds={excludedImageIds}
-                multiple
-                open={mediaPickerOpen}
-                onOpenChange={setMediaPickerOpen}
-                onSelect={handleMediaSelect}
-            />
-
-            <ImageUploadDialog
                 isUploading={isProcessing}
-                open={uploadDialogOpen}
-                onOpenChange={setUploadDialogOpen}
+                multiple
+                open={imagePickerOpen}
+                onOpenChange={setImagePickerOpen}
+                onSelect={handleMediaSelect}
                 onUpload={handleUpload}
             />
         </div>

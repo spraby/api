@@ -136,7 +136,7 @@ const createOptionColumns = (
       const option = row.original
 
       const handleEdit = () => {
-        router.visit(`/sb/admin/options/${option.id}/edit`)
+        router.visit(`/admin/options/${option.id}/edit`)
       }
 
       const handleDelete = () => {
@@ -191,7 +191,7 @@ export default function Options() {
   const handleDelete = React.useCallback((option: Option) => {
     setIsDeleting(true);
 
-    router.delete(route('sb.admin.options.destroy', { option: option.id }), {
+    router.delete(route('admin.options.destroy', { option: option.id }), {
       preserveScroll: true,
       onSuccess: () => {
         toast.success(t('admin.options_table.success.deleted'));
@@ -230,7 +230,7 @@ export default function Options() {
       action: async (selectedOptions: Option[]) => {
         const optionIds = selectedOptions.map(o => o.id)
 
-        router.post(route('sb.admin.options.bulk-delete'), {
+        router.post(route('admin.options.bulk-delete'), {
           option_ids: optionIds
         }, {
           preserveScroll: true,
@@ -294,7 +294,7 @@ export default function Options() {
           </div>
           <Button
             onClick={() => {
-              router.visit('/sb/admin/options/create');
+              router.visit('/admin/options/create');
             }}
           >
             <PlusIcon className="size-4" />

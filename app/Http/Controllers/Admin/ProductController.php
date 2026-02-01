@@ -282,7 +282,7 @@ class ProductController extends Controller
 
             $product->refresh()->load('variants');
 
-            return Redirect::route('sb.admin.products.edit', $product->id)
+            return Redirect::route('admin.products.edit', $product->id)
                 ->with('success', 'Product updated successfully');
 
         } catch (\Exception $e) {
@@ -353,7 +353,7 @@ class ProductController extends Controller
                 }
             }
 
-            return redirect()->route('sb.admin.products.edit', $product->id)->with('success', 'Product created successfully');
+            return redirect()->route('admin.products.edit', $product->id)->with('success', 'Product created successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to create product: ' . $e->getMessage());
         }
@@ -381,7 +381,7 @@ class ProductController extends Controller
 
             $product->delete();
 
-            return Redirect::route('sb.admin.products')->with('success', 'Product deleted successfully');
+            return Redirect::route('admin.products')->with('success', 'Product deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete product: ' . $e->getMessage());
         }
@@ -416,7 +416,7 @@ class ProductController extends Controller
                     ->delete();
             }
 
-            return Redirect::route('sb.admin.products')->with('success', 'Products deleted successfully');
+            return Redirect::route('admin.products')->with('success', 'Products deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete products: ' . $e->getMessage());
         }
@@ -453,7 +453,7 @@ class ProductController extends Controller
                     ->update(['enabled' => $enabled]);
             }
 
-            return Redirect::route('sb.admin.products')->with('success', 'Product status updated successfully');
+            return Redirect::route('admin.products')->with('success', 'Product status updated successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to update product status: ' . $e->getMessage());
         }

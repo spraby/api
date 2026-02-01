@@ -81,7 +81,7 @@ class CategoryController extends Controller
                 'description' => $request->input('description'),
             ]);
 
-            return redirect()->route('sb.admin.categories.edit', $category->id)
+            return redirect()->route('admin.categories.edit', $category->id)
                 ->with('success', 'Category created successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to create category: ' . $e->getMessage());
@@ -130,7 +130,7 @@ class CategoryController extends Controller
                 'description' => $request->input('description'),
             ]);
 
-            return Redirect::route('sb.admin.categories.edit', $category->id)
+            return Redirect::route('admin.categories.edit', $category->id)
                 ->with('success', 'Category updated successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to update category: ' . $e->getMessage());
@@ -147,7 +147,7 @@ class CategoryController extends Controller
         try {
             $category->delete();
 
-            return Redirect::route('sb.admin.categories')->with('success', 'Category deleted successfully');
+            return Redirect::route('admin.categories')->with('success', 'Category deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete category: ' . $e->getMessage());
         }
@@ -168,7 +168,7 @@ class CategoryController extends Controller
         try {
             Category::whereIn('id', $request->input('category_ids'))->delete();
 
-            return Redirect::route('sb.admin.categories')->with('success', 'Categories deleted successfully');
+            return Redirect::route('admin.categories')->with('success', 'Categories deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete categories: ' . $e->getMessage());
         }

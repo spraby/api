@@ -261,7 +261,7 @@ const createOrderColumns = (
       const order = row.original
 
       const handleView = () => {
-        router.visit(`/sb/admin/orders/${order.id}`)
+        router.visit(`/admin/orders/${order.id}`)
       }
 
       return (

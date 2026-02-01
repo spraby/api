@@ -48,7 +48,7 @@ export function ProductVariantList({
         }
 
         router.put(
-            route('sb.admin.variants.image.set', {id: variant.id}),
+            route('admin.variants.image.set', {id: variant.id}),
             {
                 product_image_id: null,
             },
@@ -78,7 +78,7 @@ export function ProductVariantList({
         }
 
         router.put(
-            route('sb.admin.variants.image.set', {id: variant.id}),
+            route('admin.variants.image.set', {id: variant.id}),
             {
                 product_image_id: productImageId,
             },

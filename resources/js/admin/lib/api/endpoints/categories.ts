@@ -18,7 +18,7 @@ import fetchClient from '../fetch-client';
  */
 export async function getCategories(brandId?: number): Promise<Category[]> {
   const params = brandId ? { brand_id: brandId } : {};
-  const response = await fetchClient.get<{ data: Category[] }>('/sb/admin/categories/api', {
+  const response = await fetchClient.get<{ data: Category[] }>('/admin/categories/api', {
     params,
   });
 

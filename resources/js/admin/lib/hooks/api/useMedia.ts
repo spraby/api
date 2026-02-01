@@ -22,7 +22,7 @@ async function fetchMedia(filters?: MediaFilters): Promise<PaginatedResponse<Ima
   }
 
   const queryString = params.toString();
-  const url = `/sb/admin/media/api${queryString ? `?${queryString}` : ''}`;
+  const url = `/admin/media/api${queryString ? `?${queryString}` : ''}`;
 
   const response = await fetch(url, {
     headers: {

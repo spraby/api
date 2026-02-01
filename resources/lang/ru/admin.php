@@ -212,6 +212,7 @@ return [
         'images' => [
             'add_from_media' => 'Добавить из медиатеки',
             'upload_new' => 'Загрузить новые',
+            'add_images' => 'Добавить изображения',
             'no_images' => 'Нет изображений для этого товара',
             'position' => 'Позиция',
             'main' => 'Главное',
@@ -470,6 +471,21 @@ return [
         'no_results' => 'Изображения не найдены',
         'no_images' => 'Нет изображений в медиатеке',
         'select_button' => 'Выбрать (:count)',
+    ],
+
+    'image_picker' => [
+        'title' => 'Выбор изображений',
+        'description' => 'Выберите существующие изображения или загрузите новые',
+        'tab_library' => 'Медиатека',
+        'tab_upload' => 'Загрузка',
+        'search_placeholder' => 'Поиск изображений...',
+        'no_results' => 'Изображения не найдены',
+        'no_images' => 'Нет изображений в медиатеке',
+        'select_button' => 'Выбрать (:count)',
+        'select_or_drop' => 'Нажмите для выбора или перетащите файлы сюда',
+        'max_files' => 'Максимум :max файлов',
+        'files_selected' => 'Выбрано файлов: :count',
+        'selected_files' => 'Выбранные файлы',
     ],
 
     'product_images_picker' => [

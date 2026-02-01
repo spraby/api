@@ -212,6 +212,7 @@ return [
         'images' => [
             'add_from_media' => 'Add from Media',
             'upload_new' => 'Upload New',
+            'add_images' => 'Add Images',
             'no_images' => 'No images for this product',
             'position' => 'Position',
             'main' => 'Main',
@@ -470,6 +471,21 @@ return [
         'no_results' => 'No images found matching your search',
         'no_images' => 'No images in your media library',
         'select_button' => 'Select (:count)',
+    ],
+
+    'image_picker' => [
+        'title' => 'Image Picker',
+        'description' => 'Select existing images or upload new ones',
+        'tab_library' => 'Library',
+        'tab_upload' => 'Upload',
+        'search_placeholder' => 'Search images...',
+        'no_results' => 'No images found matching your search',
+        'no_images' => 'No images in your library',
+        'select_button' => 'Select (:count)',
+        'select_or_drop' => 'Click to select or drag & drop files here',
+        'max_files' => 'Maximum :max files',
+        'files_selected' => ':count file(s) selected',
+        'selected_files' => 'Selected files',
     ],
 
     'product_images_picker' => [

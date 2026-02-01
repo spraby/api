@@ -151,7 +151,7 @@ const createCollectionColumns = (
       const collection = row.original
 
       const handleEdit = () => {
-        router.visit(`/sb/admin/collections/${collection.id}/edit`)
+        router.visit(`/admin/collections/${collection.id}/edit`)
       }
 
       const handleDelete = () => {
@@ -206,7 +206,7 @@ export default function Collections() {
   const handleDelete = React.useCallback((collection: Collection) => {
     setIsDeleting(true);
 
-    router.delete(route('sb.admin.collections.destroy', { collection: collection.id }), {
+    router.delete(route('admin.collections.destroy', { collection: collection.id }), {
       preserveScroll: true,
       onSuccess: () => {
         toast.success(t('admin.collections_table.success.deleted'));
@@ -245,7 +245,7 @@ export default function Collections() {
       action: async (selectedCollections: Collection[]) => {
         const collectionIds = selectedCollections.map(c => c.id)
 
-        router.post(route('sb.admin.collections.bulk-delete'), {
+        router.post(route('admin.collections.bulk-delete'), {
           collection_ids: collectionIds
         }, {
           preserveScroll: true,
@@ -309,7 +309,7 @@ export default function Collections() {
           </div>
           <Button
             onClick={() => {
-              router.visit('/sb/admin/collections/create');
+              router.visit('/admin/collections/create');
             }}
           >
             <PlusIcon className="size-4" />

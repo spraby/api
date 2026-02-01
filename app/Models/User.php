@@ -110,10 +110,6 @@ class User extends Authenticatable
      * @var array
      */
     public const ADMIN_PERMISSIONS = [
-        self::PERMISSIONS['READ_PRODUCTS'],
-        self::PERMISSIONS['WRITE_PRODUCTS'],
-        self::PERMISSIONS['READ_PRODUCT_VARIANTS'],
-        self::PERMISSIONS['WRITE_PRODUCT_VARIANTS'],
         self::PERMISSIONS['READ_CATEGORIES'],
         self::PERMISSIONS['WRITE_CATEGORIES'],
         self::PERMISSIONS['READ_COLLECTIONS'],
@@ -126,12 +122,8 @@ class User extends Authenticatable
         self::PERMISSIONS['READ_OPTIONS'],
         self::PERMISSIONS['WRITE_OPTION_VALUES'],
         self::PERMISSIONS['READ_OPTION_VALUES'],
-        self::PERMISSIONS['READ_IMAGES'],
-        self::PERMISSIONS['WRITE_IMAGES'],
         self::PERMISSIONS['READ_BRAND_REQUESTS'],
         self::PERMISSIONS['WRITE_BRAND_REQUESTS'],
-        self::PERMISSIONS['READ_ORDERS'],
-        self::PERMISSIONS['WRITE_ORDERS'],
     ];
 
     public function isAdmin(): bool

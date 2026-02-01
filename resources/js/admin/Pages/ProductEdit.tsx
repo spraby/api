@@ -29,7 +29,7 @@ export default function ProductEdit({product}: ProductEditProps) {
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => {
-                                        router.visit('/sb/admin/products');
+                                        router.visit('/admin/products');
                                     }}
                                 >
                                     <ArrowLeftIcon className="size-4"/>

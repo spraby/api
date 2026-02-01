@@ -81,7 +81,7 @@ class CollectionController extends Controller
                 'description' => $request->input('description'),
             ]);
 
-            return redirect()->route('sb.admin.collections.edit', $collection->id)
+            return redirect()->route('admin.collections.edit', $collection->id)
                 ->with('success', 'Collection created successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to create collection: ' . $e->getMessage());
@@ -130,7 +130,7 @@ class CollectionController extends Controller
                 'description' => $request->input('description'),
             ]);
 
-            return Redirect::route('sb.admin.collections.edit', $collection->id)
+            return Redirect::route('admin.collections.edit', $collection->id)
                 ->with('success', 'Collection updated successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to update collection: ' . $e->getMessage());
@@ -147,7 +147,7 @@ class CollectionController extends Controller
         try {
             $collection->delete();
 
-            return Redirect::route('sb.admin.collections')->with('success', 'Collection deleted successfully');
+            return Redirect::route('admin.collections')->with('success', 'Collection deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete collection: ' . $e->getMessage());
         }
@@ -168,7 +168,7 @@ class CollectionController extends Controller
         try {
             Collection::whereIn('id', $request->input('collection_ids'))->delete();
 
-            return Redirect::route('sb.admin.collections')->with('success', 'Collections deleted successfully');
+            return Redirect::route('admin.collections')->with('success', 'Collections deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete collections: ' . $e->getMessage());
         }

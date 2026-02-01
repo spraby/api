@@ -77,7 +77,7 @@ class OrderController extends Controller
 
         // Verify ownership
         if (!$brand || $order->brand_id !== $brand->id) {
-            return redirect()->route('sb.admin.orders');
+            return redirect()->route('admin.orders');
         }
 
         // Load relationships
@@ -169,7 +169,7 @@ class OrderController extends Controller
 
         // Verify ownership
         if (!$brand || $order->brand_id !== $brand->id) {
-            return redirect()->route('sb.admin.orders');
+            return redirect()->route('admin.orders');
         }
 
         $validated = $request->validate([

@@ -24,7 +24,7 @@ export default function Register() {
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    post('/sb/admin/register');
+    post('/admin/register');
   };
 
   return (
@@ -104,7 +104,7 @@ export default function Register() {
                 Already have an account?{' '}
                 <Link
                   className="text-(--primary) underline-offset-4 hover:underline"
-                  href="/sb/admin/login"
+                  href="/admin/login"
                 >
                   Login
                 </Link>

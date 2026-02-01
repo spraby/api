@@ -8,12 +8,9 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-ide-helper": "^3.5",
-        "eduard9969/blade-polaris-icons": "^2.8",
         "erag/laravel-lang-sync-inertia": "^1.8",
         "fakerphp/faker": "^1.23",
-        "filament/filament": "^4.0",
         "inertiajs/inertia-laravel": "^2.0",
-        "lara-zeus/popover": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
@@ -42,8 +39,7 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi",
-            "@php artisan filament:upgrade"
+            "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
