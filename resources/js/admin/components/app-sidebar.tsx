@@ -146,19 +146,19 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
             url: "/admin/options",
             icon: SlidersHorizontalIcon,
         }] : []),
-        // Media - requires read_images permission
+        // Media - requires read_images permission (manager only)
         ...(can(user, Permission.READ_IMAGES) ? [{
             title: t('admin.nav.media'),
             url: "/admin/media",
             icon: ImageIcon,
         }] : []),
-        // Products - requires read_products permission
+        // Products - requires read_products permission (manager only)
         ...(can(user, Permission.READ_PRODUCTS) ? [{
             title: t('admin.nav.products'),
             url: "/admin/products",
             icon: PackageIcon,
         }] : []),
-        // Orders - requires read_orders permission
+        // Orders - requires read_orders permission (manager only)
         ...(can(user, Permission.READ_ORDERS) ? [{
             title: t('admin.nav.orders'),
             url: "/admin/orders",
