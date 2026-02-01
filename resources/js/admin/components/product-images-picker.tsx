@@ -82,8 +82,8 @@ export function ProductImagesPicker({
                   <Card
                     key={productImage.id}
                     className={cn(
-                      'group relative cursor-pointer overflow-hidden transition-all hover:ring-2 hover:ring-primary',
-                      isSelected && 'ring-2 ring-primary'
+                      'group relative cursor-pointer overflow-hidden transition-colors hover:border-primary/70',
+                      isSelected && 'border-primary'
                     )}
                     onClick={() => {
                         if(productImage?.id) {setSelectedImageId(productImage.id);}

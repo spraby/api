@@ -51,6 +51,7 @@ interface Product {
     name: string;
   } | null;
   image_url: string | null;
+  external_url?: string | null;
   created_at: string;
 }
 
@@ -254,6 +255,14 @@ const createProductColumns = (
         onDelete(product)
       }
 
+      const handleOpenExternal = () => {
+        if (!product.external_url) {
+          return
+        }
+
+        window.open(product.external_url, "_blank", "noopener,noreferrer")
+      }
+
       return (
         <div className="flex justify-end">
           <DropdownMenu>
@@ -270,6 +279,12 @@ const createProductColumns = (
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-32">
               <DropdownMenuItem onClick={handleEdit}>{t('admin.products_table.actions.edit')}</DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!product.external_url}
+                onClick={handleOpenExternal}
+              >
+                Preview
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
                 {t('admin.products_table.actions.delete')}

@@ -68,6 +68,7 @@ class ProductController extends Controller
                         'name' => $product->category->name,
                     ] : null,
                     'image_url' => $mainImage?->image?->url,
+                    'external_url' => $product->externalUrl,
                     'created_at' => $product->created_at->toISOString(),
                 ];
             });
@@ -158,6 +159,7 @@ class ProductController extends Controller
             'variants.values.value',
             'variants.values.option',
         ]);
+        $product->setAttribute('external_url', $product->externalUrl);
 
         return Inertia::render('ProductEdit', [
             'product' => $product,

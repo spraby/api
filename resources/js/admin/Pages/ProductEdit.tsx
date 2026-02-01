@@ -15,6 +15,9 @@ interface ProductEditProps {
 
 export default function ProductEdit({product}: ProductEditProps) {
     const {t} = useLang();
+    const externalUrl = (product as Product & { external_url?: string | null }).external_url
+        ?? product.externalUrl
+        ?? null;
 
     return (
         <AdminLayout title={t('admin.products_edit.title')}>
@@ -42,6 +45,17 @@ export default function ProductEdit({product}: ProductEditProps) {
                                 {t('admin.products_edit.description')}
                             </p>
                         </div>
+                        {externalUrl && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    window.open(externalUrl, "_blank", "noopener,noreferrer");
+                                }}
+                            >
+                                Preview
+                            </Button>
+                        )}
                     </div>
 
                     <ProductForm product={product}/>

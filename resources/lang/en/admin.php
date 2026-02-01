@@ -54,6 +54,7 @@ return [
         ],
         'actions' => [
             'edit' => 'Edit',
+            'open' => 'Preview',
             'delete' => 'Delete',
             'open_menu' => 'Open menu',
         ],

@@ -353,7 +353,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
                                     {!!errors.category_id &&
                                         <p className="text-xs text-destructive">{errors.category_id}</p>}
-                                    {!isEditMode && (
+                                    {isEditMode && (
                                         <p className="text-xs text-muted-foreground">
                                             {t('admin.products_edit.category.locked')}
                                         </p>
