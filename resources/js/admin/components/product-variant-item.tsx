@@ -1,4 +1,4 @@
-import {ImageIcon, PlusIcon, TrashIcon} from 'lucide-react';
+import {ImageIcon, PlusIcon, TrashIcon, UploadIcon} from 'lucide-react';
 
 import {ConfirmationPopover} from '@/components/confirmation-popover';
 import {PricingSection} from '@/components/pricing-section';
@@ -111,7 +111,19 @@ export function ProductVariantItem({
                                         src={resolvedImageUrl}
                                     />
                                     <div
-                                        className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                        className="absolute right-2 top-2 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                        <Button
+                                            className="p-1"
+                                            disabled={disabled || !hasImages}
+                                            size="icon"
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={onImageSelect}
+                                            title={t('admin.products_edit.actions.change_image')}
+                                            aria-label={t('admin.products_edit.actions.change_image')}
+                                        >
+                                            <UploadIcon className="size-2"/>
+                                        </Button>
                                         <ConfirmationPopover
                                             isLoading={disabled}
                                             message={t('admin.products_edit.variants.confirm_remove_image')}
