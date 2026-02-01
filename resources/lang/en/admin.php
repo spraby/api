@@ -259,6 +259,15 @@ return [
             'select_image' => 'Select Image',
             'change_image' => 'Change Image',
         ],
+        'unsaved_changes' => [
+            'title' => 'Unsaved changes',
+            'description' => 'You have unsaved changes. Save before leaving?',
+            'actions' => [
+                'save' => 'Save and leave',
+                'discard' => 'Leave without saving',
+                'stay' => 'Continue editing',
+            ],
+        ],
         'errors' => [
             'at_least_one_variant' => 'Product must have at least one variant',
             'save_variant_first' => 'Please save the product first to add variant images',

@@ -32,13 +32,15 @@ export function ProductImagesManager({
     const sortedImages = [...images].sort((a, b) => a.position - b.position);
 
     const handleMediaSelect = (imageIds: number[]) => {
-        setIsProcessing(true);
         router.post(
             route('sb.admin.products.images.attach', productId),
             {image_ids: imageIds},
             {
                 preserveScroll: true,
                 preserveState: false,
+                onStart: () => {
+                    setIsProcessing(true);
+                },
                 onFinish: () => {
                     setIsProcessing(false);
                     setMediaPickerOpen(false);
@@ -48,13 +50,15 @@ export function ProductImagesManager({
     };
 
     const handleUpload = (files: File[]) => {
-        setIsProcessing(true);
         router.post(
             route('sb.admin.products.images.upload', productId),
             {images: files},
             {
                 preserveScroll: true,
                 preserveState: false,
+                onStart: () => {
+                    setIsProcessing(true);
+                },
                 onFinish: () => {
                     setIsProcessing(false);
                     setUploadDialogOpen(false);
@@ -64,12 +68,14 @@ export function ProductImagesManager({
     };
 
     const handleDelete = (productImageId: number) => {
-        setIsProcessing(true);
         router.delete(
             route('sb.admin.products.images.detach', {id: productId, productImageId}),
             {
                 preserveScroll: true,
                 preserveState: false,
+                onStart: () => {
+                    setIsProcessing(true);
+                },
                 onFinish: () => {
                     setIsProcessing(false);
                 },
@@ -104,13 +110,15 @@ export function ProductImagesManager({
 
         const imageIds = newImages.map((img) => img.id);
 
-        setIsProcessing(true);
         router.put(
             route('sb.admin.products.images.reorder', productId),
             {image_ids: imageIds},
             {
                 preserveScroll: true,
                 preserveState: false,
+                onStart: () => {
+                    setIsProcessing(true);
+                },
                 onFinish: () => {
                     setIsProcessing(false);
                 },
