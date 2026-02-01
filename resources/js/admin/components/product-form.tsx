@@ -11,7 +11,6 @@ import {toast} from "sonner";
 
 import {ProductImagesManager} from "@/components/product-images-manager.tsx";
 import {ProductVariantList} from "@/components/product-variant-list.tsx";
-import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,6 +21,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {Button, buttonVariants} from "@/components/ui/button.tsx";
 import {Card} from "@/components/ui/card.tsx";
 import {Checkbox} from '@/components/ui/checkbox';
@@ -38,6 +38,7 @@ import {
 import {useLang} from '@/lib/lang';
 import {VariantService} from '@/services/variant-service';
 import type {Product} from "@/types/models.ts";
+
 import type {PendingVisit} from "@inertiajs/core";
 
 
@@ -110,13 +111,12 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     }, []);
 
     useEffect(() => {
-        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (!isDirtyRef.current) {
                 return;
             }
 
-            event.preventDefault();
-            event.returnValue = '';
+            e.preventDefault();
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
@@ -204,7 +204,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                 pendingVisitRef.current = null;
                 shouldNavigateAfterSaveRef.current = false;
 
-                const {url, completed, cancelled, interrupted, ...options} = visit;
+                const {url, completed: _completed, cancelled: _cancelled, interrupted: _interrupted, ...options} = visit;
 
                 ignoreNextVisitRef.current = true;
                 router.visit(url, options);
@@ -259,7 +259,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             return;
         }
 
-        const {url, completed, cancelled, interrupted, ...options} = visit;
+        const {url, completed: _completed, cancelled: _cancelled, interrupted: _interrupted, ...options} = visit;
 
         ignoreNextVisitRef.current = true;
         router.visit(url, options);
