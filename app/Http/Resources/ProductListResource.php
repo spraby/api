@@ -34,6 +34,7 @@ class ProductListResource extends JsonResource
                 'name' => $this->category->name,
             ]),
             'image_url' => $this->imageUrl,
+            'external_url' => $this->externalUrl,
             'min_price' => $this->minPrice,
             'max_price' => $this->maxPrice,
             'created_at' => $this->created_at->toISOString(),

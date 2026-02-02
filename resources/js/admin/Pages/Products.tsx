@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import {router, usePage} from '@inertiajs/react';
-import {ImageIcon, MoreVerticalIcon, PackageIcon, PlusIcon, Trash2Icon} from "lucide-react"
+import {ExternalLinkIcon, ImageIcon, MoreVerticalIcon, PackageIcon, PlusIcon, Trash2Icon} from "lucide-react"
 import {toast} from "sonner"
 
 import {ResourceList} from '@/components/resource-list';
@@ -52,6 +52,7 @@ interface Product {
         name: string;
     } | null;
     image_url: string | null;
+    external_url: string;
     min_price: number | null;
     max_price: number | null;
     created_at: string;
@@ -148,6 +149,15 @@ const createProductColumns = (
                     <span className="font-medium">{product.title}</span>
                     {!!product.category &&
                         <span className="text-sm text-muted-foreground">{product.category.name}</span>}
+                    <a
+                        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground underline"
+                        href={product.external_url}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        View on store
+                        <ExternalLinkIcon className="size-3" />
+                    </a>
                 </div>
             )
         },
