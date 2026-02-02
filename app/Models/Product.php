@@ -134,11 +134,6 @@ class Product extends Model
         return config('app.store_url').'/products/'.$this->id;
     }
 
-    public function getDiscountAttribute(): float
-    {
-        return round($this->price > 0 ? (($this->price - $this->final_price) / $this->price) * 100 : 0, 0);
-    }
-
     public function reorderImages(): void
     {
         DB::transaction(function () {

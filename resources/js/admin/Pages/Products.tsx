@@ -37,8 +37,6 @@ interface Product {
   id: number;
   title: string;
   description: string | null;
-  price: string;
-  final_price: string;
   enabled: boolean;
   brand_id: number;
   category_id: number | null;
@@ -90,30 +88,32 @@ const createProductColumns = (
     enableHiding: false,
   },
   {
-    accessorKey: "id",
-    header: t('admin.products_table.columns.id'),
-    cell: ({ row }) => (
-      <div className="w-16 font-medium text-muted-foreground">
-        #{row.getValue("id")}
-      </div>
-    ),
-  },
-  {
     accessorKey: "image",
-    header: t('admin.products_table.columns.image'),
+    header: "",
+    size: 48,
     cell: ({ row }) => {
       const product = row.original
 
+      const handleClick = () => {
+        router.visit(`/admin/products/${product.id}/edit`)
+      }
+
       return (
-        <div className="flex items-center justify-center">
+        <div
+          className="w-12 cursor-pointer"
+          onClick={handleClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter') { handleClick() } }}
+        >
           {product.image_url ? (
             <img
               alt={product.title}
-              className="size-12 rounded-md border object-cover"
+              className="size-12 rounded-md border object-cover transition-opacity hover:opacity-80"
               src={product.image_url}
             />
           ) : (
-            <div className="flex size-12 items-center justify-center rounded-md border bg-muted">
+            <div className="flex size-12 items-center justify-center rounded-md border bg-muted transition-opacity hover:opacity-80">
               <ImageIcon className="size-6 text-muted-foreground" />
             </div>
           )}
@@ -145,31 +145,6 @@ const createProductColumns = (
     enableHiding: false,
   },
   {
-    accessorKey: "price",
-    header: t('admin.products_table.columns.price'),
-    cell: ({ row }) => {
-      const product = row.original
-      const hasDiscount = product.price !== product.final_price
-
-      return (
-        <div className="flex flex-col">
-          {hasDiscount ? (
-            <>
-              <span className="text-sm text-muted-foreground line-through">
-                ${product.price}
-              </span>
-              <span className="font-medium text-destructive">
-                ${product.final_price}
-              </span>
-            </>
-          ) : (
-            <span className="font-medium">${product.price}</span>
-          )}
-        </div>
-      )
-    },
-  },
-  {
     accessorKey: "enabled",
     header: t('admin.products_table.columns.status'),
     cell: ({ row }) => {
@@ -195,19 +170,6 @@ const createProductColumns = (
       if (value === "disabled") {return rowValue === false}
 
       return true
-    },
-  },
-  {
-    accessorKey: "brand",
-    header: t('admin.products_table.columns.brand'),
-    cell: ({ row }) => {
-      const product = row.original
-
-      return (
-        <div className="text-sm">
-          {product.brand?.name || "—"}
-        </div>
-      )
     },
   },
   {

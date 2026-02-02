@@ -142,12 +142,8 @@ return [
 
     'products_table' => [
         'columns' => [
-            'id' => 'ID',
-            'image' => 'Image',
             'title' => 'Title',
-            'price' => 'Price',
             'status' => 'Status',
-            'brand' => 'Brand',
             'created' => 'Created',
         ],
         'status' => [

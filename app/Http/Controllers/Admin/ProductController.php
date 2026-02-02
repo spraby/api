@@ -54,8 +54,6 @@ class ProductController extends Controller
                     'id' => $product->id,
                     'title' => $product->title,
                     'description' => $product->description,
-                    'price' => (string) $product->price,
-                    'final_price' => (string) $product->final_price,
                     'enabled' => $product->enabled,
                     'brand_id' => $product->brand_id,
                     'category_id' => $product->category_id,
@@ -194,8 +192,6 @@ class ProductController extends Controller
             $product->update([
                 'title' => $request->input('title'),
                 'description' => $request->input('description'),
-                'price' => $request->input('price') ?: 0,
-                'final_price' => $request->input('final_price') ?: 0,
                 'enabled' => $request->input('enabled'),
                 'category_id' => $request->input('category_id'),
             ]);
@@ -290,8 +286,6 @@ class ProductController extends Controller
             $product = Product::create([
                 'title' => $request->input('title'),
                 'description' => $request->input('description'),
-                'price' => $request->input('price') ?: 0,
-                'final_price' => $request->input('final_price') ?: 0,
                 'enabled' => $request->input('enabled'),
                 'category_id' => $request->input('category_id'),
                 'brand_id' => $brand->id,

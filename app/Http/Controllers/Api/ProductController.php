@@ -64,7 +64,7 @@ class ProductController extends Controller
 
         // Validate sort field
         $allowedSortFields = [
-            'id', 'title', 'price', 'final_price', 'created_at', 'updated_at',
+            'id', 'title', 'created_at', 'updated_at',
             'variants_count', 'images_count', 'orders_count',
         ];
         if (in_array($sortBy, $allowedSortFields)) {
@@ -85,9 +85,6 @@ class ProductController extends Controller
                 'title' => $product->title,
                 'description' => $product->description,
                 'enabled' => $product->enabled,
-                'price' => (string) $product->price,
-                'final_price' => (string) $product->final_price,
-                'discount' => $product->discount,
                 'created_at' => $product->created_at?->toISOString(),
                 'updated_at' => $product->updated_at?->toISOString(),
                 'brand' => $product->brand,
@@ -124,9 +121,6 @@ class ProductController extends Controller
             'title' => $product->title,
             'description' => $product->description,
             'enabled' => $product->enabled,
-            'price' => (string) $product->price,
-            'final_price' => (string) $product->final_price,
-            'discount' => $product->discount,
             'created_at' => $product->created_at?->toISOString(),
             'updated_at' => $product->updated_at?->toISOString(),
             'brand' => $product->brand,
@@ -146,8 +140,6 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'final_price' => 'required|numeric|min:0',
             'enabled' => 'boolean',
         ]);
 
@@ -156,8 +148,6 @@ class ProductController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'category_id' => $validated['category_id'] ?? null,
-            'price' => $validated['price'],
-            'final_price' => $validated['final_price'],
             'enabled' => $validated['enabled'] ?? true,
         ]);
 
@@ -171,9 +161,6 @@ class ProductController extends Controller
             'title' => $product->title,
             'description' => $product->description,
             'enabled' => $product->enabled,
-            'price' => (string) $product->price,
-            'final_price' => (string) $product->final_price,
-            'discount' => $product->discount,
             'created_at' => $product->created_at?->toISOString(),
             'updated_at' => $product->updated_at?->toISOString(),
             'brand' => $product->brand,
@@ -201,8 +188,6 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'final_price' => 'required|numeric|min:0',
             'enabled' => 'boolean',
         ]);
 
@@ -218,9 +203,6 @@ class ProductController extends Controller
             'title' => $product->title,
             'description' => $product->description,
             'enabled' => $product->enabled,
-            'price' => (string) $product->price,
-            'final_price' => (string) $product->final_price,
-            'discount' => $product->discount,
             'created_at' => $product->created_at?->toISOString(),
             'updated_at' => $product->updated_at?->toISOString(),
             'brand' => $product->brand,
