@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useLang } from '@/lib/lang';
+import { toMoneyFormat } from '@/lib/utils';
 import type { BulkAction, Filter, ResourceListTranslations } from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
@@ -49,6 +51,8 @@ interface Product {
     name: string;
   } | null;
   image_url: string | null;
+  min_price: number | null;
+  max_price: number | null;
   created_at: string;
 }
 
@@ -173,6 +177,29 @@ const createProductColumns = (
     },
   },
   {
+    id: "price",
+    header: t('admin.products_table.columns.price'),
+    cell: ({ row }) => {
+      const product = row.original
+      const minPrice = product.min_price
+      const maxPrice = product.max_price
+
+      if (minPrice === null || maxPrice === null) {
+        return <span className="text-muted-foreground">—</span>
+      }
+
+      if (minPrice === maxPrice) {
+        return <span className="font-medium">{toMoneyFormat(minPrice)}</span>
+      }
+
+      return (
+        <span className="font-medium">
+          {toMoneyFormat(minPrice)} — {toMoneyFormat(maxPrice)}
+        </span>
+      )
+    },
+  },
+  {
     accessorKey: "created_at",
     header: t('admin.products_table.columns.created'),
     cell: ({ row }) => {
@@ -267,6 +294,8 @@ export default function Products() {
   // State for operations
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [selectedStatus, setSelectedStatus] = React.useState<string>("")
+  const [priceMin, setPriceMin] = React.useState<string>("")
+  const [priceMax, setPriceMax] = React.useState<string>("")
 
   // Delete single product
   const handleDelete = React.useCallback((product: Product) => {
@@ -361,6 +390,43 @@ export default function Products() {
   ], [t, selectedStatus]);
 
   // ============================================
+  // FILTERED DATA
+  // ============================================
+
+  const filteredProducts = React.useMemo(() => {
+    let result = products ?? []
+
+    const minPrice = priceMin ? parseFloat(priceMin) : null
+    const maxPrice = priceMax ? parseFloat(priceMax) : null
+
+    if (minPrice !== null || maxPrice !== null) {
+      result = result.filter((product) => {
+        const productMinPrice = product.min_price
+        const productMaxPrice = product.max_price
+
+        // Skip products without prices
+        if (productMinPrice === null && productMaxPrice === null) {
+          return false
+        }
+
+        // Check min price filter (product's max price should be >= filter min)
+        if (minPrice !== null && productMaxPrice !== null && productMaxPrice < minPrice) {
+          return false
+        }
+
+        // Check max price filter (product's min price should be <= filter max)
+        if (maxPrice !== null && productMinPrice !== null && productMinPrice > maxPrice) {
+          return false
+        }
+
+        return true
+      })
+    }
+
+    return result
+  }, [products, priceMin, priceMax])
+
+  // ============================================
   // FILTERS
   // ============================================
 
@@ -391,7 +457,35 @@ export default function Products() {
         </Select>
       ),
     },
-  ], [t]);
+    // Price range filter
+    {
+      type: "custom",
+      columnId: "price",
+      render: () => (
+        <div className="flex items-center gap-2">
+          <Input
+            className="h-9 w-24"
+            min="0"
+            placeholder={t('admin.products_table.filters.price_from')}
+            step="0.01"
+            type="number"
+            value={priceMin}
+            onChange={(e) => { setPriceMin(e.target.value); }}
+          />
+          <span className="text-muted-foreground">—</span>
+          <Input
+            className="h-9 w-24"
+            min="0"
+            placeholder={t('admin.products_table.filters.price_to')}
+            step="0.01"
+            type="number"
+            value={priceMax}
+            onChange={(e) => { setPriceMax(e.target.value); }}
+          />
+        </div>
+      ),
+    },
+  ], [t, priceMin, priceMax]);
 
   // ============================================
   // TRANSLATIONS
@@ -441,7 +535,7 @@ export default function Products() {
           bulkActions={bulkActions}
           bulkActionsSlot={renderBulkActionsSlot}
           columns={columns}
-          data={products ?? []}
+          data={filteredProducts}
           filters={filters}
           getRowId={(row) => row.id.toString()}
           translations={translations}

@@ -144,6 +144,7 @@ return [
         'columns' => [
             'title' => 'Название',
             'status' => 'Статус',
+            'price' => 'Цена',
             'created' => 'Создан',
         ],
         'status' => [
@@ -166,6 +167,8 @@ return [
             'search_placeholder' => 'Поиск по названию...',
             'all_statuses' => 'Все статусы',
             'columns' => 'Колонки',
+            'price_from' => 'Цена от',
+            'price_to' => 'Цена до',
         ],
         'pagination' => [
             'rows_selected' => 'из',

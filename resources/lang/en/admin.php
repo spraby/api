@@ -144,6 +144,7 @@ return [
         'columns' => [
             'title' => 'Title',
             'status' => 'Status',
+            'price' => 'Price',
             'created' => 'Created',
         ],
         'status' => [
@@ -166,6 +167,8 @@ return [
             'search_placeholder' => 'Search by title...',
             'all_statuses' => 'All statuses',
             'columns' => 'Columns',
+            'price_from' => 'Price from',
+            'price_to' => 'Price to',
         ],
         'pagination' => [
             'rows_selected' => 'of',

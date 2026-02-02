@@ -7,6 +7,7 @@ use App\Enums\FileType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductListResource;
 use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Product;
@@ -43,35 +44,13 @@ class ProductController extends Controller
             ]);
         }
 
-        $products = Product::with(['brand', 'category', 'images.image'])
+        $products = Product::with(['brand', 'category', 'images.image', 'variants'])
             ->where('brand_id', $brand->id)
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($product) {
-                $mainImage = $product->images->sortBy('position')->first();
-
-                return [
-                    'id' => $product->id,
-                    'title' => $product->title,
-                    'description' => $product->description,
-                    'enabled' => $product->enabled,
-                    'brand_id' => $product->brand_id,
-                    'category_id' => $product->category_id,
-                    'brand' => $product->brand ? [
-                        'id' => $product->brand->id,
-                        'name' => $product->brand->name,
-                    ] : null,
-                    'category' => $product->category ? [
-                        'id' => $product->category->id,
-                        'name' => $product->category->name,
-                    ] : null,
-                    'image_url' => $mainImage?->image?->url,
-                    'created_at' => $product->created_at->toISOString(),
-                ];
-            });
+            ->get();
 
         return Inertia::render('Products', [
-            'products' => $products,
+            'products' => ProductListResource::collection($products)->resolve(),
         ]);
     }
 

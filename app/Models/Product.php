@@ -23,7 +23,10 @@ use Illuminate\Support\Facades\DB;
  * @property Carbon $updated_at
  * @property string $externalUrl
  * @property float $discount
- * @property ProductImage $mainImage
+ * @property ProductImage|null $mainImage
+ * @property string|null $imageUrl
+ * @property float|null $minPrice
+ * @property float|null $maxPrice
  * @property-read Brand $brand
  * @property-read Category|null $category
  * @property-read Collection<Variant> $variants
@@ -127,6 +130,25 @@ class Product extends Model
     public function getMainImageAttribute(): ?ProductImage
     {
         return $this->images?->sortBy('position')?->first();
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->mainImage?->image?->url;
+    }
+
+    public function getMinPriceAttribute(): ?float
+    {
+        $prices = $this->variants?->pluck('final_price')->filter();
+
+        return $prices?->isNotEmpty() ? (float) $prices->min() : null;
+    }
+
+    public function getMaxPriceAttribute(): ?float
+    {
+        $prices = $this->variants?->pluck('final_price')->filter();
+
+        return $prices?->isNotEmpty() ? (float) $prices->max() : null;
     }
 
     public function getExternalUrlAttribute(): string
