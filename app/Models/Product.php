@@ -55,6 +55,10 @@ class Product extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'externalUrl',
+    ];
+
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);

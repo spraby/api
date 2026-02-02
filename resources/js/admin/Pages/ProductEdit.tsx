@@ -1,5 +1,5 @@
 import {router} from '@inertiajs/react';
-import {ArrowLeftIcon} from 'lucide-react';
+import {ArrowLeftIcon, ExternalLinkIcon} from 'lucide-react';
 
 import {ProductForm} from "@/components/product-form.tsx";
 import {Button} from '@/components/ui/button';
@@ -41,6 +41,17 @@ export default function ProductEdit({product}: ProductEditProps) {
                             <p className="pl-10 text-sm text-muted-foreground">
                                 {t('admin.products_edit.description')}
                             </p>
+                            {product.externalUrl ? (
+                                <a
+                                    className="pl-10 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground underline"
+                                    href={product.externalUrl}
+                                    rel="noopener noreferrer"
+                                    target="_blank"
+                                >
+                                    View on store
+                                    <ExternalLinkIcon className="size-3"/>
+                                </a>
+                            ) : null}
                         </div>
                     </div>
 
