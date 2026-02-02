@@ -3,10 +3,12 @@
  *
  * Allows selecting option values for a product variant based on category options
  */
-import {type FormEventHandler, useEffect, useMemo, useRef} from "react";
+import {type FormEventHandler, useCallback, useEffect, useMemo, useRef} from "react";
 
 import {useForm, router} from '@inertiajs/react';
+import isEqual from 'lodash-es/isEqual';
 import {toast} from "sonner";
+
 
 import {ProductImagesManager} from "@/components/product-images-manager.tsx";
 import {ProductVariantList} from "@/components/product-variant-list.tsx";
@@ -24,6 +26,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {UnsavedChangesBar} from "@/components/unsaved-changes-bar.tsx";
 import {useLang} from '@/lib/lang';
 import {VariantService} from '@/services/variant-service';
 import type {Product} from "@/types/models.ts";
@@ -32,7 +35,7 @@ import type {Product} from "@/types/models.ts";
 export function ProductForm({product: defaultProduct}: { product: Product }) {
     const {t} = useLang();
 
-    const {data: product, setData, errors, put, post, processing} = useForm(defaultProduct);
+    const {data: product, setData, errors, put, post, processing, reset} = useForm(defaultProduct);
     const isEditMode = useMemo(() => !!product?.id, [product?.id]);
     const brandCategories = useMemo(() => defaultProduct?.brand?.categories ?? [], [defaultProduct?.brand?.categories]);
     const category = useMemo(() => {
@@ -43,6 +46,17 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
         return brandCategories[0]
     }, [product, brandCategories])
+
+    // Track saved state for unsaved changes detection
+    const savedDataRef = useRef(defaultProduct);
+    const hasUnsavedChanges = useMemo(() => {
+        // Compare only editable fields to avoid false positives from computed properties
+        const editableFields = ['title', 'description', 'enabled', 'category_id', 'variants'] as const;
+        const currentData = editableFields.reduce((acc, key) => ({...acc, [key]: product[key]}), {});
+        const savedData = editableFields.reduce((acc, key) => ({...acc, [key]: savedDataRef.current[key]}), {});
+
+        return !isEqual(currentData, savedData);
+    }, [product]);
 
     // Check for duplicate variants
     const hasDuplicateVariants = useMemo(() => {
@@ -106,9 +120,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     /**
      * Handle form submission with duplicate validation
      */
-    const onSubmit: FormEventHandler = (e) => {
-        e.preventDefault();
-
+    const submitForm = useCallback(() => {
         // Prevent saving if there are duplicate variants
         if (hasDuplicateVariants) {
             toast.error(t('admin.products_edit.errors.duplicate_variants'));
@@ -120,13 +132,29 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             put(route('admin.products.update', product.id), {
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    setData(page.props['product'] as Product);
+                    const updatedProduct = page.props['product'] as Product;
+
+                    setData(updatedProduct);
+                    savedDataRef.current = updatedProduct;
                 },
             });
         } else {
             post(route('admin.products.store'));
         }
+    }, [hasDuplicateVariants, t, product?.id, put, setData, post]);
+
+    const onSubmit: FormEventHandler = (e) => {
+        e.preventDefault();
+        submitForm();
     }
+
+    /**
+     * Discard unsaved changes
+     */
+    const handleDiscard = useCallback(() => {
+        reset();
+        setData(savedDataRef.current);
+    }, [reset, setData]);
 
     return <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
@@ -251,26 +279,33 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             <p className="text-sm text-muted-foreground">
                 <span className="text-destructive">*</span> {t('admin.products_edit.required_fields')}
             </p>
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                <Button
-                    type="button"
-                    variant="outline"
-                    disabled={processing}
-                    className="w-full sm:w-auto"
-                    onClick={() => {
-                        router.visit(route('admin.products'));
-                    }}
-                >
-                    {t('admin.products_edit.actions.cancel')}
-                </Button>
-                <Button type="submit" disabled={processing || hasDuplicateVariants} className="w-full sm:w-auto">
-                    {processing
-                        ? t('admin.products_edit.actions.saving')
-                        : t('admin.products_edit.actions.save')}
-                </Button>
-            </div>
+            <Button
+                className="w-full sm:w-auto"
+                disabled={processing}
+                type="button"
+                variant="outline"
+                onClick={() => {
+                    router.visit(route('admin.products'));
+                }}
+            >
+                {t('admin.products_edit.actions.cancel')}
+            </Button>
         </div>
 
-
+        <UnsavedChangesBar
+            dialogCancelLabel={t('admin.products_edit.unsaved.dialog.cancel')}
+            dialogDescription={t('admin.products_edit.unsaved.dialog.description')}
+            dialogDiscardLabel={t('admin.products_edit.unsaved.dialog.discard')}
+            dialogSaveLabel={t('admin.products_edit.unsaved.dialog.save')}
+            dialogTitle={t('admin.products_edit.unsaved.dialog.title')}
+            discardLabel={t('admin.products_edit.actions.discard')}
+            hasChanges={hasUnsavedChanges}
+            isSaving={processing}
+            message={t('admin.products_edit.unsaved.message')}
+            mobileMessage={t('admin.products_edit.unsaved.mobile_message')}
+            saveLabel={t('admin.products_edit.actions.save')}
+            onDiscard={handleDiscard}
+            onSave={submitForm}
+        />
     </form>;
 }

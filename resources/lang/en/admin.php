@@ -254,10 +254,22 @@ return [
             'back' => 'Back to Products',
             'add_variant' => 'Add Variant',
             'cancel' => 'Cancel',
+            'discard' => 'Discard',
             'save' => 'Save Changes',
             'saving' => 'Saving...',
             'select_image' => 'Select Image',
             'change_image' => 'Change Image',
+        ],
+        'unsaved' => [
+            'message' => 'You have unsaved changes',
+            'mobile_message' => 'Unsaved changes',
+            'dialog' => [
+                'title' => 'Unsaved changes',
+                'description' => 'You have unsaved changes. What would you like to do?',
+                'save' => 'Save and leave',
+                'discard' => 'Discard changes',
+                'cancel' => 'Stay on page',
+            ],
         ],
         'errors' => [
             'at_least_one_variant' => 'Product must have at least one variant',
