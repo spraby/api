@@ -57,7 +57,19 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         const currentData = editableFields.reduce((acc, key) => ({...acc, [key]: product[key]}), {});
         const savedData = editableFields.reduce((acc, key) => ({...acc, [key]: savedDataRef.current[key]}), {});
 
-        return !isEqual(currentData, savedData);
+        const hasChanges = !isEqual(currentData, savedData);
+
+        // Debug
+        if (hasChanges) {
+            console.log('hasUnsavedChanges:', {
+                currentData,
+                savedData,
+                descriptionNormalized: descriptionNormalizedRef.current,
+                descriptionEqual: currentData.description === savedData.description,
+            });
+        }
+
+        return hasChanges;
     }, [product]);
 
     // Check for duplicate variants

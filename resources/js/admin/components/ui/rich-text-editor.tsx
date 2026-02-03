@@ -154,6 +154,13 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           ),
         },
       },
+      onCreate: ({ editor }) => {
+        // Call onChange with normalized HTML on editor creation
+        // This ensures the form state matches the normalized content
+        const html = editor.getHTML();
+
+        onChange?.(html);
+      },
       onUpdate: ({ editor }) => {
         const html = editor.getHTML();
 
