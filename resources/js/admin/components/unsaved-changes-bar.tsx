@@ -84,6 +84,14 @@ export function UnsavedChangesBar({
     // Intercept Inertia navigation
     React.useEffect(() => {
         const removeListener = router.on('before', (event) => {
+            const {visit} = event.detail;
+
+            // Only intercept GET requests (actual navigation)
+            // Allow PUT/POST/PATCH/DELETE (form submissions, saves, etc.)
+            if (visit.method.toLowerCase() !== 'get') {
+                return true;
+            }
+
             // Allow navigation if no unsaved changes
             if (!hasChangesRef.current) {
                 return true;
@@ -95,7 +103,7 @@ export function UnsavedChangesBar({
             }
 
             // Store pending visit and show dialog
-            pendingVisitRef.current = event.detail.visit.url.href;
+            pendingVisitRef.current = visit.url.href;
             setIsDialogOpen(true);
 
             // Prevent navigation
