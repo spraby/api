@@ -69,8 +69,11 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     const variantsInitialized = useRef(false);
 
     useEffect(() => {
-        if (!product?.category_id && !!category?.id) {setData('category_id', category?.id);}
-    }, [product, category, setData]);
+        if (!product?.category_id && !!category?.id) {
+            setData('category_id', category.id);
+            savedDataRef.current = {...savedDataRef.current, category_id: category.id};
+        }
+    }, [product?.category_id, category?.id, setData]);
 
     // Auto-generate variant values ONLY on initial load (not on every change)
     useEffect(() => {
