@@ -11,14 +11,20 @@ import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
 import {VariantService} from '@/services/variant-service';
-import type {Option, Product, Variant, VariantValue} from '@/types/models';
+import type {Option, ProductImage, Variant, VariantValue} from '@/types/models';
 
 // Extended Variant type with temporary ID for new variants
 type VariantWithTempId = Variant & { _tempId?: string };
 
+// Minimal product data needed for variant list
+interface ProductForVariantList {
+    id?: number;
+    variants?: Variant[];
+    images?: ProductImage[];
+}
 
 interface ProductVariantListProps {
-    product: Product,
+    product: ProductForVariantList,
     options: Option[],
     onUpdate: (variants: Variant[]) => void
 }
