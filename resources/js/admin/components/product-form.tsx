@@ -49,20 +49,15 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
     // Track saved state for unsaved changes detection
     const savedDataRef = useRef(defaultProduct);
+    // Track if description has been normalized by the rich text editor
+    const descriptionNormalizedRef = useRef(false);
     const hasUnsavedChanges = useMemo(() => {
         // Compare only editable fields to avoid false positives from computed properties
         const editableFields = ['title', 'description', 'enabled', 'category_id', 'variants'] as const;
         const currentData = editableFields.reduce((acc, key) => ({...acc, [key]: product[key]}), {});
         const savedData = editableFields.reduce((acc, key) => ({...acc, [key]: savedDataRef.current[key]}), {});
 
-        const hasChanges = !isEqual(currentData, savedData);
-
-        // Debug: uncomment to see what's different
-        if (hasChanges) {
-            console.log('Unsaved changes detected:', {currentData, savedData});
-        }
-
-        return hasChanges;
+        return !isEqual(currentData, savedData);
     }, [product]);
 
     // Check for duplicate variants
@@ -194,7 +189,15 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                         <RichTextEditor
                             placeholder={t('admin.products_edit.placeholders.description')}
                             value={product.description ?? ''}
-                            onChange={v => setData('description', v)}
+                            onChange={v => {
+                                // On first change, update savedDataRef with normalized HTML
+                                // to avoid false positive unsaved changes detection
+                                if (!descriptionNormalizedRef.current) {
+                                    descriptionNormalizedRef.current = true;
+                                    savedDataRef.current = {...savedDataRef.current, description: v};
+                                }
+                                setData('description', v);
+                            }}
                         />
                         {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
                     </div>
