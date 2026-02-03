@@ -55,7 +55,14 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         const currentData = editableFields.reduce((acc, key) => ({...acc, [key]: product[key]}), {});
         const savedData = editableFields.reduce((acc, key) => ({...acc, [key]: savedDataRef.current[key]}), {});
 
-        return !isEqual(currentData, savedData);
+        const hasChanges = !isEqual(currentData, savedData);
+
+        // Debug: uncomment to see what's different
+        if (hasChanges) {
+            console.log('Unsaved changes detected:', {currentData, savedData});
+        }
+
+        return hasChanges;
     }, [product]);
 
     // Check for duplicate variants
@@ -116,6 +123,8 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
         if (hasChanges) {
             setData('variants', updatedVariants);
+            // Also update savedDataRef so auto-generated values don't trigger unsaved changes
+            savedDataRef.current = {...savedDataRef.current, variants: updatedVariants};
             variantsInitialized.current = true; // Mark as initialized
         }
     }, [category, product.variants, setData]);
