@@ -1,6 +1,6 @@
 import type * as React from "react"
 
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, OnChangeFn, PaginationState } from "@tanstack/react-table"
 import type { LucideIcon } from "lucide-react"
 
 /**
@@ -202,6 +202,27 @@ export interface ResourceListProps<TData> {
 
   /** Custom slot to render before bulk actions (e.g., for role selector) */
   bulkActionsSlot?: (selectedRows: TData[]) => React.ReactNode
+
+  /** External pagination state (for server-side pagination) */
+  paginationState?: PaginationState
+
+  /** External pagination change handler */
+  onPaginationStateChange?: OnChangeFn<PaginationState>
+
+  /** Enable manual pagination (server-side) */
+  manualPagination?: boolean
+
+  /** Total number of pages (server-side pagination) */
+  pageCount?: number
+
+  /** Total number of rows (server-side pagination) */
+  rowCount?: number
+
+  /** Initial filter values mapped by column id */
+  initialFilters?: Record<string, string>
+
+  /** Callback when filters change */
+  onFiltersChange?: (filters: Record<string, string>) => void
 }
 
 /**

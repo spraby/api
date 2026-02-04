@@ -33,13 +33,10 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
     });
 
     Route::middleware('auth')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Dashboard');
-        })->name('dashboard');
+        Route::get('/', [App\Http\Controllers\Admin\DashboardController::class, 'index'])
+            ->name('dashboard');
 
-        Route::get('/dashboard', function () {
-            return Inertia::render('Dashboard');
-        });
+        Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index']);
 
         // Inertia routes (page rendering only)
         Route::get('/users', function () {

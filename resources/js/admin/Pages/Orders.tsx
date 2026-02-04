@@ -34,6 +34,7 @@ import type { Filter, ResourceListTranslations } from '@/types/resource-list';
 import AdminLayout from '../layouts/AdminLayout.tsx';
 
 import type { ColumnDef } from "@tanstack/react-table"
+import type { PaginationState } from "@tanstack/react-table"
 
 // ============================================
 // TYPES
@@ -58,6 +59,19 @@ interface Order {
   total: number;
   created_at: string;
 }
+
+type OrdersPagination = {
+  page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+};
+
+type OrdersFilters = {
+  search: string;
+  status: string;
+  financial_status: string;
+};
 
 // ============================================
 // STATUS BADGE COMPONENTS
@@ -295,7 +309,13 @@ const createOrderColumns = (
 
 export default function Orders() {
   const { t } = useLang();
-  const { orders } = usePage<{ orders: Order[] }>().props;
+  const { orders, pagination, filters: activeFilters } = usePage<{
+    orders: Order[];
+    pagination: OrdersPagination;
+    filters: OrdersFilters;
+  }>().props;
+  const [isLoading, setIsLoading] = React.useState(false);
+  const searchTimeoutRef = React.useRef<number | null>(null);
 
   // ============================================
   // COLUMNS
@@ -305,6 +325,103 @@ export default function Orders() {
     () => createOrderColumns(t),
     [t]
   );
+
+  const paginationState = React.useMemo<PaginationState>(() => ({
+    pageIndex: Math.max(0, (pagination?.page ?? 1) - 1),
+    pageSize: pagination?.per_page ?? 10,
+  }), [pagination]);
+
+  const initialFilters = React.useMemo(() => ({
+    name: activeFilters?.search ?? "",
+    status: activeFilters?.status ?? "",
+    financial_status: activeFilters?.financial_status ?? "",
+  }), [activeFilters]);
+
+  const requestOrders = React.useCallback((params: {
+    page: number;
+    per_page: number;
+    search: string;
+    status: string;
+    financial_status: string;
+  }) => {
+    router.get('/admin/orders', params, {
+      preserveState: true,
+      preserveScroll: true,
+      onStart: () => setIsLoading(true),
+      onFinish: () => setIsLoading(false),
+    });
+  }, []);
+
+  const handlePaginationChange = React.useCallback((updater: PaginationState | ((prev: PaginationState) => PaginationState)) => {
+    const next = typeof updater === "function" ? updater(paginationState) : updater;
+    const nextPage = next.pageSize !== paginationState.pageSize ? 1 : next.pageIndex + 1;
+
+    requestOrders({
+      page: nextPage,
+      per_page: next.pageSize,
+      search: activeFilters?.search ?? "",
+      status: activeFilters?.status ?? "",
+      financial_status: activeFilters?.financial_status ?? "",
+    });
+  }, [activeFilters, paginationState, requestOrders]);
+
+  const handleFiltersChange = React.useCallback((nextFilters: Record<string, string>) => {
+    const normalized = {
+      search: nextFilters.name ?? "",
+      status: nextFilters.status ?? "",
+      financial_status: nextFilters.financial_status ?? "",
+    };
+    const current = {
+      search: activeFilters?.search ?? "",
+      status: activeFilters?.status ?? "",
+      financial_status: activeFilters?.financial_status ?? "",
+    };
+
+    const isSame = normalized.search === current.search
+      && normalized.status === current.status
+      && normalized.financial_status === current.financial_status;
+
+    if (isSame) {
+      return;
+    }
+
+    const statusChanged = normalized.status !== current.status
+      || normalized.financial_status !== current.financial_status;
+
+    if (statusChanged) {
+      if (searchTimeoutRef.current) {
+        window.clearTimeout(searchTimeoutRef.current);
+        searchTimeoutRef.current = null;
+      }
+
+      requestOrders({
+        page: 1,
+        per_page: pagination?.per_page ?? 10,
+        ...normalized,
+      });
+      return;
+    }
+
+    if (searchTimeoutRef.current) {
+      window.clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = window.setTimeout(() => {
+      requestOrders({
+        page: 1,
+        per_page: pagination?.per_page ?? 10,
+        ...normalized,
+      });
+    }, 400);
+  }, [activeFilters, pagination, requestOrders]);
+
+  React.useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        window.clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // ============================================
   // FILTERS
@@ -407,6 +524,14 @@ export default function Orders() {
           filters={filters}
           getRowId={(row) => row.id.toString()}
           translations={translations}
+          loading={isLoading}
+          manualPagination
+          pageCount={pagination?.last_page ?? 1}
+          rowCount={pagination?.total ?? 0}
+          paginationState={paginationState}
+          onPaginationStateChange={handlePaginationChange}
+          initialFilters={initialFilters}
+          onFiltersChange={handleFiltersChange}
         />
       </div>
     </AdminLayout>

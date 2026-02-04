@@ -57,6 +57,8 @@ import type {
 
 import type {
   ColumnFiltersState,
+  OnChangeFn,
+  PaginationState,
   SortingState,
   VisibilityState} from "@tanstack/react-table";
 
@@ -102,16 +104,33 @@ export function ResourceList<TData>({
   renderEmpty,
   onRowSelectionChange,
   bulkActionsSlot,
+  paginationState,
+  onPaginationStateChange,
+  manualPagination = false,
+  pageCount,
+  rowCount,
+  initialFilters,
+  onFiltersChange,
 }: ResourceListProps<TData>) {
   // ============================================
   // STATE MANAGEMENT
   // ============================================
 
+  const buildColumnFilters = React.useCallback((values?: Record<string, string>) => {
+    if (!values) {
+      return [] as ColumnFiltersState;
+    }
+
+    return Object.entries(values)
+      .filter(([, value]) => value !== undefined && value !== null && String(value).length > 0)
+      .map(([id, value]) => ({ id, value }));
+  }, []);
+
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(() => buildColumnFilters(initialFilters))
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState({
+  const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: defaultPageSize,
   })
@@ -124,6 +143,9 @@ export function ResourceList<TData>({
   // TABLE CONFIGURATION
   // ============================================
 
+  const effectivePagination = paginationState ?? pagination
+  const handlePaginationChange: OnChangeFn<PaginationState> = onPaginationStateChange ?? setPagination
+
   const table = useReactTable({
     data,
     columns,
@@ -132,7 +154,7 @@ export function ResourceList<TData>({
       columnVisibility,
       rowSelection: enableRowSelection ? rowSelection : undefined,
       columnFilters,
-      pagination: enablePagination ? pagination : undefined,
+      pagination: enablePagination ? effectivePagination : undefined,
     },
     getRowId,
     enableRowSelection,
@@ -141,7 +163,9 @@ export function ResourceList<TData>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
+    onPaginationChange: enablePagination ? handlePaginationChange : undefined,
+    manualPagination,
+    pageCount: manualPagination ? pageCount : undefined,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
@@ -169,6 +193,60 @@ export function ResourceList<TData>({
       onRowSelectionChange(selectedData)
     }
   }, [selectedData, onRowSelectionChange])
+
+  React.useEffect(() => {
+    if (!initialFilters) {
+      return;
+    }
+
+    const nextFilters = buildColumnFilters(initialFilters);
+    const isSame = nextFilters.length === columnFilters.length
+      && nextFilters.every((nextFilter, index) => {
+        const current = columnFilters[index];
+        return current?.id === nextFilter.id && current?.value === nextFilter.value;
+      });
+
+    if (!isSame) {
+      setColumnFilters(nextFilters);
+    }
+  }, [initialFilters, buildColumnFilters, columnFilters]);
+
+  const filtersChangeRef = React.useRef<Record<string, string>>({});
+  const skipFiltersChangeRef = React.useRef(true);
+
+  React.useEffect(() => {
+    if (!onFiltersChange) {
+      return;
+    }
+
+    const nextFilters = columnFilters.reduce<Record<string, string>>((acc, filter) => {
+      if (filter.value !== undefined && filter.value !== null && String(filter.value).length > 0) {
+        acc[filter.id] = String(filter.value);
+      }
+      return acc;
+    }, {});
+
+    const allKeys = new Set([
+      ...Object.keys(filtersChangeRef.current),
+      ...Object.keys(nextFilters),
+    ]);
+    const isSame = Array.from(allKeys).every((key) =>
+      (filtersChangeRef.current[key] ?? "") === (nextFilters[key] ?? "")
+    );
+
+    if (skipFiltersChangeRef.current) {
+      skipFiltersChangeRef.current = false;
+      filtersChangeRef.current = nextFilters;
+      return;
+    }
+
+    if (isSame) {
+      return;
+    }
+
+    filtersChangeRef.current = nextFilters;
+    onFiltersChange(nextFilters);
+  }, [columnFilters, onFiltersChange]);
 
   // ============================================
   // BULK ACTION HANDLERS
@@ -475,7 +553,7 @@ export function ResourceList<TData>({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-muted-foreground">
             {table.getFilteredSelectedRowModel().rows.length}{" "}
-            {translations.rowsSelected} {table.getFilteredRowModel().rows.length}{" "}
+            {translations.rowsSelected} {rowCount ?? table.getFilteredRowModel().rows.length}{" "}
             {translations.row}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 lg:gap-8">

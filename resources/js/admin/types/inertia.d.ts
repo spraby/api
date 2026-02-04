@@ -39,6 +39,7 @@ export interface LangTranslations {
     russian: string;
     english: string;
   };
+  dashboard: Record<string, unknown>;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
