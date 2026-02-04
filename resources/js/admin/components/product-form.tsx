@@ -3,10 +3,12 @@
  *
  * Allows selecting option values for a product variant based on category options
  */
-import {type FormEventHandler, useEffect, useMemo, useRef} from "react";
+import {type FormEventHandler, useCallback, useEffect, useMemo, useRef} from "react";
 
 import {useForm, router} from '@inertiajs/react';
+import isEqual from 'lodash-es/isEqual';
 import {toast} from "sonner";
+
 
 import {ProductImagesManager} from "@/components/product-images-manager.tsx";
 import {ProductVariantList} from "@/components/product-variant-list.tsx";
@@ -24,50 +26,152 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {UnsavedChangesBar} from "@/components/unsaved-changes-bar.tsx";
 import {useLang} from '@/lib/lang';
 import {VariantService} from '@/services/variant-service';
-import type {Product} from "@/types/models.ts";
+import type {Product, ProductImage, Variant} from "@/types/models.ts";
 
+// Simplified variant type for form data (excludes nested relations that cause FormDataType issues)
+interface FormVariant {
+    id?: number;
+    _tempId?: string;
+    product_id: number;
+    image_id: number | null;
+    title: string | null;
+    price: string;
+    final_price: string;
+    enabled: boolean;
+    values?: {
+        variant_id?: number;
+        option_id: number;
+        option_value_id: number;
+    }[];
+}
+
+// Form-specific type that only includes editable fields to avoid Inertia FormDataType issues
+// with deeply nested relations (brand.settings[].data: Record<string, unknown>)
+interface ProductFormData {
+    id?: number;
+    brand_id: number;
+    category_id: number | null;
+    title: string;
+    description: string | null;
+    enabled: boolean;
+    variants: FormVariant[];
+}
+
+// Read-only data passed from server (not part of form submission)
+interface ProductReadOnlyData {
+    images: ProductImage[];
+    externalUrl?: string;
+}
+
+// Convert full Variant to simplified FormVariant
+function toFormVariant(variant: Variant): FormVariant {
+    return {
+        id: variant.id,
+        product_id: variant.product_id,
+        image_id: variant.image_id,
+        title: variant.title,
+        price: variant.price,
+        final_price: variant.final_price,
+        enabled: variant.enabled,
+        values: variant.values?.map(v => ({
+            variant_id: v.variant_id,
+            option_id: v.option_id,
+            option_value_id: v.option_value_id,
+        })),
+    };
+}
+
+// Convert full Variant array to FormVariant array
+function toFormVariants(variants?: Variant[]): FormVariant[] {
+    return (variants ?? []).map(toFormVariant);
+}
 
 export function ProductForm({product: defaultProduct}: { product: Product }) {
     const {t} = useLang();
 
-    const {data: product, setData, errors, put, post, processing} = useForm(defaultProduct);
-    const isEditMode = useMemo(() => !!product?.id, [product?.id]);
+    const initialFormData: ProductFormData = {
+        id: defaultProduct.id,
+        brand_id: defaultProduct.brand_id,
+        category_id: defaultProduct.category_id,
+        title: defaultProduct.title,
+        description: defaultProduct.description,
+        enabled: defaultProduct.enabled,
+        variants: toFormVariants(defaultProduct.variants),
+    };
+
+    // Read-only data (kept outside form state, updated on server response)
+    const readOnlyDataRef = useRef<ProductReadOnlyData>({
+        images: defaultProduct.images ?? [],
+        externalUrl: defaultProduct.externalUrl,
+    });
+
+    const {data: formData, setData, errors, put, post, processing, reset} = useForm<ProductFormData>(initialFormData);
+    const isEditMode = useMemo(() => !!formData?.id, [formData?.id]);
     const brandCategories = useMemo(() => defaultProduct?.brand?.categories ?? [], [defaultProduct?.brand?.categories]);
     const category = useMemo(() => {
         if (!brandCategories?.length) {return null;}
-        if (product?.category_id) {
-            return brandCategories.find(i => i.id === product.category_id);
+        if (formData?.category_id) {
+            return brandCategories.find(i => i.id === formData.category_id);
         }
 
         return brandCategories[0]
-    }, [product, brandCategories])
+    }, [formData, brandCategories])
+
+    // Track saved state for unsaved changes detection
+    const savedDataRef = useRef<ProductFormData>(initialFormData);
+    // Track if description has been normalized by the rich text editor
+    const descriptionNormalizedRef = useRef(false);
+    const hasUnsavedChanges = useMemo(() => {
+        // Compare only editable fields to avoid false positives from computed properties
+        const editableFields = ['title', 'description', 'enabled', 'category_id', 'variants'] as const;
+        const currentData = editableFields.reduce<Record<string, unknown>>((acc, key) => ({...acc, [key]: formData[key]}), {});
+        const savedData = editableFields.reduce<Record<string, unknown>>((acc, key) => ({...acc, [key]: savedDataRef.current[key]}), {});
+
+        const hasChanges = !isEqual(currentData, savedData);
+
+        // Debug
+        if (hasChanges) {
+            console.log('hasUnsavedChanges:', {
+                currentData,
+                savedData,
+                descriptionNormalized: descriptionNormalizedRef.current,
+                descriptionEqual: currentData['description'] === savedData['description'],
+            });
+        }
+
+        return hasChanges;
+    }, [formData]);
 
     // Check for duplicate variants
     const hasDuplicateVariants = useMemo(() => {
-        const duplicateGroups = VariantService.findDuplicateGroups(product.variants ?? []);
+        const duplicateGroups = VariantService.findDuplicateGroups(formData.variants ?? []);
 
         return duplicateGroups.length > 0;
-    }, [product.variants]);
+    }, [formData.variants]);
 
     // Track if variant values have been initialized to prevent overwriting user changes
     const variantsInitialized = useRef(false);
 
     useEffect(() => {
-        if (!product?.category_id && !!category?.id) {setData('category_id', category?.id);}
-    }, [product, category, setData]);
+        if (!formData?.category_id && !!category?.id) {
+            setData('category_id', category.id);
+            savedDataRef.current = {...savedDataRef.current, category_id: category.id};
+        }
+    }, [formData?.category_id, category?.id, setData]);
 
     // Auto-generate variant values ONLY on initial load (not on every change)
     useEffect(() => {
         // Skip if already initialized or no data
-        if (variantsInitialized.current || !category?.options?.length || !product?.variants?.length) {
+        if (variantsInitialized.current || !category?.options?.length || !formData?.variants?.length) {
             return;
         }
 
         let hasChanges = false;
 
-        const updatedVariants = product.variants.map((variant, index) => {
+        const updatedVariants = formData.variants.map((variant, index) => {
             // Skip variants that already have an ID (existing variants)
             if (variant?.id) {
                 return variant;
@@ -79,7 +183,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             }
 
             // Get all other variants (excluding current one being processed)
-            const otherVariants = (product.variants ?? []).filter((_, i) => i !== index);
+            const otherVariants = (formData.variants ?? []).filter((_, i) => i !== index);
 
             // Generate first unique combination for this variant
             const generatedValues = VariantService.generateVariantValues(
@@ -99,16 +203,16 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
         if (hasChanges) {
             setData('variants', updatedVariants);
+            // Also update savedDataRef so auto-generated values don't trigger unsaved changes
+            savedDataRef.current = {...savedDataRef.current, variants: updatedVariants};
             variantsInitialized.current = true; // Mark as initialized
         }
-    }, [category, product.variants, setData]);
+    }, [category, formData.variants, setData]);
 
     /**
      * Handle form submission with duplicate validation
      */
-    const onSubmit: FormEventHandler = (e) => {
-        e.preventDefault();
-
+    const submitForm = useCallback(() => {
         // Prevent saving if there are duplicate variants
         if (hasDuplicateVariants) {
             toast.error(t('admin.products_edit.errors.duplicate_variants'));
@@ -116,17 +220,48 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             return;
         }
 
-        if (product?.id) {
-            put(route('admin.products.update', product.id), {
+        if (formData?.id) {
+            put(route('admin.products.update', formData.id), {
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    setData(page.props['product'] as Product);
+                    const updatedProduct = page.props['product'] as Product;
+                    const updatedFormData: ProductFormData = {
+                        id: updatedProduct.id,
+                        brand_id: updatedProduct.brand_id,
+                        category_id: updatedProduct.category_id,
+                        title: updatedProduct.title,
+                        description: updatedProduct.description,
+                        enabled: updatedProduct.enabled,
+                        variants: toFormVariants(updatedProduct.variants),
+                    };
+
+                    // Update read-only data
+                    readOnlyDataRef.current = {
+                        images: updatedProduct.images ?? [],
+                        externalUrl: updatedProduct.externalUrl,
+                    };
+
+                    setData(updatedFormData);
+                    savedDataRef.current = updatedFormData;
                 },
             });
         } else {
             post(route('admin.products.store'));
         }
+    }, [hasDuplicateVariants, t, formData?.id, put, setData, post]);
+
+    const onSubmit: FormEventHandler = (e) => {
+        e.preventDefault();
+        submitForm();
     }
+
+    /**
+     * Discard unsaved changes
+     */
+    const handleDiscard = useCallback(() => {
+        reset();
+        setData(savedDataRef.current);
+    }, [reset, setData]);
 
     return <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
@@ -142,7 +277,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                             id="title"
                             placeholder={t('admin.products_edit.placeholders.title')}
                             type="text"
-                            value={product.title}
+                            value={formData.title}
                             onChange={e => setData('title', e.target.value)}
                             className={errors.title ? 'border-destructive' : ''}
                         />
@@ -153,8 +288,16 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                             htmlFor="description">{t('admin.products_edit.fields.description')}</Label>
                         <RichTextEditor
                             placeholder={t('admin.products_edit.placeholders.description')}
-                            value={product.description ?? ''}
-                            onChange={v => setData('description', v)}
+                            value={formData.description ?? ''}
+                            onChange={v => {
+                                // On first change, update savedDataRef with normalized HTML
+                                // to avoid false positive unsaved changes detection
+                                if (!descriptionNormalizedRef.current) {
+                                    descriptionNormalizedRef.current = true;
+                                    savedDataRef.current = {...savedDataRef.current, description: v};
+                                }
+                                setData('description', v);
+                            }}
                         />
                         {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
                     </div>
@@ -166,7 +309,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
                             <Checkbox
-                                checked={product.enabled}
+                                checked={formData.enabled}
                                 id="enabled"
                                 onCheckedChange={v => setData('enabled', v as boolean)}
                             />
@@ -226,18 +369,22 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             </div>
 
             {
-                !!product?.id &&
+                !!formData?.id &&
                 <Card className="col-span-9 p-4 sm:p-6">
                     <ProductImagesManager
                         disabled={processing}
-                        images={product.images || []}
-                        productId={product?.id}
+                        images={readOnlyDataRef.current.images}
+                        productId={formData.id}
                     />
                 </Card>
             }
             {
-                (!!product?.variants?.length) && <ProductVariantList
-                    product={product}
+                (!!formData?.variants?.length) && <ProductVariantList
+                    product={{
+                        id: formData.id,
+                        variants: formData.variants,
+                        images: readOnlyDataRef.current.images,
+                    }}
                     onUpdate={v => {
                         setData('variants', [...v])
                     }}
@@ -251,26 +398,33 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             <p className="text-sm text-muted-foreground">
                 <span className="text-destructive">*</span> {t('admin.products_edit.required_fields')}
             </p>
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                <Button
-                    type="button"
-                    variant="outline"
-                    disabled={processing}
-                    className="w-full sm:w-auto"
-                    onClick={() => {
-                        router.visit(route('admin.products'));
-                    }}
-                >
-                    {t('admin.products_edit.actions.cancel')}
-                </Button>
-                <Button type="submit" disabled={processing || hasDuplicateVariants} className="w-full sm:w-auto">
-                    {processing
-                        ? t('admin.products_edit.actions.saving')
-                        : t('admin.products_edit.actions.save')}
-                </Button>
-            </div>
+            <Button
+                className="w-full sm:w-auto"
+                disabled={processing}
+                type="button"
+                variant="outline"
+                onClick={() => {
+                    router.visit(route('admin.products'));
+                }}
+            >
+                {t('admin.products_edit.actions.cancel')}
+            </Button>
         </div>
 
-
+        <UnsavedChangesBar
+            dialogCancelLabel={t('admin.products_edit.unsaved.dialog.cancel')}
+            dialogDescription={t('admin.products_edit.unsaved.dialog.description')}
+            dialogDiscardLabel={t('admin.products_edit.unsaved.dialog.discard')}
+            dialogSaveLabel={t('admin.products_edit.unsaved.dialog.save')}
+            dialogTitle={t('admin.products_edit.unsaved.dialog.title')}
+            discardLabel={t('admin.products_edit.actions.discard')}
+            hasChanges={hasUnsavedChanges}
+            isSaving={processing}
+            message={t('admin.products_edit.unsaved.message')}
+            mobileMessage={t('admin.products_edit.unsaved.mobile_message')}
+            saveLabel={t('admin.products_edit.actions.save')}
+            onDiscard={handleDiscard}
+            onSave={submitForm}
+        />
     </form>;
 }

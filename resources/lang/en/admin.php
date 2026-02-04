@@ -230,12 +230,9 @@ return [
 
     'products_table' => [
         'columns' => [
-            'id' => 'ID',
-            'image' => 'Image',
             'title' => 'Title',
-            'price' => 'Price',
             'status' => 'Status',
-            'brand' => 'Brand',
+            'price' => 'Price',
             'created' => 'Created',
         ],
         'status' => [
@@ -258,6 +255,8 @@ return [
             'search_placeholder' => 'Search by title...',
             'all_statuses' => 'All statuses',
             'columns' => 'Columns',
+            'price_from' => 'Price from',
+            'price_to' => 'Price to',
         ],
         'pagination' => [
             'rows_selected' => 'of',
@@ -343,10 +342,22 @@ return [
             'back' => 'Back to Products',
             'add_variant' => 'Add Variant',
             'cancel' => 'Cancel',
+            'discard' => 'Discard',
             'save' => 'Save Changes',
             'saving' => 'Saving...',
             'select_image' => 'Select Image',
             'change_image' => 'Change Image',
+        ],
+        'unsaved' => [
+            'message' => 'You have unsaved changes',
+            'mobile_message' => 'Unsaved changes',
+            'dialog' => [
+                'title' => 'Unsaved changes',
+                'description' => 'You have unsaved changes. What would you like to do?',
+                'save' => 'Save and leave',
+                'discard' => 'Discard changes',
+                'cancel' => 'Stay on page',
+            ],
         ],
         'errors' => [
             'at_least_one_variant' => 'Product must have at least one variant',

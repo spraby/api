@@ -33,11 +33,9 @@ class StoreProductRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'final_price' => ['nullable', 'numeric', 'min:0'],
             'enabled' => ['required', 'boolean'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
-            
+
             'variants' => ['required', 'array', 'min:1'],
             'variants.*.title' => ['nullable', 'string', 'max:255'],
             'variants.*.price' => ['required', 'numeric', 'min:0'],

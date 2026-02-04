@@ -14,3 +14,19 @@ export function parseNum(val: string | number) {
 
     return isNaN(n) ? 0 : n;
 }
+
+/**
+ * Formats a number as money with currency
+ * @param value - The numeric value to format
+ * @param currency - Currency code (default: 'BYN')
+ * @returns Formatted string like "123.45 BYN"
+ */
+export function toMoneyFormat(value: number | string | null | undefined, currency = 'BYN'): string {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+
+    if (num === null || num === undefined || isNaN(num)) {
+        return `0.00 ${currency}`;
+    }
+
+    return `${num.toFixed(2)} ${currency}`;
+}

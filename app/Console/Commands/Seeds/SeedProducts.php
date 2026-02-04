@@ -89,8 +89,6 @@ class SeedProducts extends Command
     private function generateProduct(Brand $brand, Category $category): Product
     {
         $key = random_int(1, 10000000000);
-        $price = random_int(10, 100);
-        $final_price = $price * (random_int(90, 100) / 100);
 
         /**
          * @var Product $product
@@ -104,8 +102,6 @@ class SeedProducts extends Command
                         <p>Brand_id: {$brand->id}</p>
                         <p>Email: {$brand->user->email}</p>
                     </div>",
-            'price' => $price,
-            'final_price' => $final_price,
         ]);
 
         $count = $category->options->sum(function ($option) {
