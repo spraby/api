@@ -197,15 +197,16 @@ return [
             'clicks' => 'Clicks',
             'add_to_cart' => 'Add to cart',
         ],
-        'notes' => [
-            'tracking' => 'Views and clicks are tracked via cookies for the last 24 hours, so the metric reflects unique events rather than repeat activity.',
-        ],
         'orders_widget' => [
             'title' => 'Order status health',
             'description' => 'Keep order statuses up to date and spot blockers fast',
             'health_label' => 'Status freshness',
             'active_total' => ':count active orders',
             'needs_attention' => ':count need attention',
+            'unpaid_total' => 'Unpaid amount',
+            'unpaid_count' => 'Unpaid orders: :count',
+            'paid_total' => 'Paid amount',
+            'paid_count' => 'Paid orders: :count',
             'no_statuses' => 'No orders for selected period',
             'cta' => 'Go to orders',
             'attention' => [

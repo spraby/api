@@ -212,6 +212,10 @@ class DashboardController extends Controller
     {
         return [
             'health' => null,
+            'paid_total' => 0,
+            'paid_count' => 0,
+            'unpaid_total' => 0,
+            'unpaid_count' => 0,
             'active_total' => 0,
             'needs_attention' => 0,
             'status_total' => 0,
@@ -262,6 +266,14 @@ class DashboardController extends Controller
                 'archived' => 0,
             ];
 
+            $totalsSubquery = DB::table('order_items as oi')
+                ->join('orders as oo', 'oo.id', '=', 'oi.order_id')
+                ->whereBetween('oo.created_at', [$start, $end])
+                ->when($brandId, fn ($query) => $query->where('oo.brand_id', $brandId))
+                ->whereNotIn('oo.status', self::EXCLUDED_STATUSES)
+                ->selectRaw('oi.order_id, COALESCE(SUM(oi.final_price * oi.quantity), 0) as total')
+                ->groupBy('oi.order_id');
+
             $statusRows = DB::table('orders as o')
                 ->whereBetween('o.created_at', [$start, $end])
                 ->when($brandId, fn ($query) => $query->where('o.brand_id', $brandId))
@@ -283,27 +295,40 @@ class DashboardController extends Controller
             $unpaidThreshold = now()->subDays(self::UNPAID_STALE_DAYS);
 
             $summary = DB::table('orders as o')
+                ->leftJoinSub($totalsSubquery, 'ot', fn ($join) => $join->on('ot.order_id', '=', 'o.id'))
                 ->whereBetween('o.created_at', [$start, $end])
                 ->when($brandId, fn ($query) => $query->where('o.brand_id', $brandId))
                 ->whereNotIn('o.status', self::EXCLUDED_STATUSES)
                 ->selectRaw('COUNT(*) as active_total')
                 ->selectRaw(
-                    "SUM(CASE WHEN o.status IN ('pending', 'confirmed') AND o.created_at <= ? THEN 1 ELSE 0 END) as pending_overdue",
+                    "SUM(CASE WHEN o.financial_status = 'unpaid' THEN 1 ELSE 0 END) as unpaid_count"
+                )
+                ->selectRaw(
+                    "SUM(CASE WHEN o.financial_status = 'paid' THEN 1 ELSE 0 END) as paid_count"
+                )
+                ->selectRaw(
+                    "COALESCE(SUM(CASE WHEN o.financial_status = 'unpaid' THEN COALESCE(ot.total, 0) ELSE 0 END), 0) as unpaid_total"
+                )
+                ->selectRaw(
+                    "COALESCE(SUM(CASE WHEN o.financial_status = 'paid' THEN COALESCE(ot.total, 0) ELSE 0 END), 0) as paid_total"
+                )
+                ->selectRaw(
+                    "SUM(CASE WHEN o.status IN ('pending', 'confirmed') AND o.updated_at <= ? THEN 1 ELSE 0 END) as pending_overdue",
                     [$pendingThreshold]
                 )
                 ->selectRaw(
-                    "SUM(CASE WHEN o.status = 'processing' AND o.created_at <= ? THEN 1 ELSE 0 END) as processing_overdue",
+                    "SUM(CASE WHEN o.status = 'processing' AND o.updated_at <= ? THEN 1 ELSE 0 END) as processing_overdue",
                     [$processingThreshold]
                 )
                 ->selectRaw(
-                    "SUM(CASE WHEN o.financial_status = 'unpaid' AND o.created_at <= ? THEN 1 ELSE 0 END) as unpaid_overdue",
+                    "SUM(CASE WHEN o.financial_status = 'unpaid' AND o.updated_at <= ? THEN 1 ELSE 0 END) as unpaid_overdue",
                     [$unpaidThreshold]
                 )
                 ->selectRaw(
                     "SUM(CASE WHEN (
-                        (o.status IN ('pending', 'confirmed') AND o.created_at <= ?)
-                        OR (o.status = 'processing' AND o.created_at <= ?)
-                        OR (o.financial_status = 'unpaid' AND o.created_at <= ?)
+                        (o.status IN ('pending', 'confirmed') AND o.updated_at <= ?)
+                        OR (o.status = 'processing' AND o.updated_at <= ?)
+                        OR (o.financial_status = 'unpaid' AND o.updated_at <= ?)
                     ) THEN 1 ELSE 0 END) as needs_attention",
                     [$pendingThreshold, $processingThreshold, $unpaidThreshold]
                 )
@@ -317,6 +342,10 @@ class DashboardController extends Controller
 
             return [
                 'health' => $health,
+                'paid_total' => (float) ($summary->paid_total ?? 0),
+                'paid_count' => (int) ($summary->paid_count ?? 0),
+                'unpaid_total' => (float) ($summary->unpaid_total ?? 0),
+                'unpaid_count' => (int) ($summary->unpaid_count ?? 0),
                 'active_total' => $activeTotal,
                 'needs_attention' => $needsAttention,
                 'status_total' => $statusTotal,
