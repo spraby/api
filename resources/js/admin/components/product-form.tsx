@@ -1,32 +1,33 @@
 /**
- * Variant Option Selector Component
+ * Product Form Component
  *
- * Allows selecting option values for a product variant based on category options
+ * Handles product details, images, and variants.
  */
 import {type FormEventHandler, useCallback, useEffect, useMemo, useRef} from "react";
 
 import {useForm, router} from '@inertiajs/react';
 import isEqual from 'lodash-es/isEqual';
+import {
+    CheckCircle2Icon,
+    CircleOffIcon,
+    ImagesIcon,
+    LayersIcon,
+} from 'lucide-react';
 import {toast} from "sonner";
 
 
-import {ProductImagesManager} from "@/components/product-images-manager.tsx";
+import {ProductFormActions} from "@/components/product-form-actions.tsx";
+import {ProductFormSection} from "@/components/product-form-section.tsx";
+import {ProductImagesSection} from "@/components/product-images-section.tsx";
+import {ProductSettingsCard} from "@/components/product-settings-card.tsx";
 import {ProductVariantList} from "@/components/product-variant-list.tsx";
-import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import {Card} from "@/components/ui/card.tsx";
-import {Checkbox} from '@/components/ui/checkbox';
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion';
+import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {RichTextEditor} from '@/components/ui/rich-text-editor';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {UnsavedChangesBar} from "@/components/unsaved-changes-bar.tsx";
+import {useIsMobile} from '@/hooks/use-mobile';
 import {useLang} from '@/lib/lang';
 import {VariantService} from '@/services/variant-service';
 import type {Product, ProductImage, Variant} from "@/types/models.ts";
@@ -91,6 +92,7 @@ function toFormVariants(variants?: Variant[]): FormVariant[] {
 
 export function ProductForm({product: defaultProduct}: { product: Product }) {
     const {t} = useLang();
+    const isMobile = useIsMobile();
 
     const initialFormData: ProductFormData = {
         id: defaultProduct.id,
@@ -263,153 +265,319 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         setData(savedDataRef.current);
     }, [reset, setData]);
 
-    return <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
-            <div className="col-span-1 md:col-span-9">
-                <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
-                    <div className="col-span-12 gap-2 flex flex-col">
-                        <Label className="flex items-center gap-1" htmlFor="title">
-                            {t('admin.products_edit.fields.title')}
-                            <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                            required
-                            id="title"
-                            placeholder={t('admin.products_edit.placeholders.title')}
-                            type="text"
-                            value={formData.title}
-                            onChange={e => setData('title', e.target.value)}
-                            className={errors.title ? 'border-destructive' : ''}
-                        />
-                        {!!errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
-                    </div>
-                    <div className="col-span-12 gap-2 flex flex-col">
-                        <Label
-                            htmlFor="description">{t('admin.products_edit.fields.description')}</Label>
-                        <RichTextEditor
-                            placeholder={t('admin.products_edit.placeholders.description')}
-                            value={formData.description ?? ''}
-                            onChange={v => {
-                                // On first change, update savedDataRef with normalized HTML
-                                // to avoid false positive unsaved changes detection
-                                if (!descriptionNormalizedRef.current) {
-                                    descriptionNormalizedRef.current = true;
-                                    savedDataRef.current = {...savedDataRef.current, description: v};
-                                }
-                                setData('description', v);
-                            }}
-                        />
-                        {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
-                    </div>
-                </Card>
-            </div>
+    const variantCount = formData.variants?.length ?? 0;
+    const images = readOnlyDataRef.current.images ?? [];
+    const imageCount = images.length;
+    const statusLabel = formData.enabled
+        ? t('admin.products_table.status.enabled')
+        : t('admin.products_table.status.disabled');
+    const statusVariant: 'default' | 'outline' = formData.enabled ? 'default' : 'outline';
 
-            <div className="col-span-1 md:col-span-3">
-                <Card className="flex flex-col gap-4 md:gap-5 rounded-lg border bg-card p-4 sm:p-6">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                            <Checkbox
-                                checked={formData.enabled}
-                                id="enabled"
-                                onCheckedChange={v => setData('enabled', v as boolean)}
-                            />
-                            <Label className="cursor-pointer" htmlFor="enabled">
-                                {t('admin.products_edit.fields.enabled')}
-                            </Label>
-                        </div>
-                        {!!errors.enabled && <p className="text-xs text-destructive">{errors.enabled}</p>}
-                    </div>
-                    {
-                        category?.id ?
-                            <div className="gap-2 flex flex-col">
-                                <Label htmlFor="category">{t('admin.products_edit.fields.category')}</Label>
-                                <Select
-                                    disabled={isEditMode}
-                                    value={category.id.toString()}
-                                    onValueChange={(value) => {
-                                        if (!value?.length) {
-                                            return;
-                                        }
-                                        setData('category_id', Number(value));
-                                    }}
-                                >
-                                    <SelectTrigger
-                                        id="category"
-                                        className={errors.category_id ? 'border-destructive' : ''}
-                                    >
-                                        <SelectValue placeholder={t('admin.products_edit.placeholders.category')}/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {brandCategories.map((category) => (
-                                            category?.id ?
-                                                <SelectItem key={category.id} value={category?.id.toString()}>
-                                                    {category.name}
-                                                </SelectItem> : null
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+    const productTitleSummary = formData.title?.trim() || t('admin.products_edit.placeholders.title');
 
+    const imagePreview = useMemo(() => {
+        if (!isMobile) {
+            return {items: [], extra: 0};
+        }
 
-                                {!!errors.category_id &&
-                                    <p className="text-xs text-destructive">{errors.category_id}</p>}
-                                {!isEditMode && (
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('admin.products_edit.category.locked')}
-                                    </p>
-                                )}
+        const sorted = [...images].sort((a, b) => a.position - b.position);
+        const items = sorted.slice(0, 1);
+        const extra = Math.max(0, sorted.length - items.length);
 
-                            </div> :
-                            <Alert variant="destructive">
-                                <AlertDescription>
-                                    {t('admin.products_edit.category.not_in_list')}
-                                </AlertDescription>
-                            </Alert>
-                    }
-                </Card>
-            </div>
+        return {items, extra};
+    }, [images, isMobile]);
 
-            {
-                !!formData?.id &&
-                <Card className="col-span-9 p-4 sm:p-6">
-                    <ProductImagesManager
-                        disabled={processing}
-                        images={readOnlyDataRef.current.images}
-                        productId={formData.id}
-                    />
-                </Card>
-            }
-            {
-                (!!formData?.variants?.length) && <ProductVariantList
-                    product={{
-                        id: formData.id,
-                        variants: formData.variants,
-                        images: readOnlyDataRef.current.images,
-                    }}
-                    onUpdate={v => {
-                        setData('variants', [...v])
-                    }}
-                    options={category?.options ?? []}
+    const variantsSummaryText = useMemo(() => {
+        return `+${variantCount}`;
+    }, [variantCount]);
+
+    const actionLabels = useMemo(() => {
+        if (isEditMode) {
+            return {
+                save: t('admin.products_edit.actions.save'),
+                saving: t('admin.products_edit.actions.saving'),
+                cancel: t('admin.products_edit.actions.cancel'),
+            };
+        }
+
+        return {
+            save: t('admin.products_create.actions.create'),
+            saving: t('admin.products_create.actions.creating'),
+            cancel: t('admin.products_create.actions.cancel'),
+        };
+    }, [isEditMode, t]);
+
+    const productInfoFields = (
+        <div className="space-y-4">
+            <div className="flex flex-col gap-2">
+                <Label className="flex items-center gap-1" htmlFor="title">
+                    {t('admin.products_edit.fields.title')}
+                    <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                    required
+                    id="title"
+                    placeholder={t('admin.products_edit.placeholders.title')}
+                    type="text"
+                    value={formData.title}
+                    onChange={e => setData('title', e.target.value)}
+                    className={errors.title ? 'border-destructive' : ''}
                 />
-            }
-
+                {!!errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
+            </div>
+            <div className="flex flex-col gap-2">
+                <Label htmlFor="description">{t('admin.products_edit.fields.description')}</Label>
+                <RichTextEditor
+                    placeholder={t('admin.products_edit.placeholders.description')}
+                    value={formData.description ?? ''}
+                    onChange={v => {
+                        // On first change, update savedDataRef with normalized HTML
+                        // to avoid false positive unsaved changes detection
+                        if (!descriptionNormalizedRef.current) {
+                            descriptionNormalizedRef.current = true;
+                            savedDataRef.current = {...savedDataRef.current, description: v};
+                        }
+                        setData('description', v);
+                    }}
+                />
+                {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
+            </div>
         </div>
+    );
 
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-muted-foreground">
-                <span className="text-destructive">*</span> {t('admin.products_edit.required_fields')}
-            </p>
-            <Button
-                className="w-full sm:w-auto"
-                disabled={processing}
-                type="button"
-                variant="outline"
-                onClick={() => {
-                    router.visit(route('admin.products'));
-                }}
-            >
-                {t('admin.products_edit.actions.cancel')}
-            </Button>
-        </div>
+    const imagesSection = (
+        <ProductImagesSection
+            title={t('admin.products_edit.sections.product_images')}
+            isEditMode={isEditMode}
+            processing={processing}
+            images={readOnlyDataRef.current.images}
+            productId={formData.id}
+            emptyHint={t('admin.products_edit.hints.save_to_add_image')}
+            sectionVariant={isMobile ? 'plain' : 'card'}
+            hideHeader={isMobile}
+        />
+    );
+
+    const variantsSection = (
+        <ProductVariantList
+            product={{
+                id: formData.id,
+                variants: formData.variants,
+                images: readOnlyDataRef.current.images,
+            }}
+            onUpdate={v => {
+                setData('variants', [...v])
+            }}
+            options={category?.options ?? []}
+        />
+    );
+
+    const settingsSection = (
+        <ProductSettingsCard
+            title={t('admin.products_edit.sections.settings')}
+            enabledLabel={t('admin.products_edit.fields.enabled')}
+            enabledStatusLabel={t('admin.products_table.status.enabled')}
+            disabledStatusLabel={t('admin.products_table.status.disabled')}
+            enabled={formData.enabled}
+            onEnabledChange={(value) => setData('enabled', value)}
+            enabledError={errors.enabled}
+            categoryLabel={t('admin.products_edit.fields.category')}
+            categoryPlaceholder={t('admin.products_edit.placeholders.category')}
+            categoryError={errors.category_id}
+            categories={brandCategories}
+            selectedCategoryId={category?.id ?? null}
+            hasCategoryInList={!!category?.id}
+            onCategoryChange={(value) => setData('category_id', value)}
+            isCategoryLocked={isEditMode}
+            categoryLockedHint={t('admin.products_edit.category.locked')}
+            noCategoryMessage={t('admin.products_edit.category.not_in_list')}
+            sectionVariant={isMobile ? 'plain' : 'card'}
+            hideHeader={isMobile}
+            className={isMobile ? 'space-y-3' : undefined}
+        />
+    );
+
+    return <form className="space-y-6 pb-24 lg:space-y-8 lg:pb-0" onSubmit={onSubmit}>
+        {isMobile ? (
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    <Badge className="gap-1" variant="secondary">
+                        <LayersIcon className="size-3" />
+                        {variantCount}
+                    </Badge>
+                    <Badge className="gap-1" variant="secondary">
+                        <ImagesIcon className="size-3" />
+                        {imageCount}
+                    </Badge>
+                    <Badge className="gap-1" variant={statusVariant}>
+                        {formData.enabled ? <CheckCircle2Icon className="size-3" /> : <CircleOffIcon className="size-3" />}
+                        {statusLabel}
+                    </Badge>
+                </div>
+
+                <Accordion type="multiple" defaultValue={['info', 'variants']} className="space-y-3">
+                    <AccordionItem
+                        value="info"
+                        className="rounded-2xl border border-border/60 bg-card/80 px-3 shadow-sm"
+                    >
+                        <AccordionTrigger className="group py-3 text-sm">
+                            <div className="flex flex-1 flex-col items-start gap-1 text-left">
+                                <span>{t('admin.products_edit.sections.product_info')}</span>
+                                <span className="text-xs text-muted-foreground group-data-[state=open]:hidden">
+                                    {productTitleSummary}
+                                </span>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-3 pt-2">
+                            {productInfoFields}
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem
+                        value="images"
+                        className="rounded-2xl border border-border/60 bg-card/80 px-3 shadow-sm"
+                    >
+                        <AccordionTrigger className="group py-3 text-sm">
+                            <div className="flex flex-1 flex-col items-start gap-1 text-left">
+                                <span>{t('admin.products_edit.sections.product_images')}</span>
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground group-data-[state=open]:hidden">
+                                    {imagePreview.items.length ? (
+                                        <>
+                                            {imagePreview.items.map((image, index) => (
+                                                <span
+                                                    key={image.id ?? index}
+                                                    className={`relative h-8 w-8 overflow-hidden rounded-lg border ${index === 0 ? 'border-primary ring-1 ring-primary/70' : 'border-border/70'}`}
+                                                >
+                                                    {image.image?.url ? (
+                                                        <img
+                                                            alt={`Preview ${index + 1}`}
+                                                            className="h-full w-full object-cover"
+                                                            src={image.image.url}
+                                                        />
+                                                    ) : (
+                                                        <span className="block h-full w-full bg-muted/70" />
+                                                    )}
+                                                </span>
+                                            ))}
+                                            {imagePreview.extra > 0 ? (
+                                                <span className="px-1 text-[11px]">+{imagePreview.extra}</span>
+                                            ) : null}
+                                        </>
+                                    ) : (
+                                        <span>{t('admin.products_edit.images.no_images')}</span>
+                                    )}
+                                </div>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-3 pt-2">
+                            {imagesSection}
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem
+                        value="variants"
+                        className="rounded-2xl border border-border/60 bg-card/80 px-3 shadow-sm"
+                    >
+                        <AccordionTrigger className="group py-3 text-sm">
+                            <div className="flex flex-1 flex-col items-start gap-1 text-left">
+                                <span>{t('admin.products_edit.sections.variants')}</span>
+                                <span className="text-xs text-muted-foreground group-data-[state=open]:hidden">
+                                    {variantsSummaryText}
+                                </span>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-3 pt-2">
+                            {variantsSection}
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem
+                        value="settings"
+                        className="rounded-2xl border border-border/60 bg-card/80 px-3 shadow-sm"
+                    >
+                        <AccordionTrigger className="py-3 text-sm">
+                            {t('admin.products_edit.sections.settings')}
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-3 pt-2">
+                            {settingsSection}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+
+                <p className="text-xs text-muted-foreground">
+                    <span className="text-destructive">*</span> {t('admin.products_edit.required_fields')}
+                </p>
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                <div className="lg:col-span-8 space-y-6">
+                    <ProductFormSection title={t('admin.products_edit.sections.product_info')}>
+                        {productInfoFields}
+                    </ProductFormSection>
+
+                    {imagesSection}
+
+                    <ProductFormSection
+                        title={t('admin.products_edit.sections.variants')}
+                        contentClassName="space-y-5"
+                        action={(
+                            <Badge variant="secondary" className="text-xs">
+                                {variantCount}
+                            </Badge>
+                        )}
+                    >
+                        {variantsSection}
+                    </ProductFormSection>
+                </div>
+
+                <div className="lg:col-span-4">
+                    <div className="space-y-6 lg:sticky lg:top-20">
+                        {settingsSection}
+
+                        <div className="hidden lg:block">
+                            <ProductFormSection
+                                title={t('admin.products_edit.sections.actions')}
+                                contentClassName="space-y-3"
+                            >
+                                <ProductFormActions
+                                    cancelLabel={actionLabels.cancel}
+                                    saveLabel={actionLabels.save}
+                                    savingLabel={actionLabels.saving}
+                                    isSaving={processing}
+                                    onCancel={() => {
+                                        router.visit(route('admin.products'));
+                                    }}
+                                    onSave={submitForm}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    <span className="text-destructive">*</span> {t('admin.products_edit.required_fields')}
+                                </p>
+                            </ProductFormSection>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {isMobile ? (
+            <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] pt-3 backdrop-blur-sm">
+                <div className="mx-auto flex max-w-[1200px] items-center gap-2 px-3">
+                    <ProductFormActions
+                        className="w-full"
+                        primaryClassName="flex-1"
+                        secondaryClassName="flex-1"
+                        cancelLabel={actionLabels.cancel}
+                        saveLabel={actionLabels.save}
+                        savingLabel={actionLabels.saving}
+                        isSaving={processing}
+                        onCancel={() => {
+                            router.visit(route('admin.products'));
+                        }}
+                        onSave={submitForm}
+                    />
+                </div>
+            </div>
+        ) : null}
 
         <UnsavedChangesBar
             dialogCancelLabel={t('admin.products_edit.unsaved.dialog.cancel')}
@@ -422,7 +590,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             isSaving={processing}
             message={t('admin.products_edit.unsaved.message')}
             mobileMessage={t('admin.products_edit.unsaved.mobile_message')}
-            saveLabel={t('admin.products_edit.actions.save')}
+            saveLabel={actionLabels.save}
             onDiscard={handleDiscard}
             onSave={submitForm}
         />

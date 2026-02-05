@@ -55,14 +55,14 @@ export function ProductImagesPicker({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-4xl sm:w-full">
         <DialogHeader>
           <DialogTitle>{t('admin.product_images_picker.title')}</DialogTitle>
           <DialogDescription>{t('admin.product_images_picker.description')}</DialogDescription>
         </DialogHeader>
 
         {/* Image Grid */}
-        <div className="max-h-[500px] overflow-y-auto">
+        <div className="max-h-[60vh] overflow-y-auto sm:max-h-[500px]">
           {sortedImages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <ImageIcon className="mb-3 size-16 text-muted-foreground" />
@@ -74,7 +74,7 @@ export function ProductImagesPicker({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
               {sortedImages.map((productImage) => {
                 const isSelected = selectedImageId === productImage.id;
 
@@ -82,7 +82,7 @@ export function ProductImagesPicker({
                   <Card
                     key={productImage.id}
                     className={cn(
-                      'group relative cursor-pointer overflow-hidden transition-all hover:ring-2 hover:ring-primary',
+                      'group relative cursor-pointer overflow-hidden rounded-xl transition-all hover:ring-2 hover:ring-primary',
                       isSelected && 'ring-2 ring-primary'
                     )}
                     onClick={() => {
@@ -90,7 +90,7 @@ export function ProductImagesPicker({
                     }}
                   >
                     <CardContent className="p-0">
-                      <div className="relative aspect-square overflow-hidden bg-muted">
+                      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
                         {productImage.image?.url ? (
                           <img
                             alt={`Product position ${productImage.position}`}

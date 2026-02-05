@@ -10,6 +10,7 @@ import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
+import {cn} from '@/lib/utils';
 import {VariantService} from '@/services/variant-service';
 import type {Option, ProductImage, Variant, VariantValue} from '@/types/models';
 
@@ -27,12 +28,14 @@ interface ProductVariantListProps {
     product: ProductForVariantList,
     options: Option[],
     onUpdate: (variants: Variant[]) => void
+    className?: string
 }
 
 export function ProductVariantList({
                                        product,
                                        options,
-                                       onUpdate
+                                       onUpdate,
+                                       className,
                                    }: ProductVariantListProps) {
     const {t} = useLang();
 
@@ -233,7 +236,7 @@ export function ProductVariantList({
     };
 
     return <>
-        <div className="col-span-9 flex flex-col gap-5">
+        <div className={cn("flex flex-col gap-4 sm:gap-5", className)}>
             <DuplicateVariantsAlert duplicateGroups={duplicateGroups}/>
 
             {(product.variants ?? []).map((variant, index) => {
@@ -261,6 +264,7 @@ export function ProductVariantList({
             })}
             <div className="flex items-center justify-end">
                     <Button
+                        className="w-full sm:w-auto"
                         size="sm"
                         type="button"
                         variant="outline"

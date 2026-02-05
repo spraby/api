@@ -5,6 +5,7 @@ import {GripVerticalIcon, ImageIcon, ImagesIcon, Trash2Icon} from 'lucide-react'
 
 import {ConfirmationPopover} from '@/components/confirmation-popover';
 import {ImagePicker} from '@/components/image-picker';
+import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
@@ -142,7 +143,7 @@ export function ProductImagesManager({
 
             {/* Images Grid */}
             {sortedImages.length > 0 ? (
-                <div className="grid gap-5 grid-cols-12">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-12 sm:gap-5">
                     {sortedImages.map((productImage, index) => (
                         <div
                             key={productImage.id}
@@ -152,7 +153,9 @@ export function ProductImagesManager({
                                 'group relative overflow-hidden transition-all ',
                                 draggedIndex === index && 'opacity-50',
                                 draggedOverIndex === index && 'ring-2 ring-primary',
-                                index === 0 ? 'col-span-4 row-span-4' : 'col-span-2 row-span-2',
+                                index === 0
+                                    ? 'col-span-2 sm:col-span-4 sm:row-span-4'
+                                    : 'col-span-1 sm:col-span-2 sm:row-span-2',
                             )}
                             draggable={!disabled && !isProcessing}
                             onDragEnd={handleDragEnd}
@@ -172,7 +175,7 @@ export function ProductImagesManager({
                                 {/* Drag Handle */}
                                 {!disabled && !isProcessing && (
                                     <div
-                                        className="absolute left-2 top-2 cursor-move rounded-md bg-background p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                        className="absolute left-2 top-2 cursor-move rounded-md bg-background/90 p-1 opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
                                         <GripVerticalIcon className="size-6 text-muted-foreground"/>
                                     </div>
                                 )}
@@ -181,15 +184,24 @@ export function ProductImagesManager({
                                 {productImage?.image?.url ? (
                                     <img
                                         alt={`Product ${index + 1}`}
-                                        className="aspect-square w-full rounded-md border object-cover"
+                                        className="aspect-square w-full rounded-xl border object-cover"
                                         src={productImage?.image?.url}
                                     />
                                 ) : (
                                     <div
-                                        className="flex aspect-square w-full items-center justify-center rounded-md border bg-muted">
+                                        className="flex aspect-square w-full items-center justify-center rounded-xl border bg-muted/60">
                                         <ImageIcon className="size-12 text-muted-foreground"/>
                                     </div>
                                 )}
+
+                                {index === 0 ? (
+                                    <Badge
+                                        className="absolute bottom-2 left-2 bg-background/90 text-foreground shadow-sm"
+                                        variant="outline"
+                                    >
+                                        {t('admin.products_edit.images.main')}
+                                    </Badge>
+                                ) : null}
 
                                 {/* Delete Button */}
                                 {!disabled && !isProcessing && (
@@ -214,14 +226,14 @@ export function ProductImagesManager({
                     ))}
 
                     {/* Action Buttons */}
-                    <div className="group relative overflow-hidden transition-all col-span-2 row-span-2">
-                        <div className="flex justify-center items-center gap-2 rounded-lg border-2 border-dashed aspect-square w-full">
+                    <div className="group relative overflow-hidden transition-all col-span-1 sm:col-span-2 sm:row-span-2">
+                        <div className="flex justify-center items-center gap-2 rounded-xl border-2 border-dashed bg-muted/30 aspect-square w-full">
                             {addButtonMarkup}
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12">
+                <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed bg-muted/30 p-10 text-center">
                     <ImageIcon className="mb-3 size-16 text-muted-foreground"/>
                     <div className="flex justify-end flex-wrap gap-2">
                         {addButtonMarkup}

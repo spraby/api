@@ -201,11 +201,13 @@ return [
 
     'products_edit' => [
         'title' => 'Edit Product',
-        'description' => 'Update product information and variants',
+        'description' => '',
         'sections' => [
             'product_info' => 'Product Information',
             'product_images' => 'Product Images',
             'variants' => 'Product Variants',
+            'settings' => 'Settings',
+            'actions' => 'Actions',
         ],
         'no_images' => 'No images uploaded for this product',
         'images' => [
@@ -230,7 +232,7 @@ return [
             'category' => 'Category',
             'price' => 'Price',
             'final_price' => 'Final Price',
-            'enabled' => 'Product Enabled',
+            'enabled' => 'Product Activity',
             'variant_title' => 'Variant Title',
             'variant_enabled' => 'Variant Enabled',
             'variant_image' => 'Variant Image',
@@ -303,7 +305,7 @@ return [
             'category' => 'Category',
             'price' => 'Price',
             'final_price' => 'Final Price',
-            'enabled' => 'Product Enabled',
+            'enabled' => 'Product Activity',
             'variant_title' => 'Variant Title',
             'variant_enabled' => 'Variant Enabled',
         ],

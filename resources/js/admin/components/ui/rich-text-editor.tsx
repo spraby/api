@@ -147,7 +147,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       editorProps: {
         attributes: {
           class: cn(
-            'prose prose-sm max-w-none focus:outline-none min-h-[120px] px-3 py-2',
+            'prose prose-sm max-w-none focus:outline-none min-h-[84px] px-3 py-2',
             'dark:prose-invert',
             '[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6',
             disabled && 'opacity-50 cursor-not-allowed'
@@ -197,7 +197,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       >
         <MenuBar editor={editor} />
         <EditorContent
-          className="rich-text-editor-content max-h-[400px] overflow-auto"
+          className="rich-text-editor-content max-h-[200px] overflow-auto"
           editor={editor}
           placeholder={placeholder}
         />

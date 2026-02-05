@@ -113,7 +113,7 @@ export function PricingSection({
     };
 
     return (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
                 <Label className="flex items-center gap-1" htmlFor={`${idPrefix}price`}>
                     {t('admin.products_edit.fields.price')}

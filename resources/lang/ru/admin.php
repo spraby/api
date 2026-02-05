@@ -201,11 +201,13 @@ return [
 
     'products_edit' => [
         'title' => 'Редактирование товара',
-        'description' => 'Изменение информации о товаре и его вариантах',
+        'description' => '',
         'sections' => [
             'product_info' => 'Информация о товаре',
             'product_images' => 'Изображения товара',
             'variants' => 'Варианты товара',
+            'settings' => 'Настройки',
+            'actions' => 'Действия',
         ],
         'no_images' => 'Нет загруженных изображений для этого товара',
         'images' => [
@@ -230,7 +232,7 @@ return [
             'category' => 'Категория',
             'price' => 'Цена',
             'final_price' => 'Финальная цена',
-            'enabled' => 'Товар активен',
+            'enabled' => 'Активность товара',
             'variant_title' => 'Название варианта',
             'variant_enabled' => 'Вариант активен',
             'variant_image' => 'Изображение варианта',
@@ -303,7 +305,7 @@ return [
             'category' => 'Категория',
             'price' => 'Цена',
             'final_price' => 'Финальная цена',
-            'enabled' => 'Товар активен',
+            'enabled' => 'Активность товара',
             'variant_title' => 'Название варианта',
             'variant_enabled' => 'Вариант активен',
         ],

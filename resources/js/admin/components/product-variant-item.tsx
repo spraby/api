@@ -44,16 +44,16 @@ export function ProductVariantItem({
 
     return (
         <div className={cn(
-            "rounded-lg border p-4 transition-colors",
+            "rounded-2xl border p-3 sm:p-4 transition-colors",
             isDuplicate
-                ? "border-destructive bg-destructive/2 dark:bg-destructive/5"
-                : "border-border"
+                ? "border-destructive/70 bg-destructive/5 dark:bg-destructive/10"
+                : "border-border/60 bg-card/70"
         )}>
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between sm:mb-3">
                 {
                     (typeof onRemove === 'function') &&
                     <div className="flex flex-row gap-5">
-                        <h3 className="font-medium">
+                        <h3 className="text-sm font-medium sm:text-base">
                             {t('admin.products_edit.variant')} #{index + 1}
                         </h3>
                         <div className="flex items-center gap-2 sm:col-span-3">
@@ -65,7 +65,7 @@ export function ProductVariantItem({
                                     onUpdate({enabled: checked as boolean});
                                 }}
                             />
-                            <Label className="cursor-pointer" htmlFor={`variant-enabled-${index}`}>
+                            <Label className="cursor-pointer text-xs text-muted-foreground sm:text-sm" htmlFor={`variant-enabled-${index}`}>
                                 {t('admin.products_edit.fields.variant_enabled')}
                             </Label>
                         </div>
@@ -87,15 +87,15 @@ export function ProductVariantItem({
                 }
             </div>
 
-            <div className="grid grid-cols-12 gap-5">
+            <div className="grid gap-5 sm:grid-cols-12">
                 {
                     (typeof onRemove === 'function') && !!variant.id && (
-                        <div className="col-span-3 flex flex-col gap-2">
+                        <div className="sm:col-span-3 flex flex-col gap-2">
                             {variant.image?.image?.url ? (
                                 <div className="group relative w-full">
                                     <img
                                         alt={variant.title || `Variant ${index + 1}`}
-                                        className="aspect-square w-full rounded-md border object-cover"
+                                        className="aspect-square w-full rounded-xl border object-cover"
                                         src={variant.image?.image?.url}
                                     />
                                     <div
@@ -120,7 +120,7 @@ export function ProductVariantItem({
                                 </div>
                             ) : (
                                 <div
-                                    className="flex aspect-square w-full items-center justify-center rounded-md border-2 border-dashed">
+                                    className="flex aspect-square w-full items-center justify-center rounded-xl border-2 border-dashed">
                                     {!variant.id ? (
                                         <div className="flex flex-col items-center gap-2">
                                             <ImageIcon className="size-8 text-muted-foreground"/>
@@ -146,7 +146,7 @@ export function ProductVariantItem({
                     )
                 }
                 <div
-                    className={`${typeof onRemove === 'function' && !!variant.id ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
+                    className={`${typeof onRemove === 'function' && !!variant.id ? 'sm:col-span-9' : 'sm:col-span-12'} grid grid-cols-12 gap-4`}>
                     {
                         (typeof onRemove === 'function') &&
                         <div className="col-span-12 space-y-2">
