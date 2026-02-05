@@ -128,7 +128,7 @@ export default function Dashboard() {
 
         <DashboardKpiGrid
           metrics={metrics}
-          periodLabel={periodLabel}
+          orderStatus={order_status}
           currencyFormatter={currencyFormatter}
           numberFormatter={numberFormatter}
           t={t}

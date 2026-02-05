@@ -214,6 +214,8 @@ class DashboardController extends Controller
             'health' => null,
             'paid_total' => 0,
             'paid_count' => 0,
+            'partial_paid_total' => 0,
+            'partial_paid_count' => 0,
             'unpaid_total' => 0,
             'unpaid_count' => 0,
             'active_total' => 0,
@@ -304,10 +306,16 @@ class DashboardController extends Controller
                     "SUM(CASE WHEN o.financial_status = 'unpaid' THEN 1 ELSE 0 END) as unpaid_count"
                 )
                 ->selectRaw(
+                    "SUM(CASE WHEN o.financial_status = 'partial_paid' THEN 1 ELSE 0 END) as partial_paid_count"
+                )
+                ->selectRaw(
                     "SUM(CASE WHEN o.financial_status = 'paid' THEN 1 ELSE 0 END) as paid_count"
                 )
                 ->selectRaw(
                     "COALESCE(SUM(CASE WHEN o.financial_status = 'unpaid' THEN COALESCE(ot.total, 0) ELSE 0 END), 0) as unpaid_total"
+                )
+                ->selectRaw(
+                    "COALESCE(SUM(CASE WHEN o.financial_status = 'partial_paid' THEN COALESCE(ot.total, 0) ELSE 0 END), 0) as partial_paid_total"
                 )
                 ->selectRaw(
                     "COALESCE(SUM(CASE WHEN o.financial_status = 'paid' THEN COALESCE(ot.total, 0) ELSE 0 END), 0) as paid_total"
@@ -344,6 +352,8 @@ class DashboardController extends Controller
                 'health' => $health,
                 'paid_total' => (float) ($summary->paid_total ?? 0),
                 'paid_count' => (int) ($summary->paid_count ?? 0),
+                'partial_paid_total' => (float) ($summary->partial_paid_total ?? 0),
+                'partial_paid_count' => (int) ($summary->partial_paid_count ?? 0),
                 'unpaid_total' => (float) ($summary->unpaid_total ?? 0),
                 'unpaid_count' => (int) ($summary->unpaid_count ?? 0),
                 'active_total' => $activeTotal,

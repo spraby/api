@@ -9,6 +9,8 @@ export type OrderStatusWidget = {
   health: number | null;
   paid_total: number;
   paid_count: number;
+  partial_paid_total: number;
+  partial_paid_count: number;
   unpaid_total: number;
   unpaid_count: number;
   active_total: number;
@@ -71,6 +73,14 @@ export function OrdersStatusWidget({
       count: data.unpaid_count,
       color: "#EF4444",
       valueClass: "text-rose-600",
+    },
+    {
+      key: "partial_paid",
+      label: t("admin.dashboard.orders_widget.partial_paid_total"),
+      amount: data.partial_paid_total,
+      count: data.partial_paid_count,
+      color: "#F59E0B",
+      valueClass: "text-amber-600",
     },
     {
       key: "paid",
