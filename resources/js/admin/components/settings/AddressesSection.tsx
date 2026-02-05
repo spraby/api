@@ -2,7 +2,7 @@ import type { FormEventHandler } from 'react';
 import { useState } from 'react';
 
 import { useForm, router } from '@inertiajs/react';
-import { PencilIcon, Trash2Icon } from 'lucide-react';
+import { MapPinIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -150,6 +150,48 @@ function AddressFormFields({
   );
 }
 
+function AddressCreateForm({
+  onCancel,
+  t,
+}: {
+  onCancel: () => void;
+  t: (key: string) => string;
+}) {
+  const { data, setData, post, processing, errors, reset } = useForm<AddressFormData>(emptyAddress);
+
+  const onSubmit: FormEventHandler = (e) => {
+    e.preventDefault();
+    post(route('admin.settings.addresses.store'), {
+      preserveState: true,
+      preserveScroll: true,
+      onSuccess: () => {
+        reset();
+        onCancel();
+        toast.success(t('admin.settings_addresses.messages.added'));
+      },
+    });
+  };
+
+  return (
+    <div className="rounded-lg border p-4">
+      <p className="mb-3 text-sm font-medium">{t('admin.settings_addresses.new_address')}</p>
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        <AddressFormFields data={data} setData={setData} errors={errors} t={t} />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {t('admin.settings_addresses.actions.cancel')}
+          </Button>
+          <Button type="submit" disabled={processing}>
+            {processing
+              ? t('admin.settings_addresses.actions.adding')
+              : t('admin.settings_addresses.actions.add')}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function AddressEditForm({
   address,
   onCancel,
@@ -229,33 +271,36 @@ function AddressCard({
     });
   };
 
+  const formattedAddress = [
+    address.address1,
+    address.address2,
+    address.city,
+    address.province,
+    address.zip_code,
+    address.country,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
   return (
-    <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+    <div className="flex items-start gap-3 rounded-lg border p-4">
+      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
+        <MapPinIcon className="size-4 text-muted-foreground" />
+      </div>
       <div className="min-w-0 flex-1">
         {address.name ? (
-          <p className="font-medium">{address.name}</p>
+          <p className="text-sm font-medium">{address.name}</p>
         ) : null}
-        <p className="text-sm text-muted-foreground">
-          {[
-            address.address1,
-            address.address2,
-            address.city,
-            address.province,
-            address.zip_code,
-            address.country,
-          ]
-            .filter(Boolean)
-            .join(', ')}
-        </p>
+        <p className="text-sm text-muted-foreground">{formattedAddress}</p>
       </div>
       <div className="flex shrink-0 gap-1">
-        <Button variant="ghost" size="icon" onClick={onEdit}>
-          <PencilIcon className="size-4" />
+        <Button variant="ghost" size="icon" className="size-8" onClick={onEdit}>
+          <PencilIcon className="size-3.5" />
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={isDeleting}>
-              <Trash2Icon className="size-4" />
+            <Button variant="ghost" size="icon" className="size-8" disabled={isDeleting}>
+              <Trash2Icon className="size-3.5" />
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -280,76 +325,55 @@ function AddressCard({
 
 export default function AddressesSection({ addresses }: { addresses: Address[] }) {
   const { t } = useLang();
-  const { data, setData, post, processing, errors, reset } = useForm<AddressFormData>(emptyAddress);
   const [editingId, setEditingId] = useState<number | null>(null);
-
-  const onSubmitCreate: FormEventHandler = (e) => {
-    e.preventDefault();
-    post(route('admin.settings.addresses.store'), {
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        reset();
-        toast.success(t('admin.settings_addresses.messages.added'));
-      },
-    });
-  };
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Existing addresses */}
-      <Card>
-        <CardHeader>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div className="flex flex-col gap-1.5">
           <CardTitle>{t('admin.settings_addresses.title')}</CardTitle>
           <CardDescription>{t('admin.settings_addresses.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!addresses.length ? (
-            <p className="text-sm text-muted-foreground">
-              {t('admin.settings_addresses.no_addresses')}
-            </p>
-          ) : (
-            <div className="grid gap-3">
-              {addresses.map((address) =>
-                editingId === address.id ? (
-                  <AddressEditForm
-                    key={address.id}
-                    address={address}
-                    onCancel={() => setEditingId(null)}
-                    t={t}
-                  />
-                ) : (
-                  <AddressCard
-                    key={address.id}
-                    address={address}
-                    onEdit={() => setEditingId(address.id)}
-                    t={t}
-                  />
-                ),
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+        {!showCreateForm ? (
+          <Button size="sm" onClick={() => setShowCreateForm(true)}>
+            <PlusIcon className="mr-1.5 size-4" />
+            {t('admin.settings_addresses.actions.add')}
+          </Button>
+        ) : null}
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {showCreateForm ? (
+          <AddressCreateForm
+            onCancel={() => setShowCreateForm(false)}
+            t={t}
+          />
+        ) : null}
 
-      {/* Add new address form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('admin.settings_addresses.new_address')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmitCreate} className="flex flex-col gap-4">
-            <AddressFormFields data={data} setData={setData} errors={errors} t={t} />
-            <div className="flex justify-end">
-              <Button type="submit" disabled={processing}>
-                {processing
-                  ? t('admin.settings_addresses.actions.adding')
-                  : t('admin.settings_addresses.actions.add')}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        {!addresses.length && !showCreateForm ? (
+          <p className="text-sm text-muted-foreground">
+            {t('admin.settings_addresses.no_addresses')}
+          </p>
+        ) : null}
+
+        {addresses.map((address) =>
+          editingId === address.id ? (
+            <AddressEditForm
+              key={address.id}
+              address={address}
+              onCancel={() => setEditingId(null)}
+              t={t}
+            />
+          ) : (
+            <AddressCard
+              key={address.id}
+              address={address}
+              onEdit={() => setEditingId(address.id)}
+              t={t}
+            />
+          ),
+        )}
+      </CardContent>
+    </Card>
   );
 }
