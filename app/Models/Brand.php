@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
  * @property string $id
@@ -25,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<BrandSettings> $settings
  * @property-read Collection<Order> $orders
  * @property-read Collection<Image> $images
+ * @property-read Collection<Address> $addresses
  *
  * @method static Builder|static query()
  *
@@ -74,6 +76,11 @@ class Brand extends Model
     public function images(): BelongsToMany
     {
         return $this->belongsToMany(Image::class);
+    }
+
+    public function addresses(): MorphMany
+    {
+        return $this->morphMany(Address::class, 'addressable');
     }
 
     public static function toMoney(float $value): string

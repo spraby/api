@@ -985,6 +985,40 @@ return [
         ],
     ],
 
+    'settings_addresses' => [
+        'title' => 'Addresses',
+        'description' => 'Your business addresses',
+        'new_address' => 'New address',
+        'edit_address' => 'Edit address',
+        'no_addresses' => 'No addresses yet',
+        'loading' => 'Loading...',
+        'fields' => [
+            'name' => 'Name',
+            'country' => 'Country',
+            'province' => 'Province / Region',
+            'city' => 'City',
+            'zip_code' => 'ZIP Code',
+            'address1' => 'Address line 1',
+            'address2' => 'Address line 2',
+        ],
+        'actions' => [
+            'add' => 'Add address',
+            'adding' => 'Adding...',
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+            'save' => 'Save',
+            'saving' => 'Saving...',
+            'cancel' => 'Cancel',
+        ],
+        'messages' => [
+            'added' => 'Address added',
+            'updated' => 'Address updated',
+            'deleted' => 'Address deleted',
+            'delete_error' => 'Failed to delete address',
+        ],
+        'confirm_delete' => 'Are you sure you want to delete this address?',
+    ],
+
     'impersonation' => [
         'impersonate' => 'Impersonate',
         'stop' => 'Stop Impersonating',

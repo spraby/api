@@ -161,6 +161,12 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
 
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
 
+        // Settings
+        Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings');
+        Route::post('/settings/addresses', [App\Http\Controllers\Admin\SettingsController::class, 'storeAddress'])->name('settings.addresses.store');
+        Route::put('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateAddress'])->name('settings.addresses.update');
+        Route::delete('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyAddress'])->name('settings.addresses.destroy');
+
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
 
         // Impersonation routes (stop must be before {user} to avoid matching "stop" as a user id)

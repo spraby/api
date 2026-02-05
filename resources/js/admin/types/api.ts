@@ -240,3 +240,20 @@ export interface MediaFilters {
   page?: number;
   per_page?: number;
 }
+
+// ============================================
+// ADDRESS TYPES
+// ============================================
+
+export interface Address {
+  id: number;
+  name: string | null;
+  country: string;
+  province: string | null;
+  city: string;
+  zip_code: string | null;
+  address1: string | null;
+  address2: string | null;
+  created_at: string;
+}
+
