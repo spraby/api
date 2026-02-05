@@ -49,6 +49,11 @@ export function ProductVariantItem({
                 ? "border-destructive/70 bg-destructive/5 dark:bg-destructive/10"
                 : "border-border/60 bg-card/70"
         )}>
+            {isDuplicate ? (
+                <div className="mb-2 rounded-lg border border-destructive/40 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+                    {t('admin.products_edit.duplicate_variants.title')}
+                </div>
+            ) : null}
             <div className="mb-2 flex items-center justify-between sm:mb-3">
                 {
                     (typeof onRemove === 'function') &&

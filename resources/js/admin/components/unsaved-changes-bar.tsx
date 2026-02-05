@@ -181,17 +181,17 @@ export function UnsavedChangesBar({
                     )}
                 >
                     <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-3">
-                        <p className="min-w-0 truncate text-xs text-muted-foreground sm:text-sm">
+                        <p className="min-w-0 truncate text-sm text-muted-foreground">
                             <span className="sm:hidden">{mobileMessage}</span>
                             <span className="hidden sm:inline">{message}</span>
                         </p>
 
                         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                             <Button
-                                className="h-8 px-2 sm:h-9 sm:px-3"
+                                className="h-8 border-border/70 bg-muted/30 px-2 text-sm text-foreground shadow-sm hover:border-border hover:bg-muted/50 sm:h-9 sm:px-3"
                                 disabled={savingState}
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
                                 onClick={onDiscard}
                             >
                                 <RotateCcwIcon className="size-4"/>
@@ -199,7 +199,7 @@ export function UnsavedChangesBar({
                             </Button>
 
                             <Button
-                                className="h-8 px-3 sm:h-9 sm:px-4"
+                                className="h-8 px-3 text-sm sm:h-9 sm:px-4"
                                 disabled={savingState}
                                 size="sm"
                                 onClick={() => void onSave()}

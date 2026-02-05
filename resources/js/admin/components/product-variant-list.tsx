@@ -5,7 +5,6 @@ import {PlusIcon} from 'lucide-react';
 import {toast} from "sonner";
 import {v4 as uuidv4} from 'uuid';
 
-import {DuplicateVariantsAlert} from "@/components/duplicate-variants-alert.tsx";
 import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
@@ -237,8 +236,6 @@ export function ProductVariantList({
 
     return <>
         <div className={cn("flex flex-col gap-4 sm:gap-5", className)}>
-            <DuplicateVariantsAlert duplicateGroups={duplicateGroups}/>
-
             {(product.variants ?? []).map((variant, index) => {
                 const variantWithTempId = variant as VariantWithTempId;
 

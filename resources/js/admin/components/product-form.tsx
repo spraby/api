@@ -533,27 +533,6 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                 <div className="lg:col-span-4">
                     <div className="space-y-6 lg:sticky lg:top-20">
                         {settingsSection}
-
-                        <div className="hidden lg:block">
-                            <ProductFormSection
-                                title={t('admin.products_edit.sections.actions')}
-                                contentClassName="space-y-3"
-                            >
-                                <ProductFormActions
-                                    cancelLabel={actionLabels.cancel}
-                                    saveLabel={actionLabels.save}
-                                    savingLabel={actionLabels.saving}
-                                    isSaving={processing}
-                                    onCancel={() => {
-                                        router.visit(route('admin.products'));
-                                    }}
-                                    onSave={submitForm}
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    <span className="text-destructive">*</span> {t('admin.products_edit.required_fields')}
-                                </p>
-                            </ProductFormSection>
-                        </div>
                     </div>
                 </div>
             </div>
