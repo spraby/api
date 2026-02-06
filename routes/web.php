@@ -166,6 +166,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::post('/settings/addresses', [App\Http\Controllers\Admin\SettingsController::class, 'storeAddress'])->name('settings.addresses.store');
         Route::put('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateAddress'])->name('settings.addresses.update');
         Route::delete('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyAddress'])->name('settings.addresses.destroy');
+        Route::put('/settings/contacts', [App\Http\Controllers\Admin\SettingsController::class, 'updateContacts'])->name('settings.contacts.update');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
 

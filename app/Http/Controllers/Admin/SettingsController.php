@@ -4,13 +4,41 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAddressRequest;
+use App\Http\Requests\UpdateContactsRequest;
 use App\Models\Address;
+use App\Models\Brand;
+use App\Models\Contact;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SettingsController extends Controller
 {
+    /**
+     * Get authenticated user's brand or return error redirect.
+     */
+    private function getRequiredBrand(): Brand|RedirectResponse
+    {
+        $brand = auth()->user()->getBrand();
+
+        if (!$brand) {
+            return redirect()->back()->withErrors(['brand' => 'No brand found.']);
+        }
+
+        return $brand;
+    }
+
+    /**
+     * Find address belonging to the brand.
+     */
+    private function findBrandAddress(Brand $brand, int $id): Address
+    {
+        return Address::where('id', $id)
+            ->where('addressable_type', Brand::class)
+            ->where('addressable_id', $brand->id)
+            ->firstOrFail();
+    }
+
     /**
      * Show Settings page with addresses.
      */
@@ -35,8 +63,16 @@ class SettingsController extends Controller
                 ])
             : [];
 
+        $contacts = [];
+        if ($brand) {
+            foreach ($brand->contacts as $contact) {
+                $contacts[$contact->type] = $contact->value;
+            }
+        }
+
         return Inertia::render('Settings', [
             'addresses' => $addresses,
+            'contacts' => $contacts,
         ]);
     }
 
@@ -45,10 +81,9 @@ class SettingsController extends Controller
      */
     public function storeAddress(StoreAddressRequest $request): RedirectResponse
     {
-        $brand = auth()->user()->getBrand();
-
-        if (!$brand) {
-            return redirect()->back()->withErrors(['brand' => 'No brand found.']);
+        $brand = $this->getRequiredBrand();
+        if ($brand instanceof RedirectResponse) {
+            return $brand;
         }
 
         $brand->addresses()->create($request->validated());
@@ -61,18 +96,42 @@ class SettingsController extends Controller
      */
     public function updateAddress(StoreAddressRequest $request, int $id): RedirectResponse
     {
-        $brand = auth()->user()->getBrand();
-
-        if (!$brand) {
-            return redirect()->back()->withErrors(['brand' => 'No brand found.']);
+        $brand = $this->getRequiredBrand();
+        if ($brand instanceof RedirectResponse) {
+            return $brand;
         }
 
-        $address = Address::where('id', $id)
-            ->where('addressable_type', 'App\Models\Brand')
-            ->where('addressable_id', $brand->id)
-            ->firstOrFail();
+        $this->findBrandAddress($brand, $id)->update($request->validated());
 
-        $address->update($request->validated());
+        return redirect()->back();
+    }
+
+    /**
+     * Sync contacts for the brand.
+     */
+    public function updateContacts(UpdateContactsRequest $request): RedirectResponse
+    {
+        $brand = $this->getRequiredBrand();
+        if ($brand instanceof RedirectResponse) {
+            return $brand;
+        }
+
+        $existingContacts = $brand->contacts->keyBy('type');
+
+        foreach (Contact::TYPES as $type) {
+            $value = $request->validated()[$type] ?? null;
+            $existing = $existingContacts->get($type);
+
+            if ($value) {
+                if ($existing) {
+                    $existing->update(['value' => $value]);
+                } else {
+                    $brand->contacts()->create(['type' => $type, 'value' => $value]);
+                }
+            } elseif ($existing) {
+                $existing->delete();
+            }
+        }
 
         return redirect()->back();
     }
@@ -82,18 +141,12 @@ class SettingsController extends Controller
      */
     public function destroyAddress(int $id): RedirectResponse
     {
-        $brand = auth()->user()->getBrand();
-
-        if (!$brand) {
-            return redirect()->back()->withErrors(['brand' => 'No brand found.']);
+        $brand = $this->getRequiredBrand();
+        if ($brand instanceof RedirectResponse) {
+            return $brand;
         }
 
-        $address = Address::where('id', $id)
-            ->where('addressable_type', 'App\Models\Brand')
-            ->where('addressable_id', $brand->id)
-            ->firstOrFail();
-
-        $address->delete();
+        $this->findBrandAddress($brand, $id)->delete();
 
         return redirect()->back();
     }

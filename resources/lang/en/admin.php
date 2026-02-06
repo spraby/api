@@ -1019,6 +1019,34 @@ return [
         'confirm_delete' => 'Are you sure you want to delete this address?',
     ],
 
+    'settings_contacts' => [
+        'title' => 'Contacts',
+        'description' => 'Your business contact information',
+        'fields' => [
+            'email' => 'Email',
+            'phone' => 'Phone',
+            'whatsapp' => 'WhatsApp',
+            'telegram' => 'Telegram',
+            'instagram' => 'Instagram',
+            'facebook' => 'Facebook',
+        ],
+        'placeholders' => [
+            'email' => 'info@example.com',
+            'phone' => '+1 234 567-8900',
+            'whatsapp' => '+12345678900',
+            'telegram' => '@username',
+            'instagram' => '@username',
+            'facebook' => 'https://facebook.com/page',
+        ],
+        'actions' => [
+            'save' => 'Save',
+            'saving' => 'Saving...',
+        ],
+        'messages' => [
+            'updated' => 'Contacts updated',
+        ],
+    ],
+
     'impersonation' => [
         'impersonate' => 'Impersonate',
         'stop' => 'Stop Impersonating',

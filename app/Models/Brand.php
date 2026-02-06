@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property-read Collection<Order> $orders
  * @property-read Collection<Image> $images
  * @property-read Collection<Address> $addresses
+ * @property-read Collection<Contact> $contacts
  *
  * @method static Builder|static query()
  *
@@ -81,6 +82,11 @@ class Brand extends Model
     public function addresses(): MorphMany
     {
         return $this->morphMany(Address::class, 'addressable');
+    }
+
+    public function contacts(): MorphMany
+    {
+        return $this->morphMany(Contact::class, 'contactable');
     }
 
     public static function toMoney(float $value): string

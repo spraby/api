@@ -1019,6 +1019,34 @@ return [
         'confirm_delete' => 'Вы уверены, что хотите удалить этот адрес?',
     ],
 
+    'settings_contacts' => [
+        'title' => 'Контакты',
+        'description' => 'Контактная информация вашего бизнеса',
+        'fields' => [
+            'email' => 'Email',
+            'phone' => 'Телефон',
+            'whatsapp' => 'WhatsApp',
+            'telegram' => 'Telegram',
+            'instagram' => 'Instagram',
+            'facebook' => 'Facebook',
+        ],
+        'placeholders' => [
+            'email' => 'info@example.com',
+            'phone' => '+375 29 123-45-67',
+            'whatsapp' => '+375291234567',
+            'telegram' => '@username',
+            'instagram' => '@username',
+            'facebook' => 'https://facebook.com/page',
+        ],
+        'actions' => [
+            'save' => 'Сохранить',
+            'saving' => 'Сохранение...',
+        ],
+        'messages' => [
+            'updated' => 'Контакты обновлены',
+        ],
+    ],
+
     'impersonation' => [
         'impersonate' => 'Войти как',
         'stop' => 'Выйти из режима',

@@ -257,3 +257,11 @@ export interface Address {
   created_at: string;
 }
 
+// ============================================
+// CONTACT TYPES
+// ============================================
+
+export type ContactType = 'email' | 'phone' | 'whatsapp' | 'telegram' | 'instagram' | 'facebook';
+
+export type ContactsMap = Partial<Record<ContactType, string>>;
+
