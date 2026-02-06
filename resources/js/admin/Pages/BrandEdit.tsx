@@ -1,10 +1,15 @@
+import {useState} from 'react';
+
 import {router, usePage} from '@inertiajs/react';
-import {ArrowLeftIcon, UserCheckIcon, UserIcon} from 'lucide-react';
+import {ArrowLeftIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
 
 import {BrandForm} from "@/components/brand-form.tsx";
 import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Checkbox} from '@/components/ui/checkbox';
+import {Label} from '@/components/ui/label';
 import {useLang} from '@/lib/lang';
+import type {ShippingMethod} from '@/types/api';
 import type {PageProps} from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -19,17 +24,24 @@ interface BrandData {
     name: string;
     email: string;
   } | null;
+  shipping_methods: ShippingMethod[];
   created_at: string;
   updated_at: string;
 }
 
 interface BrandEditProps {
   brand: BrandData;
+  allShippingMethods: ShippingMethod[];
 }
 
-export default function BrandEdit({brand}: BrandEditProps) {
+export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
     const {t} = useLang();
     const {auth} = usePage<PageProps>().props;
+
+    const [selectedShippingMethods, setSelectedShippingMethods] = useState<number[]>(
+        brand.shipping_methods.map(m => m.id)
+    );
+    const [isSaving, setIsSaving] = useState(false);
 
     // Check if current user can impersonate (admins only)
     const canImpersonate = auth?.user?.is_admin && brand.user;
@@ -38,6 +50,30 @@ export default function BrandEdit({brand}: BrandEditProps) {
         if (brand.user) {
             router.post(route('admin.impersonate', {user: brand.user.id}));
         }
+    };
+
+    const initialShippingMethodIds = brand.shipping_methods.map(m => m.id);
+    const hasShippingChanges =
+        selectedShippingMethods.length !== initialShippingMethodIds.length ||
+        selectedShippingMethods.some(id => !initialShippingMethodIds.includes(id));
+
+    const handleShippingMethodToggle = (methodId: number, checked: boolean) => {
+        setSelectedShippingMethods(prev =>
+            checked ? [...prev, methodId] : prev.filter(id => id !== methodId)
+        );
+    };
+
+    const handleSaveShippingMethods = () => {
+        setIsSaving(true);
+
+        router.put(
+            route('admin.brands.shipping-methods.sync', {brand: brand.id}),
+            {shipping_method_ids: selectedShippingMethods},
+            {
+                preserveScroll: true,
+                onFinish: () => setIsSaving(false),
+            }
+        );
     };
 
     return (
@@ -69,7 +105,7 @@ export default function BrandEdit({brand}: BrandEditProps) {
                         {canImpersonate ? (
                             <Button variant="outline" onClick={handleImpersonate}>
                                 <UserCheckIcon className="mr-2 size-4"/>
-                                {t('admin.impersonation.impersonate') || 'Impersonate'} {brand.user?.name}
+                                {t('admin.impersonation.impersonate')} {brand.user?.name}
                             </Button>
                         ) : null}
                     </div>
@@ -79,7 +115,7 @@ export default function BrandEdit({brand}: BrandEditProps) {
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base flex items-center gap-2">
                                     <UserIcon className="size-4"/>
-                                    {t('admin.brands_table.columns.owner') || 'Owner'}
+                                    {t('admin.brands_table.columns.owner')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -99,6 +135,60 @@ export default function BrandEdit({brand}: BrandEditProps) {
                     ) : null}
 
                     <BrandForm brand={brand}/>
+
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <TruckIcon className="size-4"/>
+                                {t('admin.brands_edit.shipping_methods')}
+                            </CardTitle>
+                            <CardDescription>
+                                {t('admin.brands_edit.shipping_methods_description')}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {allShippingMethods.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    {t('admin.brands_edit.no_shipping_methods')}
+                                </p>
+                            ) : (
+                                <div className="flex flex-col gap-4">
+                                    <div className="space-y-3">
+                                        {allShippingMethods.map((method) => (
+                                            <div key={method.id} className="flex items-center space-x-3">
+                                                <Checkbox
+                                                    id={`shipping-${method.id}`}
+                                                    checked={selectedShippingMethods.includes(method.id)}
+                                                    disabled={isSaving}
+                                                    onCheckedChange={(checked) =>
+                                                        handleShippingMethodToggle(method.id, checked === true)
+                                                    }
+                                                />
+                                                <Label
+                                                    htmlFor={`shipping-${method.id}`}
+                                                    className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {method.name}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <Button
+                                            size="sm"
+                                            onClick={handleSaveShippingMethods}
+                                            disabled={isSaving || !hasShippingChanges}
+                                        >
+                                            {isSaving
+                                                ? t('admin.brands_edit.shipping_saving')
+                                                : t('admin.brands_edit.shipping_save')}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

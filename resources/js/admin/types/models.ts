@@ -46,6 +46,15 @@ export interface Brand extends BaseModel {
     settings?: BrandSettings[];
     orders?: Order[];
     images?: Image[];
+    shippingMethods?: ShippingMethod[];
+}
+
+export interface ShippingMethod extends BaseModel {
+    key: string;
+    name: string;
+    description?: string | null;
+    // Relations
+    brands?: Brand[];
 }
 
 export type BrandSettingsType = 'refund' | 'addresses' | 'delivery' | 'phones' | 'emails' | 'socials';

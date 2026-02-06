@@ -692,6 +692,11 @@ return [
             'save' => 'Save Changes',
             'saving' => 'Saving...',
         ],
+        'shipping_methods' => 'Shipping Methods',
+        'shipping_methods_description' => 'Select available shipping methods for this brand',
+        'no_shipping_methods' => 'No shipping methods available',
+        'shipping_save' => 'Save',
+        'shipping_saving' => 'Saving...',
     ],
 
     'brands_create' => [
@@ -1044,6 +1049,19 @@ return [
         ],
         'messages' => [
             'updated' => 'Contacts updated',
+        ],
+    ],
+
+    'settings_delivery' => [
+        'title' => 'Delivery',
+        'description' => 'Select available shipping methods for your store',
+        'no_methods' => 'No shipping methods available',
+        'actions' => [
+            'save' => 'Save',
+            'saving' => 'Saving...',
+        ],
+        'messages' => [
+            'updated' => 'Shipping methods updated',
         ],
     ],
 

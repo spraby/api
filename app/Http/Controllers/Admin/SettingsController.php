@@ -8,7 +8,9 @@ use App\Http\Requests\UpdateContactsRequest;
 use App\Models\Address;
 use App\Models\Brand;
 use App\Models\Contact;
+use App\Models\ShippingMethod;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -70,9 +72,17 @@ class SettingsController extends Controller
             }
         }
 
+        $shippingMethods = $brand
+            ? $brand->shippingMethods()->orderBy('name')->get()->map->toSelectArray()
+            : [];
+
+        $allShippingMethods = ShippingMethod::orderBy('name')->get()->map->toSelectArray();
+
         return Inertia::render('Settings', [
             'addresses' => $addresses,
             'contacts' => $contacts,
+            'shippingMethods' => $shippingMethods,
+            'allShippingMethods' => $allShippingMethods,
         ]);
     }
 
@@ -132,6 +142,26 @@ class SettingsController extends Controller
                 $existing->delete();
             }
         }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Sync shipping methods for the brand.
+     */
+    public function syncShippingMethods(Request $request): RedirectResponse
+    {
+        $brand = $this->getRequiredBrand();
+        if ($brand instanceof RedirectResponse) {
+            return $brand;
+        }
+
+        $validated = $request->validate([
+            'shipping_method_ids' => ['present', 'array'],
+            'shipping_method_ids.*' => ['integer', 'exists:shipping_methods,id'],
+        ]);
+
+        $brand->shippingMethods()->sync($validated['shipping_method_ids']);
 
         return redirect()->back();
     }

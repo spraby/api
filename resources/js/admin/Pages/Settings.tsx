@@ -5,13 +5,21 @@ import {Building2Icon, MapPinIcon, TruckIcon, PhoneIcon} from 'lucide-react';
 
 import AddressesSection from '@/components/settings/AddressesSection';
 import ContactsSection from '@/components/settings/ContactsSection';
+import DeliverySection from '@/components/settings/DeliverySection';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Separator} from '@/components/ui/separator';
 import AdminLayout from '@/layouts/AdminLayout';
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
-import type {Address, ContactsMap} from '@/types/api';
+import type {Address, ContactsMap, ShippingMethod} from '@/types/api';
 import type {PageProps} from '@/types/inertia';
+
+interface SettingsPageProps extends Record<string, unknown> {
+    addresses: Address[];
+    contacts: ContactsMap;
+    shippingMethods: ShippingMethod[];
+    allShippingMethods: ShippingMethod[];
+}
 
 const tabs = [
     {id: 'general', icon: Building2Icon, label_ru: 'Основные', label_en: 'General'},
@@ -36,27 +44,17 @@ function GeneralSection() {
     );
 }
 
-function DeliverySection() {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Доставка</CardTitle>
-                <CardDescription>Настройки способов доставки</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-muted-foreground">Здесь будут настройки доставки...</p>
-            </CardContent>
-        </Card>
-    );
-}
-
 function ManagerSettings({
     addresses,
     contacts,
+    shippingMethods,
+    allShippingMethods,
     locale,
 }: {
     addresses: Address[];
     contacts: ContactsMap;
+    shippingMethods: ShippingMethod[];
+    allShippingMethods: ShippingMethod[];
     locale: string;
 }) {
     const [activeTab, setActiveTab] = useState<TabId>('general');
@@ -90,7 +88,7 @@ function ManagerSettings({
             <div className="flex-1 min-w-0">
                 {activeTab === 'general' && <GeneralSection/>}
                 {activeTab === 'addresses' && <AddressesSection addresses={addresses}/>}
-                {activeTab === 'delivery' && <DeliverySection/>}
+                {activeTab === 'delivery' && <DeliverySection shippingMethods={shippingMethods} allShippingMethods={allShippingMethods}/>}
                 {activeTab === 'contacts' && <ContactsSection contacts={contacts}/>}
             </div>
         </div>
@@ -113,7 +111,7 @@ function AdminSettings() {
 
 export default function Settings() {
     const {t, locale} = useLang();
-    const {auth, addresses, contacts} = usePage<PageProps<{addresses: Address[]; contacts: ContactsMap}>>().props;
+    const {auth, addresses, contacts, shippingMethods, allShippingMethods} = usePage<PageProps<SettingsPageProps>>().props;
 
     return (
         <AdminLayout title={t('admin.nav.settings')}>
@@ -124,7 +122,7 @@ export default function Settings() {
                 {auth.user.is_admin ? (
                     <AdminSettings/>
                 ) : (
-                    <ManagerSettings addresses={addresses} contacts={contacts} locale={locale}/>
+                    <ManagerSettings addresses={addresses} contacts={contacts} shippingMethods={shippingMethods} allShippingMethods={allShippingMethods} locale={locale}/>
                 )}
             </div>
         </AdminLayout>

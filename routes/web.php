@@ -93,6 +93,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
                 Route::get('/edit', [App\Http\Controllers\Admin\BrandController::class, 'edit'])->name('brands.edit');
                 Route::put('/', [App\Http\Controllers\Admin\BrandController::class, 'update'])->name('brands.update');
                 Route::delete('/', [App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('brands.destroy');
+                Route::put('/shipping-methods', [App\Http\Controllers\Admin\BrandController::class, 'syncShippingMethods'])->name('brands.shipping-methods.sync');
             });
         });
 
@@ -167,6 +168,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateAddress'])->name('settings.addresses.update');
         Route::delete('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyAddress'])->name('settings.addresses.destroy');
         Route::put('/settings/contacts', [App\Http\Controllers\Admin\SettingsController::class, 'updateContacts'])->name('settings.contacts.update');
+        Route::put('/settings/shipping-methods', [App\Http\Controllers\Admin\SettingsController::class, 'syncShippingMethods'])->name('settings.shipping-methods.sync');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
 

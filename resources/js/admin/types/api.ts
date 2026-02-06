@@ -265,3 +265,13 @@ export type ContactType = 'email' | 'phone' | 'whatsapp' | 'telegram' | 'instagr
 
 export type ContactsMap = Partial<Record<ContactType, string>>;
 
+// ============================================
+// SHIPPING METHOD TYPES
+// ============================================
+
+export interface ShippingMethod {
+  id: number;
+  key: string;
+  name: string;
+}
+

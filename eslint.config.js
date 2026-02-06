@@ -344,7 +344,7 @@ export default tseslint.config(
       // ============================================
       // General Rules
       // ============================================
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-console': ['error', { allow: ['log', 'warn', 'error'] }],
       'no-debugger': 'error',
       'no-alert': 'error',
       'no-unused-vars': 'off', // Using @typescript-eslint/no-unused-vars instead
