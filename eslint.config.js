@@ -136,6 +136,9 @@ export default tseslint.config(
       '@typescript-eslint/no-duplicate-enum-values': 'error',
       '@typescript-eslint/no-duplicate-type-constituents': 'error',
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
+      '@typescript-eslint/no-empty-function': ['error', {
+        allow: ['arrowFunctions'],
+      }],
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
       '@typescript-eslint/no-confusing-void-expression': ['error', {
         ignoreArrowShorthand: true, // Common in React event handlers

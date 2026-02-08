@@ -5,6 +5,7 @@ import {toast} from 'sonner';
 
 import {AppSidebar} from "@/components/app-sidebar"
 import {ImpersonationBanner} from "@/components/impersonation-banner"
+import {SaveBar} from "@/components/save-bar"
 import {SiteHeader} from "@/components/site-header"
 import {
     SidebarInset,
@@ -41,6 +42,7 @@ export default function Page({children}: { children: React.ReactNode, title?: st
                     <ImpersonationBanner user={auth.user}/>
                 ) : null}
                 <SiteHeader/>
+                <SaveBar/>
                 <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                     {children}
                 </div>

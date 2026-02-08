@@ -26,9 +26,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {UnsavedChangesBar} from "@/components/unsaved-changes-bar.tsx";
 import {useLang} from '@/lib/lang';
 import {VariantService} from '@/services/variant-service';
+import {useSaveBar} from '@/stores/save-bar';
 import type {Product, ProductImage, Variant} from "@/types/models.ts";
 
 // Simplified variant type for form data (excludes nested relations that cause FormDataType issues)
@@ -125,24 +125,11 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     // Track if description has been normalized by the rich text editor
     const descriptionNormalizedRef = useRef(false);
     const hasUnsavedChanges = useMemo(() => {
-        // Compare only editable fields to avoid false positives from computed properties
         const editableFields = ['title', 'description', 'enabled', 'category_id', 'variants'] as const;
         const currentData = editableFields.reduce<Record<string, unknown>>((acc, key) => ({...acc, [key]: formData[key]}), {});
         const savedData = editableFields.reduce<Record<string, unknown>>((acc, key) => ({...acc, [key]: savedDataRef.current[key]}), {});
 
-        const hasChanges = !isEqual(currentData, savedData);
-
-        // Debug
-        if (hasChanges) {
-            console.log('hasUnsavedChanges:', {
-                currentData,
-                savedData,
-                descriptionNormalized: descriptionNormalizedRef.current,
-                descriptionEqual: currentData['description'] === savedData['description'],
-            });
-        }
-
-        return hasChanges;
+        return !isEqual(currentData, savedData);
     }, [formData]);
 
     // Check for duplicate variants
@@ -212,47 +199,52 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     /**
      * Handle form submission with duplicate validation
      */
-    const submitForm = useCallback(() => {
-        // Prevent saving if there are duplicate variants
+    const submitForm = useCallback(async (): Promise<boolean> => {
         if (hasDuplicateVariants) {
             toast.error(t('admin.products_edit.errors.duplicate_variants'));
 
-            return;
+            return Promise.resolve(false);
         }
 
-        if (formData?.id) {
-            put(route('admin.products.update', formData.id), {
-                preserveScroll: true,
-                onSuccess: (page) => {
-                    const updatedProduct = page.props['product'] as Product;
-                    const updatedFormData: ProductFormData = {
-                        id: updatedProduct.id,
-                        brand_id: updatedProduct.brand_id,
-                        category_id: updatedProduct.category_id,
-                        title: updatedProduct.title,
-                        description: updatedProduct.description,
-                        enabled: updatedProduct.enabled,
-                        variants: toFormVariants(updatedProduct.variants),
-                    };
+        return new Promise((resolve) => {
+            if (formData?.id) {
+                put(route('admin.products.update', formData.id), {
+                    preserveScroll: true,
+                    onSuccess: (page) => {
+                        const updatedProduct = page.props['product'] as Product;
+                        const updatedFormData: ProductFormData = {
+                            id: updatedProduct.id,
+                            brand_id: updatedProduct.brand_id,
+                            category_id: updatedProduct.category_id,
+                            title: updatedProduct.title,
+                            description: updatedProduct.description,
+                            enabled: updatedProduct.enabled,
+                            variants: toFormVariants(updatedProduct.variants),
+                        };
 
-                    // Update read-only data
-                    readOnlyDataRef.current = {
-                        images: updatedProduct.images ?? [],
-                        externalUrl: updatedProduct.externalUrl,
-                    };
+                        readOnlyDataRef.current = {
+                            images: updatedProduct.images ?? [],
+                            externalUrl: updatedProduct.externalUrl,
+                        };
 
-                    setData(updatedFormData);
-                    savedDataRef.current = updatedFormData;
-                },
-            });
-        } else {
-            post(route('admin.products.store'));
-        }
+                        setData(updatedFormData);
+                        savedDataRef.current = updatedFormData;
+                        resolve(true);
+                    },
+                    onError: () => resolve(false),
+                });
+            } else {
+                post(route('admin.products.store'), {
+                    onSuccess: () => resolve(true),
+                    onError: () => resolve(false),
+                });
+            }
+        });
     }, [hasDuplicateVariants, t, formData?.id, put, setData, post]);
 
     const onSubmit: FormEventHandler = (e) => {
         e.preventDefault();
-        submitForm();
+        void submitForm();
     }
 
     /**
@@ -262,6 +254,13 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         reset();
         setData(savedDataRef.current);
     }, [reset, setData]);
+
+    useSaveBar({
+        hasChanges: hasUnsavedChanges,
+        isSaving: processing,
+        onSave: submitForm,
+        onDiscard: handleDiscard,
+    });
 
     return <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
@@ -411,20 +410,5 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
             </Button>
         </div>
 
-        <UnsavedChangesBar
-            dialogCancelLabel={t('admin.products_edit.unsaved.dialog.cancel')}
-            dialogDescription={t('admin.products_edit.unsaved.dialog.description')}
-            dialogDiscardLabel={t('admin.products_edit.unsaved.dialog.discard')}
-            dialogSaveLabel={t('admin.products_edit.unsaved.dialog.save')}
-            dialogTitle={t('admin.products_edit.unsaved.dialog.title')}
-            discardLabel={t('admin.products_edit.actions.discard')}
-            hasChanges={hasUnsavedChanges}
-            isSaving={processing}
-            message={t('admin.products_edit.unsaved.message')}
-            mobileMessage={t('admin.products_edit.unsaved.mobile_message')}
-            saveLabel={t('admin.products_edit.actions.save')}
-            onDiscard={handleDiscard}
-            onSave={submitForm}
-        />
     </form>;
 }
