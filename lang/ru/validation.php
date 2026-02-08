@@ -166,6 +166,10 @@ return [
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
 
+    'unique_variant_combinations' => 'Варианты должны иметь уникальные комбинации опций.',
+    'option_belongs_to_category' => 'Одна или несколько опций не принадлежат выбранной категории.',
+    'option_value_belongs_to_option' => 'Одно или несколько значений опций не принадлежат своей опции.',
+
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Language Lines

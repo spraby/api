@@ -13,8 +13,8 @@ use App\Models\Image;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\User;
-use App\Models\Variant;
 use App\Services\FileService;
+use App\Services\VariantService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -175,61 +175,8 @@ class ProductController extends Controller
                 'category_id' => $request->input('category_id'),
             ]);
 
-            // Reload the product with variants
-            $product->load('variants');
-
-            // Get existing variant IDs
-            $existingVariantIds = $product->variants->pluck('id')->toArray();
-            $submittedVariantIds = [];
-
-            // Update or create variants
-            foreach ($request->input('variants') as $variantData) {
-                if (isset($variantData['id']) && in_array($variantData['id'], $existingVariantIds)) {
-                    // Update existing variant
-                    $variant = $product->variants()->where('id', $variantData['id'])->first();
-
-                    if ($variant) {
-                        $variant->update([
-                            'title' => $variantData['title'] ?? null,
-                            'price' => $variantData['price'],
-                            'final_price' => $variantData['final_price'],
-                            'enabled' => $variantData['enabled'],
-                        ]);
-                        $submittedVariantIds[] = $variantData['id'];
-                    }
-                } else {
-
-                    // Create new variant
-                    $variant = Variant::create([
-                        'product_id' => $product->id,
-                        'title' => $variantData['title'] ?? null,
-                        'price' => $variantData['price'],
-                        'final_price' => $variantData['final_price'],
-                        'enabled' => $variantData['enabled'],
-                    ]);
-                    $submittedVariantIds[] = $variant->id;
-                }
-
-                // Sync variant values
-                if ($variant && isset($variantData['values']) && is_array($variantData['values'])) {
-                    // Delete existing values
-                    $variant->values()->delete();
-
-                    // Create new values
-                    foreach ($variantData['values'] as $valueData) {
-                        $variant->values()->create([
-                            'option_id' => $valueData['option_id'],
-                            'option_value_id' => $valueData['option_value_id'],
-                        ]);
-                    }
-                }
-            }
-
-            // Delete variants that were removed
-            $variantsToDelete = array_diff($existingVariantIds, $submittedVariantIds);
-            if (!empty($variantsToDelete)) {
-                Variant::whereIn('id', $variantsToDelete)->delete();
-            }
+            // Sync variants
+            app(VariantService::class)->syncVariants($product, $request->input('variants'));
 
             $product->refresh()->load('variants');
 
@@ -271,24 +218,7 @@ class ProductController extends Controller
             ]);
 
             // Create variants
-            foreach ($request->input('variants') as $variantData) {
-                $variant = $product->variants()->create([
-                    'title' => $variantData['title'] ?? null,
-                    'price' => $variantData['price'],
-                    'final_price' => $variantData['final_price'],
-                    'enabled' => $variantData['enabled'],
-                ]);
-
-                // Create variant values
-                if (isset($variantData['values']) && is_array($variantData['values'])) {
-                    foreach ($variantData['values'] as $valueData) {
-                        $variant->values()->create([
-                            'option_id' => $valueData['option_id'],
-                            'option_value_id' => $valueData['option_value_id'],
-                        ]);
-                    }
-                }
-            }
+            app(VariantService::class)->createVariants($product, $request->input('variants'));
 
             return redirect()->route('admin.products.edit', $product->id)->with('success', 'Product created successfully');
         } catch (\Exception $e) {

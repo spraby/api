@@ -26,13 +26,15 @@ interface ProductForVariantList {
 interface ProductVariantListProps {
     product: ProductForVariantList,
     options: Option[],
-    onUpdate: (variants: Variant[]) => void
+    onUpdate: (variants: Variant[]) => void,
+    duplicateGroups?: number[][],
 }
 
 export function ProductVariantList({
                                        product,
                                        options,
-                                       onUpdate
+                                       onUpdate,
+                                       duplicateGroups: externalDuplicateGroups,
                                    }: ProductVariantListProps) {
     const {t} = useLang();
 
@@ -182,17 +184,20 @@ export function ProductVariantList({
     /**
      * Check if adding new variant is possible
      */
-    const canAddVariant = VariantService.hasAvailableCombinations(
-        options,
-        product.variants ?? []
-    );
+    const canAddVariant = useMemo(() => {
+        return VariantService.hasAvailableCombinations(options, product.variants ?? []);
+    }, [options, product.variants]);
 
     /**
      * Find duplicate variant groups and create a Set of duplicate indices
+     * Uses externally computed groups if provided (from product-form), otherwise computes locally
      */
     const duplicateGroups = useMemo(() => {
+        if (externalDuplicateGroups) {
+            return externalDuplicateGroups;
+        }
         return VariantService.findDuplicateGroups(product.variants ?? []);
-    }, [product.variants]);
+    }, [externalDuplicateGroups, product.variants]);
 
     const duplicateIndices = useMemo(() => {
         const indices = new Set<number>();
@@ -207,26 +212,26 @@ export function ProductVariantList({
     }, [duplicateGroups]);
 
     const addVariant = () => {
-        // Generate first unique combination that doesn't exist in current variants
-        const generatedValues = VariantService.generateVariantValues(
+        // Generate first unique combination with auto-generated title
+        const result = VariantService.generateVariant(
             options,
             product.variants ?? []
         );
 
         // If no combinations available, button should be disabled (shouldn't reach here)
-        if (!generatedValues) {
+        if (!result) {
             return;
         }
 
         const newVariant: VariantWithTempId = {
             _tempId: uuidv4(),
             product_id: product.id ?? 0,
-            title: '',
+            title: result.title,
             price: '0.00',
             final_price: '0.00',
             enabled: false,
             image_id: null,
-            values: generatedValues as VariantValue[],
+            values: result.values as VariantValue[],
         };
 
         onUpdate([...(product.variants ?? []), newVariant as Variant]);

@@ -132,12 +132,12 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         return !isEqual(currentData, savedData);
     }, [formData]);
 
-    // Check for duplicate variants
-    const hasDuplicateVariants = useMemo(() => {
-        const duplicateGroups = VariantService.findDuplicateGroups(formData.variants ?? []);
-
-        return duplicateGroups.length > 0;
+    // Check for duplicate variants — keep full array for passing to variant list
+    const duplicateGroups = useMemo(() => {
+        return VariantService.findDuplicateGroups(formData.variants ?? []);
     }, [formData.variants]);
+
+    const hasDuplicateVariants = duplicateGroups.length > 0;
 
     // Track if variant values have been initialized to prevent overwriting user changes
     const variantsInitialized = useRef(false);
@@ -387,6 +387,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                         setData('variants', [...v])
                     }}
                     options={category?.options ?? []}
+                    duplicateGroups={duplicateGroups}
                 />
             }
 
