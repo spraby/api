@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 
-import {usePage} from '@inertiajs/react';
+import {Head, usePage} from '@inertiajs/react';
 import {toast} from 'sonner';
 
 import {AppSidebar} from "@/components/app-sidebar"
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sidebar"
 import type {PageProps} from '@/types/inertia';
 
-export default function Page({children}: { children: React.ReactNode, title?: string }) {
+export default function Page({children, title}: { children: React.ReactNode, title?: string }) {
     const { flash, auth } = usePage<PageProps>().props;
 
 
@@ -36,6 +36,7 @@ export default function Page({children}: { children: React.ReactNode, title?: st
 
     return (
         <SidebarProvider>
+            {!!title && <Head title={title}/>}
             <AppSidebar user={auth?.user} variant="inset"/>
             <SidebarInset>
                 {auth?.impersonator && auth?.user ? (

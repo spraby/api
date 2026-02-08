@@ -300,7 +300,7 @@ class VariantServiceClass {
                 continue;
             }
 
-            const currentValues = variants[i].values;
+            const currentValues = variants[i]?.values ?? [];
 
             // Skip variants without values
             if (!currentValues || currentValues.length === 0) {
@@ -314,7 +314,7 @@ class VariantServiceClass {
                     continue;
                 }
 
-                const compareValues = variants[j].values;
+                const compareValues = variants[j]?.values ?? [];
 
                 if (!compareValues || compareValues.length === 0) {
                     continue;
@@ -442,36 +442,3 @@ export const VariantService = new VariantServiceClass();
 // Export class for testing or extension
 export { VariantServiceClass };
 
-// ============================================================================
-// Legacy exports for backward compatibility
-// ============================================================================
-
-/**
- * @deprecated Use VariantService.generateVariantValues() instead
- */
-export const generateVariantValuesFromOptions = (
-    options: Option[],
-    existingVariants: Variant[] = []
-): VariantValueInput[] | null => {
-    return VariantService.generateVariantValues(options, existingVariants);
-};
-
-/**
- * @deprecated Use VariantService.compareValues() instead
- */
-export const compareVariantValues = (
-    values1: (VariantValue | VariantValueInput)[] | undefined,
-    values2: VariantValueInput[]
-): boolean => {
-    return VariantService.compareValues(values1, values2);
-};
-
-/**
- * @deprecated Use VariantService.hasAvailableCombinations() instead
- */
-export const hasAvailableVariantCombinations = (
-    options: Option[],
-    existingVariants: Variant[] = []
-): boolean => {
-    return VariantService.hasAvailableCombinations(options, existingVariants);
-};

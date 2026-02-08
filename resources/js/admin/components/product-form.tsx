@@ -3,7 +3,7 @@
  *
  * Allows selecting option values for a product variant based on category options
  */
-import {type FormEventHandler, useCallback, useEffect, useMemo, useRef} from "react";
+import {type FormEventHandler, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 import {useForm, router} from '@inertiajs/react';
 import isEqual from 'lodash-es/isEqual';
@@ -103,12 +103,12 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
     };
 
     // Read-only data (kept outside form state, updated on server response)
-    const readOnlyDataRef = useRef<ProductReadOnlyData>({
+    const [readOnlyData, setReadOnlyData] = useState<ProductReadOnlyData>({
         images: defaultProduct.images ?? [],
         externalUrl: defaultProduct.externalUrl,
     });
 
-    const {data: formData, setData, errors, put, post, processing, reset} = useForm<ProductFormData>(initialFormData);
+    const {data: formData, setData, errors, put, post, processing} = useForm<ProductFormData>(initialFormData);
     const isEditMode = useMemo(() => !!formData?.id, [formData?.id]);
     const brandCategories = useMemo(() => defaultProduct?.brand?.categories ?? [], [defaultProduct?.brand?.categories]);
     const category = useMemo(() => {
@@ -118,7 +118,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         }
 
         return brandCategories[0]
-    }, [formData, brandCategories])
+    }, [formData.category_id, brandCategories])
 
     // Track saved state for unsaved changes detection
     const savedDataRef = useRef<ProductFormData>(initialFormData);
@@ -203,7 +203,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
         if (hasDuplicateVariants) {
             toast.error(t('admin.products_edit.errors.duplicate_variants'));
 
-            return Promise.resolve(false);
+            return false;
         }
 
         return new Promise((resolve) => {
@@ -222,10 +222,10 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                             variants: toFormVariants(updatedProduct.variants),
                         };
 
-                        readOnlyDataRef.current = {
+                        setReadOnlyData({
                             images: updatedProduct.images ?? [],
                             externalUrl: updatedProduct.externalUrl,
-                        };
+                        });
 
                         setData(updatedFormData);
                         savedDataRef.current = updatedFormData;
@@ -251,9 +251,8 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
      * Discard unsaved changes
      */
     const handleDiscard = useCallback(() => {
-        reset();
         setData(savedDataRef.current);
-    }, [reset, setData]);
+    }, [setData]);
 
     useSaveBar({
         hasChanges: hasUnsavedChanges,
@@ -372,7 +371,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                 <Card className="col-span-9 p-4 sm:p-6">
                     <ProductImagesManager
                         disabled={processing}
-                        images={readOnlyDataRef.current.images}
+                        images={readOnlyData.images}
                         productId={formData.id}
                     />
                 </Card>
@@ -382,7 +381,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                     product={{
                         id: formData.id,
                         variants: formData.variants,
-                        images: readOnlyDataRef.current.images,
+                        images: readOnlyData.images,
                     }}
                     onUpdate={v => {
                         setData('variants', [...v])

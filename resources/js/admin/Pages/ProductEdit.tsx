@@ -8,12 +8,7 @@ import type {Product} from "@/types/models.ts";
 
 import AdminLayout from '../layouts/AdminLayout';
 
-interface ProductEditProps {
-    product: Product;
-    errors: string[]
-}
-
-export default function ProductEdit({product}: ProductEditProps) {
+export default function ProductEdit({product}: { product: Product }) {
     const {t} = useLang();
 
     return (
@@ -48,7 +43,7 @@ export default function ProductEdit({product}: ProductEditProps) {
                                     rel="noopener noreferrer"
                                     target="_blank"
                                 >
-                                    View on store
+                                    {t('admin.products_edit.view_on_store')}
                                     <ExternalLinkIcon className="size-3"/>
                                 </a>
                             ) : null}

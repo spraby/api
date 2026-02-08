@@ -40,7 +40,7 @@ export function ProductVariantItem({
                                        isDuplicate = false,
                                    }: ProductVariantItemProps) {
     const {t} = useLang();
-
+    const canRemove = typeof onRemove === 'function';
 
     return (
         <div className={cn(
@@ -51,7 +51,7 @@ export function ProductVariantItem({
         )}>
             <div className="mb-3 flex items-center justify-between">
                 {
-                    (typeof onRemove === 'function') &&
+                    !!canRemove && (
                     <div className="flex flex-row gap-5">
                         <h3 className="font-medium">
                             {t('admin.products_edit.variant')} #{index + 1}
@@ -70,9 +70,10 @@ export function ProductVariantItem({
                             </Label>
                         </div>
                     </div>
+                  )
                 }
                 {
-                    (typeof onRemove === 'function') && (
+                    !!canRemove && (
                         <Button
                             className="text-destructive hover:text-destructive"
                             disabled={disabled}
@@ -83,13 +84,13 @@ export function ProductVariantItem({
                         >
                             <TrashIcon className="size-4"/>
                         </Button>
-                    )
+                      )
                 }
             </div>
 
             <div className="grid grid-cols-12 gap-5">
                 {
-                    (typeof onRemove === 'function') && !!variant.id && (
+                    !!canRemove && !!variant.id && (
                         <div className="col-span-3 flex flex-col gap-2">
                             {variant.image?.image?.url ? (
                                 <div className="group relative w-full">
@@ -143,12 +144,12 @@ export function ProductVariantItem({
                                 </div>
                             )}
                         </div>
-                    )
+                      )
                 }
                 <div
-                    className={`${typeof onRemove === 'function' && !!variant.id ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
+                    className={`${canRemove && !!variant.id ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
                     {
-                        (typeof onRemove === 'function') &&
+                        !!canRemove && (
                         <div className="col-span-12 space-y-2">
                             <Label htmlFor={`variant-title-${index}`}>
                                 {t('admin.products_edit.fields.variant_title')}
@@ -164,6 +165,7 @@ export function ProductVariantItem({
                                 }}
                             />
                         </div>
+                      )
                     }
 
                     <div className="col-span-12 space-y-2">

@@ -91,7 +91,7 @@ class ProductController extends Controller
             ]],
         ];
 
-        return Inertia::render('ProductCreate', [
+        return Inertia::render('ProductEdit', [
             'product' => $product,
         ]);
     }
