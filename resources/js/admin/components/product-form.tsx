@@ -185,7 +185,9 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
 
             hasChanges = true;
 
-            return { ...variant, values: generatedValues };
+            const title = VariantService.generateTitle(generatedValues, category.options ?? []);
+
+            return { ...variant, values: generatedValues, title };
         });
 
         if (hasChanges) {

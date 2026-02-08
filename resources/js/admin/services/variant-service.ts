@@ -221,7 +221,7 @@ class VariantServiceClass {
             }
         }
 
-        return parts.join(' / ');
+        return parts.join(' | ');
     }
 
     /**
