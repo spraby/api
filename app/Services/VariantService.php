@@ -30,6 +30,7 @@ class VariantService
                         'price' => $variantData['price'],
                         'final_price' => $variantData['final_price'],
                         'enabled' => $variantData['enabled'],
+                        'image_id' => $variantData['image_id'] ?? null,
                     ]);
                     $submittedVariantIds[] = $variantData['id'];
 
@@ -42,6 +43,7 @@ class VariantService
                     'price' => $variantData['price'],
                     'final_price' => $variantData['final_price'],
                     'enabled' => $variantData['enabled'],
+                    'image_id' => $variantData['image_id'] ?? null,
                 ]);
                 $submittedVariantIds[] = $variant->id;
 
@@ -68,6 +70,7 @@ class VariantService
                 'price' => $variantData['price'],
                 'final_price' => $variantData['final_price'],
                 'enabled' => $variantData['enabled'],
+                'image_id' => $variantData['image_id'] ?? null,
             ]);
 
             $this->createVariantValues($variant, $variantData['values'] ?? []);

@@ -2,7 +2,6 @@ import {useMemo, useState} from "react";
 
 import {router} from '@inertiajs/react';
 import {PlusIcon} from 'lucide-react';
-import {toast} from "sonner";
 import {v4 as uuidv4} from 'uuid';
 
 import {DuplicateVariantsAlert} from "@/components/duplicate-variants-alert.tsx";
@@ -44,11 +43,20 @@ export function ProductVariantList({
     }>({open: false, variant: null});
 
     /**
-     * Remove image from variant using Inertia
+     * Remove image from variant
+     * For saved variants: uses Inertia server call
+     * For unsaved variants: updates local form state
      * @param variant
      */
     const removeVariantImage = (variant: Variant) => {
         if (!variant.id) {
+            const variantWithTempId = variant as VariantWithTempId;
+            const key = getVariantKey(variantWithTempId);
+
+            onUpdate((product.variants ?? []).map(v =>
+                getVariantKey(v as VariantWithTempId) === key ? {...v, image_id: null, image: undefined} : v
+            ));
+
             return;
         }
 
@@ -65,7 +73,9 @@ export function ProductVariantList({
     };
 
     /**
-     * Set image for variant using Inertia
+     * Set image for variant
+     * For saved variants: uses Inertia server call
+     * For unsaved variants: updates local form state
      * @param productImageId
      */
     const handleVariantImageSelect = (productImageId: number) => {
@@ -76,7 +86,14 @@ export function ProductVariantList({
         const {variant} = variantImagePicker;
 
         if (!variant?.id) {
-            toast.error(t('admin.products_edit.errors.save_variant_first'));
+            // Unsaved variant: update image_id locally
+            const variantWithTempId = variant as VariantWithTempId;
+            const key = getVariantKey(variantWithTempId);
+
+            onUpdate((product.variants ?? []).map(v =>
+                getVariantKey(v as VariantWithTempId) === key ? {...v, image_id: productImageId} : v
+            ));
+            setVariantImagePicker({open: false, variant: null});
 
             return;
         }
@@ -196,6 +213,7 @@ export function ProductVariantList({
         if (externalDuplicateGroups) {
             return externalDuplicateGroups;
         }
+
         return VariantService.findDuplicateGroups(product.variants ?? []);
     }, [externalDuplicateGroups, product.variants]);
 
@@ -237,6 +255,24 @@ export function ProductVariantList({
         onUpdate([...(product.variants ?? []), newVariant as Variant]);
     };
 
+    /**
+     * Resolve image URL for a variant from product images or loaded relation
+     */
+    const resolveImageUrl = (variant: Variant): string | undefined => {
+        // Saved variant with loaded relation
+        if (variant.image?.image?.url) {
+            return variant.image.image.url;
+        }
+        // Resolve from product images by image_id (product_image id)
+        if (variant.image_id && product.images?.length) {
+            const productImage = product.images.find(pi => pi.id === variant.image_id);
+
+            return productImage?.image?.url;
+        }
+
+        return undefined;
+    };
+
     return <>
         <div className="col-span-9 flex flex-col gap-5">
             <DuplicateVariantsAlert duplicateGroups={duplicateGroups}/>
@@ -258,6 +294,7 @@ export function ProductVariantList({
                         onOptionValueChange={(optionId, optionValueId) => {
                             updateVariantOptionValue(variantWithTempId, optionId, optionValueId);
                         }}
+                        resolvedImageUrl={resolveImageUrl(variant)}
                         index={index}
                         disabled={false}
                         isDuplicate={duplicateIndices.has(index)}

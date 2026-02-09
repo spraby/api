@@ -1,4 +1,4 @@
-import {ImageIcon, PlusIcon, TrashIcon} from 'lucide-react';
+import {PlusIcon, TrashIcon} from 'lucide-react';
 
 import {ConfirmationPopover} from '@/components/confirmation-popover';
 import {PricingSection} from '@/components/pricing-section';
@@ -19,7 +19,7 @@ interface ProductVariantItemProps {
     onImageSelect: () => void;
     options?: Option[];
     onOptionValueChange?: (optionId: number, optionValueId: number) => void;
-
+    resolvedImageUrl?: string;
 
     index: number;
     disabled: boolean;
@@ -34,6 +34,7 @@ export function ProductVariantItem({
                                        onImageSelect,
                                        options,
                                        onOptionValueChange,
+                                       resolvedImageUrl,
 
                                        index,
                                        disabled = false,
@@ -90,14 +91,14 @@ export function ProductVariantItem({
 
             <div className="grid grid-cols-12 gap-5">
                 {
-                    !!canRemove && !!variant.id && (
+                    !!canRemove && (
                         <div className="col-span-3 flex flex-col gap-2">
-                            {variant.image?.image?.url ? (
+                            {resolvedImageUrl ? (
                                 <div className="group relative w-full">
                                     <img
                                         alt={variant.title || `Variant ${index + 1}`}
                                         className="aspect-square w-full rounded-md border object-cover"
-                                        src={variant.image?.image?.url}
+                                        src={resolvedImageUrl}
                                     />
                                     <div
                                         className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
@@ -107,7 +108,7 @@ export function ProductVariantItem({
                                             trigger={
                                                 <Button
                                                     className="p-1"
-                                                    disabled={disabled || !variant.id}
+                                                    disabled={disabled}
                                                     size="icon"
                                                     type="button"
                                                     variant="secondary"
@@ -122,32 +123,23 @@ export function ProductVariantItem({
                             ) : (
                                 <div
                                     className="flex aspect-square w-full items-center justify-center rounded-md border-2 border-dashed">
-                                    {!variant.id ? (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <ImageIcon className="size-8 text-muted-foreground"/>
-                                            <span className="text-xs text-center text-muted-foreground px-2">
-                                        {t('admin.products_edit.hints.save_to_add_image')}
-                                    </span>
-                                        </div>
-                                    ) : (
-                                        <Button
-                                            disabled={disabled}
-                                            size="sm"
-                                            type="button"
-                                            variant="secondary"
-                                            onClick={onImageSelect}
-                                            title={t('admin.products_edit.actions.select_image')}
-                                        >
-                                            <PlusIcon className="size-4"/>
-                                        </Button>
-                                    )}
+                                    <Button
+                                        disabled={disabled}
+                                        size="sm"
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={onImageSelect}
+                                        title={t('admin.products_edit.actions.select_image')}
+                                    >
+                                        <PlusIcon className="size-4"/>
+                                    </Button>
                                 </div>
                             )}
                         </div>
                       )
                 }
                 <div
-                    className={`${canRemove && !!variant.id ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
+                    className={`${canRemove ? 'col-span-9' : 'col-span-12'} grid grid-cols-12 gap-4`}>
                     {
                         !!canRemove && (
                         <div className="col-span-12 space-y-2">
