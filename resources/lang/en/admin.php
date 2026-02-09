@@ -202,6 +202,7 @@ return [
     'products_edit' => [
         'title' => 'Edit Product',
         'description' => 'Update product information and variants',
+        'view_on_store' => 'View on store',
         'sections' => [
             'product_info' => 'Product Information',
             'product_images' => 'Product Images',
