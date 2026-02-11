@@ -314,18 +314,15 @@ export function ProductVariantList({
                     </Button>
                 </div>
         </div>
-        {
-            !!product?.images?.length && (
-                <ProductImagesPicker
-                    currentImageId={variantImagePicker?.variant?.image_id ?? null}
-                    open={variantImagePicker.open}
-                    productImages={product?.images || []}
-                    onOpenChange={(open) => {
-                        setVariantImagePicker({open, variant: null});
-                    }}
-                    onSelect={handleVariantImageSelect}
-                />
-            )
-        }
+            <ProductImagesPicker
+            currentImageId={variantImagePicker?.variant?.image_id ?? null}
+            open={variantImagePicker.open}
+            productId={product?.id}
+            productImages={product?.images || []}
+            onOpenChange={(open) => {
+                setVariantImagePicker({open, variant: null});
+            }}
+            onSelect={handleVariantImageSelect}
+        />
     </>
 }

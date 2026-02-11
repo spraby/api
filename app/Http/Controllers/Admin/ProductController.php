@@ -15,6 +15,7 @@ use App\Models\ProductImage;
 use App\Models\User;
 use App\Services\FileService;
 use App\Services\VariantService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -329,6 +330,40 @@ class ProductController extends Controller
     // ========================================
     // INERTIA PRODUCT IMAGES METHODS
     // ========================================
+
+    /**
+     * API: Attach images to product and return JSON with created ProductImage records
+     */
+    public function apiAttachImages(Request $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', Product::class);
+
+        $request->validate([
+            'image_ids' => 'required|array|min:1',
+            'image_ids.*' => 'required|integer|exists:images,id',
+        ]);
+
+        $imageIds = $request->input('image_ids');
+        $maxPosition = $product->images()->max('position') ?? 0;
+        $created = [];
+
+        foreach ($imageIds as $imageId) {
+            $exists = $product->images()->where('image_id', $imageId)->exists();
+            if (!$exists) {
+                $productImage = $product->images()->create([
+                    'image_id' => $imageId,
+                    'position' => ++$maxPosition,
+                ]);
+                $productImage->load('image');
+                $created[] = $productImage;
+            } else {
+                $existing = $product->images()->where('image_id', $imageId)->with('image')->first();
+                $created[] = $existing;
+            }
+        }
+
+        return response()->json(['data' => $created]);
+    }
 
     /**
      * Inertia: Attach images to product

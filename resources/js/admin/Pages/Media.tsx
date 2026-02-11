@@ -33,46 +33,8 @@ export default function Media({ images }: MediaProps) {
   const { trans } = useLang();
 
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<ImageModel | null>(null);
-
-  const handleUpload = (files: File[]) => {
-    if (files.length === 0) {
-      toast.error(trans('admin.media.no_files_selected'));
-
-      return;
-    }
-
-    if (files.length > 50) {
-      toast.error(trans('admin.media.max_files_error'));
-
-      return;
-    }
-
-    setIsUploading(true);
-
-    const formData = new FormData();
-
-    files.forEach((file, index) => {
-      formData.append(`images[${index}]`, file);
-    });
-
-    router.post(route('admin.media.store'), formData, {
-      preserveScroll: true,
-      onSuccess: () => {
-        setImagePickerOpen(false);
-      },
-      onError: (errors) => {
-        const errorMessage = Object.values(errors).flat().join(', ');
-
-        toast.error(errorMessage);
-      },
-      onFinish: () => {
-        setIsUploading(false);
-      },
-    });
-  };
 
   const confirmDelete = (image: ImageModel) => {
     setImageToDelete(image);
@@ -194,13 +156,10 @@ export default function Media({ images }: MediaProps) {
         )}
       </div>
 
-      {/* Image Picker Dialog (upload only) */}
+      {/* Image Picker Dialog */}
       <ImagePicker
-        hideLibrary
-        isUploading={isUploading}
         open={imagePickerOpen}
         onOpenChange={setImagePickerOpen}
-        onUpload={handleUpload}
       />
 
       {/* Delete Confirmation Dialog */}

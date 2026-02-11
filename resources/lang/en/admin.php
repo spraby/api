@@ -499,6 +499,7 @@ return [
         'position' => 'Position',
         'main' => 'Main',
         'select_button' => 'Select Image',
+        'new_upload' => 'New upload',
     ],
 
     'media' => [

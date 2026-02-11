@@ -499,6 +499,7 @@ return [
         'position' => 'Позиция',
         'main' => 'Главное',
         'select_button' => 'Выбрать изображение',
+        'new_upload' => 'Новая загрузка',
     ],
 
     'media' => [

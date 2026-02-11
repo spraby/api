@@ -45,22 +45,6 @@ export function ProductImagesManager({
         );
     };
 
-    const handleUpload = (files: File[]) => {
-        setIsProcessing(true);
-        router.post(
-            route('admin.products.images.upload', productId),
-            {images: files},
-            {
-                preserveScroll: true,
-                preserveState: false,
-                onFinish: () => {
-                    setIsProcessing(false);
-                    setImagePickerOpen(false);
-                },
-            }
-        );
-    };
-
     const handleDelete = (productImageId: number) => {
         setIsProcessing(true);
         router.delete(
@@ -235,12 +219,10 @@ export function ProductImagesManager({
             {/* Image Picker Dialog */}
             <ImagePicker
                 excludeImageIds={excludedImageIds}
-                isUploading={isProcessing}
                 multiple
                 open={imagePickerOpen}
                 onOpenChange={setImagePickerOpen}
                 onSelect={handleMediaSelect}
-                onUpload={handleUpload}
             />
         </div>
     );
