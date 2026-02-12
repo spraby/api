@@ -19,9 +19,11 @@ import type { ProductImage } from '@/types/models';
 interface ProductImagesPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called with ProductImage.id (pivot record) when an image is selected */
   onSelect: (productImageId: number) => void;
   productImages: ProductImage[];
-  currentImageId?: number | null;
+  /** Currently assigned ProductImage.id (pivot record), if any */
+  currentProductImageId?: number | null;
 }
 
 /**
@@ -33,23 +35,24 @@ export function ProductImagesPicker({
   onOpenChange,
   onSelect,
   productImages,
-  currentImageId,
+  currentProductImageId,
 }: ProductImagesPickerProps) {
   const { t } = useLang();
-  const [selectedImageId, setSelectedImageId] = useState<number | null>(currentImageId || null);
+  // Tracks the ProductImage.id (pivot record) the user has clicked on
+  const [selectedProductImageId, setSelectedProductImageId] = useState<number | null>(currentProductImageId || null);
 
   const sortedImages = [...productImages].sort((a, b) => a.position - b.position);
 
   const handleSelect = () => {
-    if (selectedImageId === null) {
+    if (selectedProductImageId === null) {
       return;
     }
-    onSelect(selectedImageId);
+    onSelect(selectedProductImageId);
     handleClose();
   };
 
   const handleClose = () => {
-    setSelectedImageId(currentImageId || null);
+    setSelectedProductImageId(currentProductImageId || null);
     onOpenChange(false);
   };
 
@@ -76,7 +79,7 @@ export function ProductImagesPicker({
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
               {sortedImages.map((productImage) => {
-                const isSelected = selectedImageId === productImage.id;
+                const isSelected = selectedProductImageId === productImage.id;
 
                 return (
                   <Card
@@ -86,7 +89,7 @@ export function ProductImagesPicker({
                       isSelected && 'ring-2 ring-primary'
                     )}
                     onClick={() => {
-                        if(productImage?.id) {setSelectedImageId(productImage.id);}
+                        if(productImage?.id) {setSelectedProductImageId(productImage.id);}
                     }}
                   >
                     <CardContent className="p-0">
@@ -132,7 +135,7 @@ export function ProductImagesPicker({
           <Button type="button" variant="outline" onClick={handleClose}>
             {t('admin.common.cancel')}
           </Button>
-          <Button disabled={selectedImageId === null} onClick={handleSelect}>
+          <Button disabled={selectedProductImageId === null} onClick={handleSelect}>
             {t('admin.product_images_picker.select_button')}
           </Button>
         </DialogFooter>

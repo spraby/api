@@ -278,6 +278,12 @@ return [
             'image_not_attached' => 'This image is not attached to the product. Please attach it first.',
             'all_combinations_used' => 'All possible option combinations are already used. Cannot add more variants.',
             'duplicate_variants' => 'Cannot save product with duplicate variants. Please ensure each variant has a unique combination of options.',
+            'save_failed' => 'Failed to save product',
+            'image_attach_failed' => 'Failed to attach images',
+            'image_upload_failed' => 'Failed to upload images',
+            'image_reorder_failed' => 'Failed to reorder images',
+            'image_detach_failed' => 'Failed to remove image',
+            'variant_image_failed' => 'Failed to update variant image',
         ],
         'hints' => [
             'save_to_add_image' => 'Save product first to add images',

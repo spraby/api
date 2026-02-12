@@ -2,6 +2,7 @@ import {useState} from 'react';
 
 import {router} from '@inertiajs/react';
 import {GripVerticalIcon, ImageIcon, ImagesIcon, Trash2Icon} from 'lucide-react';
+import {toast} from 'sonner';
 
 import {ConfirmationPopover} from '@/components/confirmation-popover';
 import {ImagePicker} from '@/components/image-picker';
@@ -27,7 +28,12 @@ export function ProductImagesManager({
     const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // Optimistic local override for images (reorder/detach).
+    // When set, displayed instead of the prop. Cleared on server response.
+    const [optimisticImages, setOptimisticImages] = useState<ProductImage[] | null>(null);
+
     const sortedImages = [...images].sort((a, b) => a.position - b.position);
+    const displayImages = optimisticImages ?? sortedImages;
 
     const handleMediaSelect = (imageIds: number[]) => {
         setIsProcessing(true);
@@ -40,6 +46,12 @@ export function ProductImagesManager({
                 onFinish: () => {
                     setIsProcessing(false);
                     setImagePickerOpen(false);
+                },
+                onError: () => {
+                    toast.error(t('admin.products_edit.errors.image_attach_failed'));
+                    if (import.meta.env.DEV) {
+                        console.log('[ProductImagesManager.attach] Error', {productId, imageIds});
+                    }
                 },
             }
         );
@@ -57,11 +69,26 @@ export function ProductImagesManager({
                     setIsProcessing(false);
                     setImagePickerOpen(false);
                 },
+                onError: () => {
+                    toast.error(t('admin.products_edit.errors.image_upload_failed'));
+                    if (import.meta.env.DEV) {
+                        console.log('[ProductImagesManager.upload] Error', {productId, fileCount: files.length});
+                    }
+                },
             }
         );
     };
 
+    /**
+     * Delete product image association. productImageId is ProductImage.id (pivot record).
+     * Optimistic: removes image from display immediately, reverts on error.
+     */
     const handleDelete = (productImageId: number) => {
+        // Optimistic: remove image from display immediately
+        setOptimisticImages(prev =>
+            (prev ?? sortedImages).filter(img => img.id !== productImageId)
+        );
+
         setIsProcessing(true);
         router.delete(
             route('admin.products.images.detach', {id: productId, productImageId}),
@@ -70,6 +97,13 @@ export function ProductImagesManager({
                 preserveState: false,
                 onFinish: () => {
                     setIsProcessing(false);
+                },
+                onError: () => {
+                    setOptimisticImages(null); // Revert to original
+                    toast.error(t('admin.products_edit.errors.image_detach_failed'));
+                    if (import.meta.env.DEV) {
+                        console.log('[ProductImagesManager.detach] Error', {productId, productImageId});
+                    }
                 },
             }
         );
@@ -84,6 +118,9 @@ export function ProductImagesManager({
         setDraggedOverIndex(index);
     };
 
+    /**
+     * Optimistic: applies new order immediately, reverts on error.
+     */
     const handleDragEnd = () => {
         if (draggedIndex === null || draggedOverIndex === null || draggedIndex === draggedOverIndex) {
             setDraggedIndex(null);
@@ -92,7 +129,7 @@ export function ProductImagesManager({
             return;
         }
 
-        const newImages = [...sortedImages];
+        const newImages = [...displayImages];
         const [removed] = newImages.splice(draggedIndex, 1);
 
         if (!removed) {
@@ -100,17 +137,28 @@ export function ProductImagesManager({
         }
         newImages.splice(draggedOverIndex, 0, removed);
 
-        const imageIds = newImages.map((img) => img.id);
+        // Optimistic: show new order immediately
+        setOptimisticImages(newImages);
+
+        // ProductImage.id — pivot record IDs sent in display order for reorder
+        const productImageIds = newImages.map((img) => img.id);
 
         setIsProcessing(true);
         router.put(
             route('admin.products.images.reorder', productId),
-            {image_ids: imageIds},
+            {image_ids: productImageIds},
             {
                 preserveScroll: true,
                 preserveState: false,
                 onFinish: () => {
                     setIsProcessing(false);
+                },
+                onError: () => {
+                    setOptimisticImages(null); // Revert to original order
+                    toast.error(t('admin.products_edit.errors.image_reorder_failed'));
+                    if (import.meta.env.DEV) {
+                        console.log('[ProductImagesManager.reorder] Error', {productId});
+                    }
                 },
             }
         );
@@ -119,7 +167,8 @@ export function ProductImagesManager({
         setDraggedOverIndex(null);
     };
 
-    const excludedImageIds = images.map((img) => img.image_id);
+    // BaseImageId (Image.id) — exclude already-attached base images from the picker
+    const excludedBaseImageIds = images.map((img) => img.image_id);
 
     const addButtonMarkup = (
         <Button
@@ -141,9 +190,9 @@ export function ProductImagesManager({
 
 
             {/* Images Grid */}
-            {sortedImages.length > 0 ? (
+            {displayImages.length > 0 ? (
                 <div className="grid gap-5 grid-cols-12">
-                    {sortedImages.map((productImage, index) => (
+                    {displayImages.map((productImage, index) => (
                         <div
                             key={productImage.id}
                             role="button"
@@ -204,7 +253,10 @@ export function ProductImagesManager({
                                                 </Button>
                                             }
                                             onConfirm={() => {
-                                                handleDelete(productImage.id);
+                                                // productImage.id is ProductImage.id (pivot record)
+                                                if (productImage.id != null) {
+                                                    handleDelete(productImage.id);
+                                                }
                                             }}
                                         />
                                     </div>
@@ -234,7 +286,7 @@ export function ProductImagesManager({
 
             {/* Image Picker Dialog */}
             <ImagePicker
-                excludeImageIds={excludedImageIds}
+                excludeImageIds={excludedBaseImageIds}
                 isUploading={isProcessing}
                 multiple
                 open={imagePickerOpen}

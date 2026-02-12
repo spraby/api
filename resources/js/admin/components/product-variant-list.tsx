@@ -1,63 +1,53 @@
-import {useMemo, useState} from "react";
+import {useState} from "react";
 
 import {router} from '@inertiajs/react';
 import {PlusIcon} from 'lucide-react';
-import {v4 as uuidv4} from 'uuid';
+import {toast} from 'sonner';
 
 import {DuplicateVariantsAlert} from "@/components/duplicate-variants-alert.tsx";
+import type {FormVariant} from "@/components/product-form.tsx";
 import {ProductImagesPicker} from "@/components/product-images-picker.tsx";
 import {ProductVariantItem} from "@/components/product-variant-item.tsx";
 import {Button} from '@/components/ui/button';
+import {useProductFormContext} from '@/contexts/product-form-context.tsx';
 import {useLang} from '@/lib/lang';
-import {VariantService} from '@/services/variant-service';
-import type {Option, ProductImage, Variant, VariantValue} from '@/types/models';
+import {captureForRollback} from '@/lib/optimistic';
 
-// Extended Variant type with temporary ID for new variants
-type VariantWithTempId = Variant & { _tempId?: string };
-
-// Minimal product data needed for variant list
-interface ProductForVariantList {
-    id?: number;
-    variants?: Variant[];
-    images?: ProductImage[];
-}
-
-interface ProductVariantListProps {
-    product: ProductForVariantList,
-    options: Option[],
-    onUpdate: (variants: Variant[]) => void,
-    duplicateGroups?: number[][],
-}
-
-export function ProductVariantList({
-                                       product,
-                                       options,
-                                       onUpdate,
-                                       duplicateGroups: externalDuplicateGroups,
-                                   }: ProductVariantListProps) {
+export function ProductVariantList() {
     const {t} = useLang();
+    const {
+        formData,
+        readOnlyData,
+        duplicateGroups,
+        duplicateUids,
+        setVariants,
+        canAddVariant,
+        addVariant,
+        resolveImageUrl,
+    } = useProductFormContext();
 
     const [variantImagePicker, setVariantImagePicker] = useState<{
         open: boolean;
-        variant: Variant | null;
+        variant: FormVariant | null;
     }>({open: false, variant: null});
 
     /**
-     * Remove image from variant
-     * For saved variants: uses Inertia server call
-     * For unsaved variants: updates local form state
-     * @param variant
+     * Remove image from variant.
+     * Optimistic: updates UI immediately, rolls back on server error.
      */
-    const removeVariantImage = (variant: Variant) => {
+    const removeVariantImage = (variant: FormVariant) => {
+        const rollback = captureForRollback(
+            () => [...(formData.variants ?? [])],
+            setVariants,
+        );
+
+        // Optimistic: remove image immediately
+        setVariants((formData.variants ?? []).map(v =>
+            v.uid === variant.uid ? {...v, image_id: null, image: undefined} : v
+        ));
+
         if (!variant.id) {
-            const variantWithTempId = variant as VariantWithTempId;
-            const key = getVariantKey(variantWithTempId);
-
-            onUpdate((product.variants ?? []).map(v =>
-                getVariantKey(v as VariantWithTempId) === key ? {...v, image_id: null, image: undefined} : v
-            ));
-
-            return;
+            return; // Unsaved variant — no server call needed
         }
 
         router.put(
@@ -67,16 +57,22 @@ export function ProductVariantList({
             },
             {
                 preserveScroll: true,
-                preserveState: false,
+                preserveState: true,
+                onError: () => {
+                    rollback();
+                    toast.error(t('admin.products_edit.errors.variant_image_failed'));
+                    if (import.meta.env.DEV) {
+                        console.log('[ProductVariantList.removeVariantImage] Error', {variantId: variant.id});
+                    }
+                },
             }
         );
     };
 
     /**
-     * Set image for variant
-     * For saved variants: uses Inertia server call
-     * For unsaved variants: updates local form state
-     * @param productImageId
+     * Set image for variant.
+     * productImageId is ProductImage.id (pivot record in product_images table).
+     * Optimistic: updates UI and closes picker immediately, rolls back on server error.
      */
     const handleVariantImageSelect = (productImageId: number) => {
         if (!variantImagePicker.variant) {
@@ -85,17 +81,19 @@ export function ProductVariantList({
 
         const {variant} = variantImagePicker;
 
+        const rollback = captureForRollback(
+            () => [...(formData.variants ?? [])],
+            setVariants,
+        );
+
+        // Optimistic: set image and close picker immediately
+        setVariants((formData.variants ?? []).map(v =>
+            v.uid === variant.uid ? {...v, image_id: productImageId} : v
+        ));
+        setVariantImagePicker({open: false, variant: null});
+
         if (!variant?.id) {
-            // Unsaved variant: update image_id locally
-            const variantWithTempId = variant as VariantWithTempId;
-            const key = getVariantKey(variantWithTempId);
-
-            onUpdate((product.variants ?? []).map(v =>
-                getVariantKey(v as VariantWithTempId) === key ? {...v, image_id: productImageId} : v
-            ));
-            setVariantImagePicker({open: false, variant: null});
-
-            return;
+            return; // Unsaved variant — no server call needed
         }
 
         router.put(
@@ -105,199 +103,36 @@ export function ProductVariantList({
             },
             {
                 preserveScroll: true,
-                preserveState: false,
-                onSuccess: () => {
-                    setVariantImagePicker({open: false, variant: null});
+                preserveState: true,
+                onError: () => {
+                    rollback();
+                    toast.error(t('admin.products_edit.errors.variant_image_failed'));
+                    if (import.meta.env.DEV) {
+                        console.log('[ProductVariantList.handleVariantImageSelect] Error', {variantId: variant.id, productImageId});
+                    }
                 },
             }
         );
     };
 
-    /**
-     * Get unique identifier for variant (id or tempId)
-     * @param variant
-     */
-    const getVariantKey = (variant: VariantWithTempId): string | number => {
-        return variant.id ?? variant._tempId ?? '';
-    };
-
-    /**
-     * Update variant option value
-     * @param variant
-     * @param optionId
-     * @param optionValueId
-     */
-    const updateVariantOptionValue = (variant: VariantWithTempId, optionId: number, optionValueId: number) => {
-        if (!variant) {
-            return;
-        }
-
-        const key = getVariantKey(variant);
-
-        // Create a copy of the variant to avoid mutating the parameter
-        const updatedVariant = { ...variant };
-
-        // Initialize values array if it doesn't exist
-        if (!updatedVariant.values) {
-            updatedVariant.values = [];
-        } else {
-            updatedVariant.values = [...updatedVariant.values];
-        }
-
-        // Find existing value for this option
-        const existingValueIndex = updatedVariant.values.findIndex((v) => v.option_id === optionId);
-
-        if (existingValueIndex >= 0) {
-            // Update existing value
-            updatedVariant.values[existingValueIndex] = {
-                ...updatedVariant.values[existingValueIndex],
-                variant_id: variant.id ?? 0,
-                option_id: optionId,
-                option_value_id: optionValueId,
-            };
-        } else {
-            // Add new value
-            updatedVariant.values.push({
-                variant_id: variant.id ?? 0,
-                option_id: optionId,
-                option_value_id: optionValueId,
-            } as VariantValue);
-        }
-
-        const newVariants = [...(product.variants ?? []).map(v =>
-            getVariantKey(v as VariantWithTempId) === key ? updatedVariant : v
-        )];
-
-        onUpdate(newVariants);
-    };
-
-    /**
-     * Remove variant from list
-     * @param variant
-     */
-    const removeVariant = (variant: VariantWithTempId) => {
-        const key = getVariantKey(variant);
-
-        onUpdate((product.variants ?? []).filter(v => getVariantKey(v as VariantWithTempId) !== key));
-    };
-
-    /**
-     * Update variant properties
-     * @param variant
-     * @param values
-     */
-    const updateVariant = (variant: VariantWithTempId, values: Partial<Variant>) => {
-        const key = getVariantKey(variant);
-
-        onUpdate((product.variants ?? []).map(v =>
-            getVariantKey(v as VariantWithTempId) === key ? {...v, ...values} : v
-        ));
-    };
-
-    /**
-     * Add new variant with temporary ID
-     * Automatically generates values based on available options
-     */
-    /**
-     * Check if adding new variant is possible
-     */
-    const canAddVariant = useMemo(() => {
-        return VariantService.hasAvailableCombinations(options, product.variants ?? []);
-    }, [options, product.variants]);
-
-    /**
-     * Find duplicate variant groups and create a Set of duplicate indices
-     * Uses externally computed groups if provided (from product-form), otherwise computes locally
-     */
-    const duplicateGroups = useMemo(() => {
-        if (externalDuplicateGroups) {
-            return externalDuplicateGroups;
-        }
-
-        return VariantService.findDuplicateGroups(product.variants ?? []);
-    }, [externalDuplicateGroups, product.variants]);
-
-    const duplicateIndices = useMemo(() => {
-        const indices = new Set<number>();
-
-        for (const group of duplicateGroups) {
-            for (const index of group) {
-                indices.add(index);
-            }
-        }
-
-        return indices;
-    }, [duplicateGroups]);
-
-    const addVariant = () => {
-        // Generate first unique combination with auto-generated title
-        const result = VariantService.generateVariant(
-            options,
-            product.variants ?? []
-        );
-
-        // If no combinations available, button should be disabled (shouldn't reach here)
-        if (!result) {
-            return;
-        }
-
-        const newVariant: VariantWithTempId = {
-            _tempId: uuidv4(),
-            product_id: product.id ?? 0,
-            title: result.title,
-            price: '0.00',
-            final_price: '0.00',
-            enabled: false,
-            image_id: null,
-            values: result.values as VariantValue[],
-        };
-
-        onUpdate([...(product.variants ?? []), newVariant as Variant]);
-    };
-
-    /**
-     * Resolve image URL for a variant from product images or loaded relation
-     */
-    const resolveImageUrl = (variant: Variant): string | undefined => {
-        // Saved variant with loaded relation
-        if (variant.image?.image?.url) {
-            return variant.image.image.url;
-        }
-        // Resolve from product images by image_id (product_image id)
-        if (variant.image_id && product.images?.length) {
-            const productImage = product.images.find(pi => pi.id === variant.image_id);
-
-            return productImage?.image?.url;
-        }
-
-        return undefined;
-    };
+    const variants = formData.variants ?? [];
+    const images = readOnlyData.images ?? [];
 
     return <>
         <div className="col-span-9 flex flex-col gap-5">
             <DuplicateVariantsAlert duplicateGroups={duplicateGroups}/>
 
-            {(product.variants ?? []).map((variant, index) => {
-                const variantWithTempId = variant as VariantWithTempId;
-
+            {variants.map((variant, index) => {
                 return (
                     <ProductVariantItem
-                        key={getVariantKey(variantWithTempId)}
+                        key={variant.uid}
                         variant={variant}
-                        onUpdate={(values: Partial<Variant>) => {
-                            updateVariant(variantWithTempId, values);
-                        }}
-                        onRemove={(product.variants ?? [])?.length > 1 ? () => removeVariant(variantWithTempId) : null}
                         onImageRemove={() => removeVariantImage(variant)}
                         onImageSelect={() => setVariantImagePicker({open: true, variant})}
-                        options={options}
-                        onOptionValueChange={(optionId, optionValueId) => {
-                            updateVariantOptionValue(variantWithTempId, optionId, optionValueId);
-                        }}
                         resolvedImageUrl={resolveImageUrl(variant)}
-                        index={index}
-                        disabled={false}
-                        isDuplicate={duplicateIndices.has(index)}
+                        variantNumber={index + 1}
+                        canRemove={variants.length > 1}
+                        isDuplicate={duplicateUids.has(variant.uid)}
                     />
                 );
             })}
@@ -315,11 +150,11 @@ export function ProductVariantList({
                 </div>
         </div>
         {
-            !!product?.images?.length && (
+            !!images.length && (
                 <ProductImagesPicker
-                    currentImageId={variantImagePicker?.variant?.image_id ?? null}
+                    currentProductImageId={variantImagePicker?.variant?.image_id ?? null}
                     open={variantImagePicker.open}
-                    productImages={product?.images || []}
+                    productImages={images}
                     onOpenChange={(open) => {
                         setVariantImagePicker({open, variant: null});
                     }}

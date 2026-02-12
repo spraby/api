@@ -5,6 +5,27 @@ export interface BaseModel {
     updated_at?: string;
 }
 
+/** Stable unique identifier for variants in form state (stringified DB id or UUID for new) */
+export type VariantKey = string;
+
+/**
+ * Image ID type aliases for clarity.
+ *
+ * The image system has two tables:
+ * - `images` — base uploaded images (stored in S3)
+ * - `product_images` — pivot records linking products to images (with position)
+ *
+ * ID mapping:
+ * - BaseImageId    → images.id (the actual uploaded image)
+ * - ProductImageId → product_images.id (the product-image association)
+ *
+ * Key foreign keys:
+ * - ProductImage.image_id → BaseImageId (FK to images table)
+ * - Variant.image_id      → ProductImageId (FK to product_images table)
+ */
+export type BaseImageId = number;
+export type ProductImageId = number;
+
 // ============================================================================
 // User & Auth
 // ============================================================================
@@ -92,7 +113,7 @@ export interface Product extends BaseModel {
 
 export interface Variant extends BaseModel {
     product_id: number;
-    image_id: number | null;
+    image_id: ProductImageId | null; // FK to product_images table (the pivot record)
     title: string | null;
     price: string; // decimal:2 -> string
     final_price: string; // decimal:2 -> string
@@ -178,7 +199,7 @@ export interface Image extends BaseModel {
 
 export interface ProductImage extends BaseModel {
     product_id: number;
-    image_id: number;
+    image_id: BaseImageId; // FK to images table (the actual uploaded image)
     position: number;
     // Relations
     image?: Image;

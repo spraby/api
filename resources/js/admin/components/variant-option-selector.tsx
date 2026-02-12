@@ -18,7 +18,7 @@ import type { Option, OptionValue, VariantValue } from '@/types/models';
 interface VariantOptionSelectorProps {
   options: Option[];
   variantValues: VariantValue[];
-  variantIndex: number;
+  variantUid: string;
   disabled?: boolean;
   onValueChange: (optionId: number, optionValueId: number) => void;
 }
@@ -26,7 +26,7 @@ interface VariantOptionSelectorProps {
 export function VariantOptionSelector({
   options,
   variantValues,
-  variantIndex,
+  variantUid,
   disabled = false,
   onValueChange,
 }: VariantOptionSelectorProps) {
@@ -51,11 +51,11 @@ export function VariantOptionSelector({
 
           return (
             <div key={option.id} className="space-y-2">
-              <Label htmlFor={`variant-${variantIndex}-option-${option.id}`}>
+              <Label htmlFor={`variant-${variantUid}-option-${option.id}`}>
                 {option.title}
               </Label>
               <Select
-                key={`${variantIndex}-${option.id}-${selectedValue}`}
+                key={`${variantUid}-${option.id}-${selectedValue}`}
                 disabled={disabled || !option.values || option.values.length === 0}
                 value={selectedValue}
                 onValueChange={(value) => {
@@ -64,7 +64,7 @@ export function VariantOptionSelector({
                   }
                 }}
               >
-                <SelectTrigger id={`variant-${variantIndex}-option-${option.id}`}>
+                <SelectTrigger id={`variant-${variantUid}-option-${option.id}`}>
                   <SelectValue
                     placeholder={t('admin.products_edit.variant_options.select_placeholder')}
                   />

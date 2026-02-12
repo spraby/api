@@ -1,0 +1,30 @@
+{
+  "version": "1.4.0",
+  "agent": "claude",
+  "skillsDir": ".claude/skills",
+  "installedSkills": [
+    "ai-factory",
+    "architecture",
+    "best-practices",
+    "commit",
+    "deploy",
+    "eloquent-best-practices",
+    "evolve",
+    "feature",
+    "fix",
+    "implement",
+    "improve",
+    "laravel-11-12-app-guidelines",
+    "laravel-inertia-react",
+    "review",
+    "security-checklist",
+    "skill-generator",
+    "task"
+  ],
+  "mcp": {
+    "github": true,
+    "filesystem": true,
+    "postgres": true,
+    "shadcn": true
+  }
+}
