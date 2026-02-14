@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useMemo, useState} from "react";
 
 import {router} from '@inertiajs/react';
 import {PlusIcon} from 'lucide-react';
@@ -12,6 +12,7 @@ import {Button} from '@/components/ui/button';
 import {useProductFormContext} from '@/contexts/product-form-context.tsx';
 import {useLang} from '@/lib/lang';
 import {captureForRollback} from '@/lib/optimistic';
+import type {ProductImage} from "@/types/models.ts";
 
 export function ProductVariantList() {
     const {t} = useLang();
@@ -24,12 +25,32 @@ export function ProductVariantList() {
         canAddVariant,
         addVariant,
         resolveImageUrl,
+        stagedImages,
+        isEditMode,
     } = useProductFormContext();
 
     const [variantImagePicker, setVariantImagePicker] = useState<{
         open: boolean;
         variant: FormVariant | null;
     }>({open: false, variant: null});
+
+    // In create mode, convert stagedImages to mock ProductImage[] for the picker
+    const stagedAsProductImages: ProductImage[] = useMemo(() => {
+        if (isEditMode) {return [];}
+
+        return stagedImages.map((staged, index) => ({
+            id: index,
+            product_id: 0,
+            image_id: staged.image?.id ?? 0,
+            position: index + 1,
+            image: staged.image ?? {
+                id: 0,
+                name: staged.file?.name ?? `Image ${index + 1}`,
+                src: '',
+                url: staged.previewUrl,
+            },
+        }));
+    }, [isEditMode, stagedImages]);
 
     /**
      * Remove image from variant.
@@ -116,7 +137,7 @@ export function ProductVariantList() {
     };
 
     const variants = formData.variants ?? [];
-    const images = readOnlyData.images ?? [];
+    const images = isEditMode ? (readOnlyData.images ?? []) : stagedAsProductImages;
 
     return <>
         <div className="col-span-9 flex flex-col gap-5">

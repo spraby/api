@@ -3,6 +3,7 @@ import {router} from '@inertiajs/react';
 import {ProductBasicFields} from "@/components/product-basic-fields.tsx";
 import {ProductCategorySelect} from "@/components/product-category-select.tsx";
 import {ProductImagesManager} from "@/components/product-images-manager.tsx";
+import {ProductImagesStaging} from "@/components/product-images-staging.tsx";
 import {ProductVariantList} from "@/components/product-variant-list.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Card} from "@/components/ui/card.tsx";
@@ -72,8 +73,7 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                     />
                 </div>
 
-                {
-                    !!formData?.id &&
+                {formData?.id ? (
                     <Card className="col-span-9 p-4 sm:p-6">
                         <ProductImagesManager
                             disabled={processing}
@@ -81,7 +81,18 @@ export function ProductForm({product: defaultProduct}: { product: Product }) {
                             productId={formData.id}
                         />
                     </Card>
-                }
+                ) : (
+                    <Card className="col-span-9 p-4 sm:p-6">
+                        <ProductImagesStaging
+                            disabled={processing}
+                            stagedImages={form.stagedImages}
+                            onAddUploads={form.addStagedUploads}
+                            onAddExisting={form.addStagedExisting}
+                            onRemove={form.removeStagedImage}
+                            onReorder={form.reorderStagedImages}
+                        />
+                    </Card>
+                )}
                 {
                     (!!formData?.variants?.length) && <ProductVariantList />
                 }

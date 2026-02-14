@@ -1,6 +1,6 @@
-import {type FormEventHandler, useCallback, useEffect, useMemo, useRef} from "react";
+import {type FormEventHandler, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
-import {useForm} from '@inertiajs/react';
+import {router, useForm} from '@inertiajs/react';
 import {toast} from "sonner";
 
 import type {FormVariant} from "@/components/product-form.tsx";
@@ -8,7 +8,7 @@ import {hasFormChanged} from '@/lib/form-comparison';
 import {useLang} from '@/lib/lang';
 import {VariantService} from '@/services/variant-service';
 import {useSaveBar} from '@/stores/save-bar';
-import type {Option, Product, ProductImage, Variant} from "@/types/models.ts";
+import type {Image, Option, Product, ProductImage, StagedImage, Variant} from "@/types/models.ts";
 
 // Form-specific type that only includes editable fields to avoid Inertia FormDataType issues
 // with deeply nested relations (brand.settings[].data: Record<string, unknown>)
@@ -71,8 +71,11 @@ export function useProductForm(defaultProduct: Product) {
         externalUrl: defaultProduct.externalUrl,
     });
 
-    const {data: formData, setData, errors, put, post, processing} = useForm<ProductFormData>(initialFormData);
+    const {data: formData, setData, errors, put, processing} = useForm<ProductFormData>(initialFormData);
     const isEditMode = useMemo(() => !!formData?.id, [formData?.id]);
+
+    // Staged images state (create mode only — before product exists in DB)
+    const [stagedImages, setStagedImages] = useState<StagedImage[]>([]);
     const brandCategories = useMemo(() => defaultProduct?.brand?.categories ?? [], [defaultProduct?.brand?.categories]);
     const category = useMemo(() => {
         if (!brandCategories?.length) {return null;}
@@ -212,7 +215,55 @@ export function useProductForm(defaultProduct: Product) {
                     },
                 });
             } else {
-                post(route('admin.products.store'), {
+                // Create mode: build data with staged images for multipart upload
+                const uploadFiles: File[] = [];
+                const existingIds: number[] = [];
+                const imageOrder: string[] = [];
+
+                let uploadIdx = 0;
+                let existingIdx = 0;
+
+                for (const staged of stagedImages) {
+                    if (staged.type === 'upload' && staged.file) {
+                        imageOrder.push(`upload:${uploadIdx}`);
+                        uploadFiles.push(staged.file);
+                        uploadIdx++;
+                    } else if (staged.type === 'existing' && staged.image?.id) {
+                        imageOrder.push(`existing:${existingIdx}`);
+                        existingIds.push(staged.image.id);
+                        existingIdx++;
+                    }
+                }
+
+                // Convert variant image_id (staged index) → image_index for backend
+                const variantsForSubmit = (formData.variants ?? []).map(v => {
+                    const {image_id: imageRef, ...rest} = v;
+
+                    return {
+                        ...rest,
+                        image_index: imageRef != null ? imageRef : undefined,
+                    };
+                });
+
+                const createData: Record<string, unknown> = {
+                    title: formData.title,
+                    description: formData.description,
+                    enabled: formData.enabled,
+                    category_id: formData.category_id,
+                    variants: variantsForSubmit,
+                };
+
+                if (uploadFiles.length > 0) {
+                    createData.images = uploadFiles;
+                }
+                if (existingIds.length > 0) {
+                    createData.existing_image_ids = existingIds;
+                }
+                if (imageOrder.length > 0) {
+                    createData.image_order = imageOrder;
+                }
+
+                router.post(route('admin.products.store'), createData, {
                     onSuccess: () => resolve(true),
                     onError: (errors) => {
                         toast.error(t('admin.products_edit.errors.save_failed'));
@@ -224,7 +275,7 @@ export function useProductForm(defaultProduct: Product) {
                 });
             }
         });
-    }, [hasDuplicateVariants, t, formData?.id, put, setData, post]);
+    }, [hasDuplicateVariants, t, formData, put, setData, stagedImages]);
 
     /**
      * Discard unsaved changes
@@ -332,7 +383,89 @@ export function useProductForm(defaultProduct: Product) {
         setData('variants', [...(formData.variants ?? []), newVariant]);
     }, [options, formData.variants, formData.id, setData]);
 
+    // ========================================
+    // Staged Images (create mode only)
+    // ========================================
+
+    const addStagedUploads = useCallback((files: File[]) => {
+        const newImages: StagedImage[] = files.map(file => ({
+            tempId: crypto.randomUUID(),
+            type: 'upload' as const,
+            file,
+            previewUrl: URL.createObjectURL(file),
+        }));
+
+        setStagedImages(prev => [...prev, ...newImages]);
+    }, []);
+
+    const addStagedExisting = useCallback((images: Image[]) => {
+        const newImages: StagedImage[] = images.map(img => ({
+            tempId: crypto.randomUUID(),
+            type: 'existing' as const,
+            image: img,
+            previewUrl: img.url,
+        }));
+
+        setStagedImages(prev => [...prev, ...newImages]);
+    }, []);
+
+    const removeStagedImage = useCallback((tempId: string) => {
+        setStagedImages(prev => {
+            const removed = prev.find(img => img.tempId === tempId);
+
+            if (removed?.type === 'upload' && removed.previewUrl) {
+                URL.revokeObjectURL(removed.previewUrl);
+            }
+
+            return prev.filter(img => img.tempId !== tempId);
+        });
+        // Clear variant image references pointing to the removed image
+        const removedIndex = stagedImages.findIndex(img => img.tempId === tempId);
+
+        if (removedIndex >= 0) {
+            setData('variants', (formData.variants ?? []).map(v => {
+                if (v.image_id === removedIndex) {
+                    return { ...v, image_id: null };
+                }
+                // Shift down indices above the removed one
+                if (v.image_id != null && v.image_id > removedIndex) {
+                    return { ...v, image_id: v.image_id - 1 };
+                }
+
+                return v;
+            }));
+        }
+    }, [stagedImages, formData.variants, setData]);
+
+    const reorderStagedImages = useCallback((tempIds: string[]) => {
+        setStagedImages(prev => {
+            const map = new Map(prev.map(img => [img.tempId, img]));
+
+            return tempIds.map(id => map.get(id)).filter(Boolean) as StagedImage[];
+        });
+    }, []);
+
+    // Cleanup blob URLs on unmount
+    useEffect(() => {
+        return () => {
+            stagedImages.forEach(img => {
+                if (img.type === 'upload' && img.previewUrl) {
+                    URL.revokeObjectURL(img.previewUrl);
+                }
+            });
+        };
+    // Only run on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const resolveImageUrl = useCallback((variant: FormVariant): string | undefined => {
+        // Create mode: variant.image_id stores staged image index
+        if (!formData.id && variant.image_id != null && stagedImages.length > 0) {
+            const staged = stagedImages[variant.image_id];
+
+            return staged?.previewUrl;
+        }
+
         // Saved variant may have the full image relation loaded from server
         const variantData = variant as unknown as Record<string, unknown>;
         const nestedImage = (variantData['image'] as Record<string, unknown> | undefined);
@@ -349,7 +482,7 @@ export function useProductForm(defaultProduct: Product) {
         }
 
         return undefined;
-    }, []);
+    }, [formData.id, stagedImages]);
 
     return {
         formData,
@@ -375,5 +508,11 @@ export function useProductForm(defaultProduct: Product) {
         addVariant,
         canAddVariant,
         resolveImageUrl,
+        // Staged images (create mode)
+        stagedImages,
+        addStagedUploads,
+        addStagedExisting,
+        removeStagedImage,
+        reorderStagedImages,
     };
 }

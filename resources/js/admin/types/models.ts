@@ -208,6 +208,18 @@ export interface ProductImage extends BaseModel {
 }
 
 // ============================================================================
+// Staged Images (for product creation before product exists in DB)
+// ============================================================================
+
+export interface StagedImage {
+    tempId: string;
+    type: 'upload' | 'existing';
+    file?: File;
+    image?: Image;
+    previewUrl: string;
+}
+
+// ============================================================================
 // Orders
 // ============================================================================
 

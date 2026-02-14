@@ -17,6 +17,8 @@ use App\Services\FileService;
 use App\Services\VariantService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -197,10 +199,7 @@ class ProductController extends Controller
         $this->authorize('create', Product::class);
 
         try {
-            /**
-             * @var User $user
-             * @var Brand $brand
-             */
+            /** @var User $user */
             $user = auth()->user();
             $brand = $user->getBrand();
 
@@ -208,22 +207,110 @@ class ProductController extends Controller
                 return Redirect::back()->with('error', 'Brand not found');
             }
 
-            // Create product
-            $product = Product::create([
-                'title' => $request->input('title'),
-                'description' => $request->input('description'),
-                'enabled' => $request->input('enabled'),
-                'category_id' => $request->input('category_id'),
-                'brand_id' => $brand->id,
-            ]);
+            $product = DB::transaction(function () use ($request, $brand) {
+                // 1. Create product
+                $product = Product::create([
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                    'enabled' => $request->input('enabled'),
+                    'category_id' => $request->input('category_id'),
+                    'brand_id' => $brand->id,
+                ]);
 
-            // Create variants
-            app(VariantService::class)->createVariants($product, $request->input('variants'));
+                // 2. Process images if provided
+                $imageIndexToProductImageId = $this->processStoreImages($request, $product, $brand);
 
-            return redirect()->route('admin.products.edit', $product->id)->with('success', 'Product created successfully');
+                // 3. Map image_index → image_id on variants
+                $variants = $request->input('variants');
+                if (!empty($imageIndexToProductImageId)) {
+                    foreach ($variants as &$variant) {
+                        if (isset($variant['image_index']) && isset($imageIndexToProductImageId[$variant['image_index']])) {
+                            $variant['image_id'] = $imageIndexToProductImageId[$variant['image_index']];
+                        }
+                        unset($variant['image_index']);
+                    }
+                    unset($variant);
+                }
+
+                // 4. Create variants
+                app(VariantService::class)->createVariants($product, $variants);
+
+                return $product;
+            });
+
+            return redirect()->route('admin.products.edit', $product->id)
+                ->with('success', 'Product created successfully');
         } catch (\Exception $e) {
+            Log::error('[ProductController.store] Failed to create product', [
+                'error' => $e->getMessage(),
+            ]);
             return Redirect::back()->with('error', 'Failed to create product: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Process uploaded and existing images during product creation.
+     * Returns a mapping of image_order index → ProductImage.id.
+     */
+    private function processStoreImages(StoreProductRequest $request, Product $product, Brand $brand): array
+    {
+        $imageOrder = $request->input('image_order', []);
+        if (empty($imageOrder)) {
+            return [];
+        }
+
+        $uploadedFiles = $request->file('images', []);
+        $existingImageIds = $request->input('existing_image_ids', []);
+
+        $fileService = app(FileService::class);
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: "brands/{$brand->id}",
+            visibility: 'public'
+        );
+
+        $mapping = [];
+        $position = 0;
+
+        foreach ($imageOrder as $index => $orderEntry) {
+            [$type, $typeIndex] = explode(':', $orderEntry);
+            $typeIndex = (int) $typeIndex;
+
+            if ($type === 'upload' && isset($uploadedFiles[$typeIndex])) {
+                $file = $uploadedFiles[$typeIndex];
+                $path = $fileService->upload($file, $dto);
+
+                $image = Image::create([
+                    'name' => $file->getClientOriginalName(),
+                    'src' => $path,
+                    'brand_id' => $brand->id,
+                ]);
+
+                $productImage = $product->images()->create([
+                    'image_id' => $image->id,
+                    'position' => ++$position,
+                ]);
+
+                $mapping[$index] = $productImage->id;
+            } elseif ($type === 'existing' && isset($existingImageIds[$typeIndex])) {
+                $imageId = (int) $existingImageIds[$typeIndex];
+
+                $productImage = $product->images()->create([
+                    'image_id' => $imageId,
+                    'position' => ++$position,
+                ]);
+
+                $mapping[$index] = $productImage->id;
+            }
+        }
+
+        Log::info('[ProductController.store] Images processed', [
+            'product_id' => $product->id,
+            'total_images' => count($mapping),
+            'mapping' => $mapping,
+        ]);
+
+        return $mapping;
     }
 
     /**

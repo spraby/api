@@ -33,6 +33,21 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->baseProductRules();
+        return array_merge($this->baseProductRules(), [
+            // Image file uploads
+            'images' => ['nullable', 'array', 'max:50'],
+            'images.*' => ['image', 'max:10240'],
+
+            // Attach existing images by ID
+            'existing_image_ids' => ['nullable', 'array'],
+            'existing_image_ids.*' => ['integer', 'exists:images,id'],
+
+            // Ordering: preserves mixed upload/existing sequence (e.g., 'upload:0', 'existing:0')
+            'image_order' => ['nullable', 'array'],
+            'image_order.*' => ['string', 'regex:/^(upload|existing):\d+$/'],
+
+            // Variant-to-image mapping by index into image_order
+            'variants.*.image_index' => ['nullable', 'integer', 'min:0'],
+        ]);
     }
 }

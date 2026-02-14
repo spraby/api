@@ -33,7 +33,7 @@ type ImagePickerMode = 'select' | 'upload';
 interface ImagePickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect?: (imageIds: number[]) => void;
+  onSelect?: (imageIds: number[], images?: Image[]) => void;
   onUpload?: (files: File[]) => void;
   multiple?: boolean;
   excludeImageIds?: number[];
@@ -115,7 +115,9 @@ export function ImagePicker({
 
   const handleSelect = () => {
     if (selectedImageIds.length === 0 || !onSelect) {return;}
-    onSelect(selectedImageIds);
+    const selectedImages = filteredImages.filter(img => selectedImageIds.includes(img.id));
+
+    onSelect(selectedImageIds, selectedImages);
     handleClose();
   };
 

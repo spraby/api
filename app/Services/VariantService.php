@@ -65,6 +65,9 @@ class VariantService
     public function createVariants(Product $product, array $variantsData): void
     {
         foreach ($variantsData as $variantData) {
+            // Strip image_index (used by frontend for mapping, not a DB column)
+            unset($variantData['image_index']);
+
             $variant = $product->variants()->create([
                 'title' => $variantData['title'] ?? null,
                 'price' => $variantData['price'],
