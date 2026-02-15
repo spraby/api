@@ -94,6 +94,49 @@ class MediaController extends Controller
     }
 
     /**
+     * API: Upload images and return JSON with created records
+     */
+    public function apiStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'images' => 'required|array|max:50',
+            'images.*' => 'required|image|max:10240',
+        ]);
+
+        /** @var User $user */
+        $user = auth()->user();
+        $brand = $user->brands->first();
+
+        if (! $brand) {
+            return response()->json(['message' => 'No brand associated with user'], 422);
+        }
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: "brands/{$brand->id}",
+            visibility: 'public'
+        );
+
+        $paths = $this->fileService->uploadMultiple($validated['images'], $dto);
+
+        $images = [];
+        foreach ($paths as $index => $path) {
+            $originalName = $validated['images'][$index]->getClientOriginalName();
+
+            $image = Image::create([
+                'name' => $originalName,
+                'src' => $path,
+            ]);
+
+            $images[] = $image;
+        }
+
+        return response()->json([
+            'data' => $images,
+        ]);
+    }
+
+    /**
      * Delete an image
      */
     public function destroy(Image $image): RedirectResponse

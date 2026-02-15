@@ -495,6 +495,8 @@ return [
         'max_files' => 'Максимум :max файлов',
         'files_selected' => 'Выбрано файлов: :count',
         'selected_files' => 'Выбранные файлы',
+        'load_more' => 'Загрузить ещё',
+        'load_failed' => 'Не удалось загрузить изображения',
     ],
 
     'product_images_picker' => [
@@ -523,6 +525,15 @@ return [
         'empty_title' => 'Нет изображений',
         'empty_description' => 'Загрузите ваши первые изображения, чтобы начать работу с медиатекой.',
         'upload_first_images' => 'Загрузить изображения',
+    ],
+
+    'image_uploader' => [
+        'drop_or_click_multiple' => 'Перетащите файлы сюда или нажмите для выбора',
+        'drop_or_click_single' => 'Перетащите файл сюда или нажмите для выбора',
+        'hint_multiple' => ':formats — макс. :size — до :max файлов',
+        'hint_single' => ':formats — макс. :size',
+        'upload_failed' => 'Не удалось загрузить изображения',
+        'invalid_files_skipped' => 'Некоторые файлы были пропущены (неверный формат или размер)',
     ],
 
     'common' => [

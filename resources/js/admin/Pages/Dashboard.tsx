@@ -1,11 +1,14 @@
-import { usePage } from '@inertiajs/react';
+import {usePage} from '@inertiajs/react';
 
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
-import type { PageProps } from '@/types/inertia';
+import {ChartAreaInteractive} from "@/components/chart-area-interactive"
+import {DataTable} from "@/components/data-table"
+import {SectionCards} from "@/components/section-cards"
+import {Button} from '@/components/ui/button';
+import type {PageProps} from '@/types/inertia';
+import {useDialog} from '@/stores/dialog';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
+import {ImagePicker} from "@/components/image-picker.tsx";
 
 
 const data = [
@@ -625,18 +628,27 @@ const data = [
 
 
 export default function Dashboard() {
-  const { auth } = usePage<PageProps>().props;
+    const {auth} = usePage<PageProps>().props;
+    const {openDialog, closeDialog} = useDialog();
 
-  return (
-    <AdminLayout title="Dashboard">
-        <div className="@container/main flex flex-1 flex-col gap-2">
-            <SectionCards />
-            <div>
-                {auth.user.email}
-                <ChartAreaInteractive />
+    return (
+        <AdminLayout title="Dashboard">
+            <Button onClick={() => openDialog({
+                className: 'max-w-[1000px] min-h-[300px] max-h-[500px] ',
+                content: (
+                   <ImagePicker resource={route('admin.media.api.index')}/>
+                ),
+            })}>
+                OPEN DIALOG
+            </Button>
+            <div className="@container/main flex flex-1 flex-col gap-2">
+                <SectionCards/>
+                <div>
+                    {auth.user.email}
+                    <ChartAreaInteractive/>
+                </div>
+                <DataTable data={data}/>
             </div>
-            <DataTable data={data} />
-        </div>
-    </AdminLayout>
-  );
+        </AdminLayout>
+    );
 }

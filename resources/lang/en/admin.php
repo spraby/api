@@ -495,6 +495,8 @@ return [
         'max_files' => 'Maximum :max files',
         'files_selected' => ':count file(s) selected',
         'selected_files' => 'Selected files',
+        'load_more' => 'Load more',
+        'load_failed' => 'Failed to load images',
     ],
 
     'product_images_picker' => [
@@ -523,6 +525,15 @@ return [
         'empty_title' => 'No images yet',
         'empty_description' => 'Upload your first images to get started with your media library.',
         'upload_first_images' => 'Upload Images',
+    ],
+
+    'image_uploader' => [
+        'drop_or_click_multiple' => 'Drop files here or click to select',
+        'drop_or_click_single' => 'Drop a file here or click to select',
+        'hint_multiple' => ':formats — max :size — up to :max files',
+        'hint_single' => ':formats — max :size',
+        'upload_failed' => 'Failed to upload images',
+        'invalid_files_skipped' => 'Some files were skipped (invalid format or size)',
     ],
 
     'common' => [
