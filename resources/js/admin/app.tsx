@@ -6,7 +6,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from 'next-themes';
 import { createRoot } from 'react-dom/client';
 
-import { GlobalDialog } from '@/components/global-dialog';
 import { Toaster } from '@/components/ui/sonner';
 import { queryClient } from '@/lib/api/query-client';
 
@@ -28,7 +27,6 @@ void createInertiaApp({
         <ThemeProvider enableSystem attribute="class" defaultTheme="system">
           <App {...props} />
           <Toaster />
-          <GlobalDialog />
         </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

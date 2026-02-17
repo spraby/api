@@ -50,7 +50,7 @@ export default function ProductEdit({product}: { product: Product }) {
                         </div>
                     </div>
 
-                    <ProductForm key={product.id ?? 'create'} product={product}/>
+                    <ProductForm product={product}/>
                 </div>
             </div>
         </AdminLayout>

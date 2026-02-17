@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -11,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { useDialogStore } from '@/stores/dialog';
 
 export function GlobalDialog() {
-  const { open, title, description, content, className, closeDialog } = useDialogStore();
+  const { open, title, description, content, footer, className, closeDialog } = useDialogStore();
 
   const hasHeader = !!(title || description);
 
@@ -36,6 +37,11 @@ export function GlobalDialog() {
         <div className="overflow-y-auto">
           {content}
         </div>
+        {footer && (
+          <DialogFooter className="shrink-0">
+            {footer}
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

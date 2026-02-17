@@ -4,6 +4,7 @@ import {Head, usePage} from '@inertiajs/react';
 import {toast} from 'sonner';
 
 import {AppSidebar} from "@/components/app-sidebar"
+import {GlobalDialog} from "@/components/global-dialog"
 import {ImpersonationBanner} from "@/components/impersonation-banner"
 import {SaveBar} from "@/components/save-bar"
 import {SiteHeader} from "@/components/site-header"
@@ -48,6 +49,7 @@ export default function Page({children, title}: { children: React.ReactNode, tit
                     {children}
                 </div>
             </SidebarInset>
+            <GlobalDialog/>
         </SidebarProvider>
     )
 }

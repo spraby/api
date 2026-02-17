@@ -1,4 +1,65 @@
-# Implementation Plan: Create Product with Images and Variants in One Request
+# Implementation Plan: Рефакторинг product-form.tsx
+
+Branch: main
+Created: 2026-02-17
+
+## Settings
+- Testing: no
+
+## Анализ проблем
+
+### Баги / антипаттерны
+- `console.log('val => ', val)` — дебаг-лог в production коде (строка 246)
+- `SortableImage` определён внутри product-form.tsx, хотя это самостоятельный компонент
+- Thumbnail UI (image + delete overlay) дублируется в двух местах файла
+- `ProductForm` — 344 строки, смешивает: форм-стейт, DnD-логику изображений, staged state, save-логику
+
+### Что извлекаем
+
+| Компонент | Тип | Описание |
+|-----------|-----|----------|
+| `MediaThumbnail` | **Универсальный** | Thumbnail + delete overlay, без DnD |
+| `SortableMediaItem` | **Универсальный** | Generic DnD-элемент поверх MediaThumbnail |
+| `ProductBasicFieldsCard` | Продуктовый | Card с Title + Description |
+| `ProductImagesCard` | Продуктовый | Card с DnD, staged, ImagePickerDialog |
+| `ProductCategoryCard` | Продуктовый | Sidebar card с Select категории |
+
+## Tasks
+
+### Phase 1: Quick fix
+- [x] Task 1: Удалить console.log из RichTextEditor onChange
+
+### Phase 2: Универсальные компоненты
+- [x] Task 2: Создать MediaThumbnail (универсальный thumbnail с delete overlay)
+- [x] Task 3: Вынести SortableImage → SortableMediaItem (depends on #2)
+
+### Phase 3: Продуктовые компоненты
+- [x] Task 4: Извлечь ProductBasicFieldsCard
+- [x] Task 5: Извлечь ProductImagesCard (depends on #2, #3)
+- [x] Task 6: Извлечь ProductCategoryCard
+
+<!-- 🔄 Commit checkpoint: tasks 1–6 -->
+
+### Phase 4: Финализация
+- [x] Task 7: Финальный lint-прогон и проверка импортов (depends on #1, #4, #5, #6)
+
+<!-- 🔄 Commit: "refactor: split product-form into focused components" -->
+
+## Итоговая структура файлов
+
+```
+components/
+├── media-thumbnail.tsx           # NEW — универсальный
+├── sortable-media-item.tsx       # NEW — универсальный
+├── product-basic-fields-card.tsx # NEW — продуктовый
+├── product-images-card.tsx       # NEW — продуктовый
+├── product-category-card.tsx     # NEW — продуктовый
+└── product-form.tsx              # ~80 строк вместо 344
+```
+
+---
+
+# ARCHIVED: Implementation Plan: Create Product with Images and Variants in One Request
 
 Branch: main
 Created: 2026-02-12

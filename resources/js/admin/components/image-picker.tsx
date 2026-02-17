@@ -28,7 +28,7 @@ interface Props {
     images?: ImageSelectorItem[];
     perPage?: number;
     multiple?: boolean;
-    onChange?: (selected: string[]) => void;
+    onChange?: (selected: ImageSelectorItem[]) => void;
 }
 
 export function ImagePicker({
@@ -52,8 +52,11 @@ export function ImagePicker({
 
     const handleSelectionChange = useCallback((values: string[]) => {
         setSelectedImages(values);
-        onChange?.(values);
-    }, [onChange]);
+        if (onChange) {
+            const currentImages = resource ? loadedImages : staticImages;
+            onChange(currentImages.filter(img => values.includes(img.uid)));
+        }
+    }, [onChange, resource, loadedImages, staticImages]);
 
     const fetchPage = useCallback(async (page: number, signal?: AbortSignal) => {
         if (!resource) {
@@ -160,24 +163,27 @@ export function ImagePicker({
                 onStartLoading={handleStartLoading}
                 onFinishLoading={handleFinishLoading}
             />
-            <ImageSelector
-                onChange={handleSelectionChange}
-                values={selectedImages}
-                multiple={multiple}
-                images={images}
-            />
-            {hasMore ? (
-                <div className="flex justify-center">
-                    <Button
-                        variant="outline"
-                        onClick={loadMore}
-                        disabled={loadingMore}
-                    >
-                        {loadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                        {t('image_picker.load_more')}
-                    </Button>
-                </div>
-            ) : null}
+            <div className={'min-h-[200px] max-h-[400px] overflow-auto flex flex-col gap-5'}>
+                <ImageSelector
+                    onChange={handleSelectionChange}
+                    values={selectedImages}
+                    multiple={multiple}
+                    images={images}
+                />
+                {hasMore ? (
+                    <div className="flex justify-center">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={loadMore}
+                            disabled={loadingMore}
+                        >
+                            {loadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                            {t('image_picker.load_more')}
+                        </Button>
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

@@ -6,6 +6,7 @@ interface DialogOptions {
   title?: string;
   description?: string;
   content: ReactNode;
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -14,6 +15,7 @@ interface DialogState {
   title?: string;
   description?: string;
   content: ReactNode | null;
+  footer?: ReactNode;
   className?: string;
 
   openDialog: (options: DialogOptions) => void;
@@ -25,10 +27,11 @@ export const useDialogStore = create<DialogState>((set) => ({
   title: undefined,
   description: undefined,
   content: null,
+  footer: undefined,
   className: undefined,
 
-  openDialog: ({ title, description, content, className }) =>
-    set({ open: true, title, description, content, className }),
+  openDialog: ({ title, description, content, footer, className }) =>
+    set({ open: true, title, description, content, footer, className }),
 
   closeDialog: () =>
     set({
@@ -36,6 +39,7 @@ export const useDialogStore = create<DialogState>((set) => ({
       title: undefined,
       description: undefined,
       content: null,
+      footer: undefined,
       className: undefined,
     }),
 }));
