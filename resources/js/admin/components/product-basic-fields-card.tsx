@@ -1,8 +1,7 @@
+import {StepHeader} from '@/components/step-header';
 import {Card} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
-import {RichTextEditor} from '@/components/ui/rich-text-editor';
-import {useLang} from '@/lib/lang';
+import {cn} from '@/lib/utils';
 
 interface ProductBasicFieldsCardProps {
     title: string;
@@ -12,34 +11,44 @@ interface ProductBasicFieldsCardProps {
 }
 
 export function ProductBasicFieldsCard({title, description, errors, onChange}: ProductBasicFieldsCardProps) {
-    const {t} = useLang();
-
     return (
-        <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
-            <div className="gap-2 flex flex-col">
-                <Label className="flex items-center gap-1" htmlFor="title">
-                    {t('admin.products_edit.fields.title')}
+        <Card className="flex flex-col gap-5 p-4 sm:p-6">
+            <StepHeader step={1} label="Основная информация" />
+
+            <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1 text-xs font-semibold text-muted-foreground" htmlFor="product-title">
+                    Название продукта
                     <span className="text-destructive">*</span>
-                </Label>
+                </label>
                 <Input
                     required
-                    id="title"
-                    placeholder={t('admin.products_edit.placeholders.title')}
+                    id="product-title"
+                    placeholder="Например: Футболка Premium"
                     type="text"
                     value={title}
                     onChange={e => onChange('title', e.target.value)}
-                    className={errors.title ? 'border-destructive' : ''}
+                    className={cn(
+                        'rounded-[10px] border-[1.5px] px-3.5 py-2.5 focus-visible:border-primary focus-visible:ring-0',
+                        errors.title ? 'border-destructive' : 'border-input',
+                    )}
                 />
-                {!!errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
+                {!!errors.title && (
+                    <p className="text-[11px] text-destructive">{errors.title}</p>
+                )}
             </div>
-            <div className="gap-2 flex flex-col">
-                <Label htmlFor="description">{t('admin.products_edit.fields.description')}</Label>
-                <RichTextEditor
-                    placeholder={t('admin.products_edit.placeholders.description')}
+
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground" htmlFor="product-description">
+                    Описание
+                </label>
+                <textarea
+                    id="product-description"
+                    rows={3}
+                    placeholder="Опишите продукт..."
                     value={description}
-                    onChange={val => onChange('description', val)}
+                    onChange={e => onChange('description', e.target.value)}
+                    className="w-full resize-y rounded-[10px] border-[1.5px] border-input bg-background px-3.5 py-2.5 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                 />
-                {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
             </div>
         </Card>
     );

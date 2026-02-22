@@ -37,7 +37,7 @@ export function GlobalDialog() {
         <div className="overflow-y-auto">
           {content}
         </div>
-        {footer && (
+        {!!footer && (
           <DialogFooter className="shrink-0">
             {footer}
           </DialogFooter>

@@ -38,7 +38,7 @@ export function ImagePickerDialog({onChoose}: Props) {
             ),
             footer: (
                 <div>
-                    <Button variant="secondary" onClick={onChooseHandle}>Choose</Button>
+                    <Button variant="secondary" onClick={onChooseHandle}>{t('admin.products_edit.images.choose')}</Button>
                 </div>
             ),
         });

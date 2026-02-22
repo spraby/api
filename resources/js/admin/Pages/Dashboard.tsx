@@ -2,13 +2,13 @@ import {usePage} from '@inertiajs/react';
 
 import {ChartAreaInteractive} from "@/components/chart-area-interactive"
 import {DataTable} from "@/components/data-table"
+import {ImagePicker} from "@/components/image-picker.tsx";
 import {SectionCards} from "@/components/section-cards"
 import {Button} from '@/components/ui/button';
-import type {PageProps} from '@/types/inertia';
 import {useDialog} from '@/stores/dialog';
+import type {PageProps} from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
-import {ImagePicker} from "@/components/image-picker.tsx";
 
 
 const data = [
@@ -629,7 +629,7 @@ const data = [
 
 export default function Dashboard() {
     const {auth} = usePage<PageProps>().props;
-    const {openDialog, closeDialog} = useDialog();
+    const {openDialog} = useDialog();
 
     return (
         <AdminLayout title="Dashboard">

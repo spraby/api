@@ -1,242 +1,151 @@
-# Implementation Plan: Рефакторинг product-form.tsx
+# Implementation Plan: Рефакторинг страницы продукта (аудит + чистка)
 
 Branch: main
-Created: 2026-02-17
+Created: 2026-02-22
+Testing: no
 
-## Settings
-- Testing: no
+## Overview
 
-## Анализ проблем
+Аудит страницы создания/редактирования продукта. Найдены следующие проблемы:
+- Мертвый код и лишние type cast
+- Баги: пагинация, дублирование вариантов, утечка памяти blob URL
+- Нарушения темы: хардкодные цвета вместо CSS-переменных
+- Нелокализованные строки
+- Accessibility: некорректный role="none"
+- Performance: отсутствие useMemo там где нужно
 
-### Баги / антипаттерны
-- `console.log('val => ', val)` — дебаг-лог в production коде (строка 246)
-- `SortableImage` определён внутри product-form.tsx, хотя это самостоятельный компонент
-- Thumbnail UI (image + delete overlay) дублируется в двух местах файла
-- `ProductForm` — 344 строки, смешивает: форм-стейт, DnD-логику изображений, staged state, save-логику
+## Commit Plan
 
-### Что извлекаем
-
-| Компонент | Тип | Описание |
-|-----------|-----|----------|
-| `MediaThumbnail` | **Универсальный** | Thumbnail + delete overlay, без DnD |
-| `SortableMediaItem` | **Универсальный** | Generic DnD-элемент поверх MediaThumbnail |
-| `ProductBasicFieldsCard` | Продуктовый | Card с Title + Description |
-| `ProductImagesCard` | Продуктовый | Card с DnD, staged, ImagePickerDialog |
-| `ProductCategoryCard` | Продуктовый | Sidebar card с Select категории |
+- **Commit 1** (после tasks 1-3): "fix: dead code, type casts, accessibility и i18n"
+- **Commit 2** (после tasks 4-6): "fix: theme colors, memory leak, pagination bug"
+- **Commit 3** (после task 7): "fix: optimize use-product-form logic and performance"
 
 ## Tasks
 
-### Phase 1: Quick fix
-- [x] Task 1: Удалить console.log из RichTextEditor onChange
+### Phase 1: Быстрые фиксы
+- [x] Task 1: Убрать мертвый код и лишние type cast в product-form.tsx
+- [x] Task 2: Исправить accessibility: role="none" → role="presentation" в variant-row.tsx
+- [x] Task 3: Исправить нелокализованный текст кнопки "Choose" в image-picker-dialog
+<!-- 🔄 Commit checkpoint: tasks 1-3 -->
 
-### Phase 2: Универсальные компоненты
-- [x] Task 2: Создать MediaThumbnail (универсальный thumbnail с delete overlay)
-- [x] Task 3: Вынести SortableImage → SortableMediaItem (depends on #2)
+### Phase 2: Тема, память, пагинация
+- [x] Task 4: Заменить хардкодные цвета темой в product-variants-card.tsx
+- [x] Task 5: Исправить утечку памяти blob URL при размонтировании (use-product-form.ts)
+- [x] Task 6: Исправить баг пагинации в image-picker.tsx
+<!-- 🔄 Commit checkpoint: tasks 4-6 -->
 
-### Phase 3: Продуктовые компоненты
-- [x] Task 4: Извлечь ProductBasicFieldsCard
-- [x] Task 5: Извлечь ProductImagesCard (depends on #2, #3)
-- [x] Task 6: Извлечь ProductCategoryCard
-
-<!-- 🔄 Commit checkpoint: tasks 1–6 -->
+### Phase 3: Оптимизация логики
+- [x] Task 7: Оптимизация и исправление логики в use-product-form.ts (useMemo, type guards, дедупликация)
+<!-- 🔄 Commit checkpoint: task 7 -->
 
 ### Phase 4: Финализация
-- [x] Task 7: Финальный lint-прогон и проверка импортов (depends on #1, #4, #5, #6)
+- [x] Task 8: Финальная проверка: lint + ревью всех изменений (blocked by: 1-7)
 
-<!-- 🔄 Commit: "refactor: split product-form into focused components" -->
+## Ключевые файлы
 
-## Итоговая структура файлов
-
-```
-components/
-├── media-thumbnail.tsx           # NEW — универсальный
-├── sortable-media-item.tsx       # NEW — универсальный
-├── product-basic-fields-card.tsx # NEW — продуктовый
-├── product-images-card.tsx       # NEW — продуктовый
-├── product-category-card.tsx     # NEW — продуктовый
-└── product-form.tsx              # ~80 строк вместо 344
-```
+| Файл | Действие |
+|------|----------|
+| `resources/js/admin/components/product-form.tsx` | Убрать `!!isEdit`, type cast |
+| `resources/js/admin/components/variant-row.tsx` | role="none" → role="presentation" |
+| `resources/js/admin/components/image-picker.tsx` | Локализация "Choose", фикс пагинации |
+| `resources/js/admin/components/product-variants-card.tsx` | Замена зелёных/синих цветов |
+| `resources/js/admin/hooks/use-product-form.ts` | Cleanup blob URLs, useMemo, type guards |
 
 ---
 
-# ARCHIVED: Implementation Plan: Create Product with Images and Variants in One Request
+# ARCHIVED: Implementation Plan: Redesign Product Create/Edit Page
 
 Branch: main
-Created: 2026-02-12
+Created: 2026-02-22
+Testing: no
+SKU/Stock: skipped (no migration)
 
-## Settings
-- Testing: no
-- Logging: standard
+## Overview
 
-## Problem
+Full redesign of the React/Inertia product create/edit page (`ProductEdit.tsx` + sub-components)
+to match the provided specification.
 
-Currently product creation is a **two-step process**:
-1. Create product + variants (`POST /admin/products/store`)
-2. Upload/attach images **after redirect to edit page** (separate requests)
+**Scope:** Frontend React components only. Backend (Laravel routes, controller, models) already
+supports all needed data. No new migrations.
 
-`ProductImagesManager` is hidden during creation: `{!!formData?.id && ...}`
+**DB price mapping:**
+- UI "Цена" (current selling price) → DB `final_price`
+- UI "До скидки" (original price) → DB `price`
 
-**Goal:** One form submission creates product + uploads/attaches images + creates variants with image assignments.
-
-## Architecture Decision
-
-### Variant-to-Image Mapping Challenge
-
-During creation, `ProductImage` records don't exist yet, so variants can't reference `ProductImage.id`.
-
-**Solution: `image_index` mapping**
-- Staged images get ordered indices (0, 1, 2, ...)
-- Variants reference images by `image_index` (position in the images array)
-- Backend creates ProductImage records first, maps `image_index` -> `ProductImage.id`, then creates variants
-
-### Data Flow (Create Mode)
+## Architecture
 
 ```
-Frontend:
-  stagedImages: [{ file: File1 }, { imageId: 42 }, { file: File2 }]
-  variants: [{ ..., image_index: 0 }, { ..., image_index: 1 }]
-
-  -> POST multipart:
-    images[]: [File1, File2]
-    existing_image_ids[]: [42]
-    image_order[]: ['upload:0', 'existing:0', 'upload:1']  // preserves mixed ordering
-    variants[0][image_index]: 0  // -> first in image_order -> upload:0 -> File1
-    variants[1][image_index]: 1  // -> second in image_order -> existing:0 -> Image#42
-
-Backend (in transaction):
-  1. Create Product
-  2. Process image_order:
-     - 'upload:0' -> upload File1 to S3 -> Image + ProductImage (position 1)
-     - 'existing:0' -> attach Image#42 -> ProductImage (position 2)
-     - 'upload:1' -> upload File2 to S3 -> Image + ProductImage (position 3)
-  3. Map: index 0 -> ProductImage#A, index 1 -> ProductImage#B, index 2 -> ProductImage#C
-  4. Create variants: image_index 0 -> ProductImage#A.id, image_index 1 -> ProductImage#B.id
+ProductEdit.tsx
+  └── product-form.tsx (rewritten)
+        ├── TopBar (inline component)
+        ├── [Left column]
+        │   ├── product-basic-fields-card.tsx (updated)
+        │   ├── product-category-card.tsx (rewritten: chips + options)
+        │   └── product-variants-card.tsx (rewritten: full management)
+        │       └── variant-row.tsx (new)
+        └── [Right column, sticky]
+            ├── product-images-card.tsx (updated: drop zone)
+            └── product-summary-card.tsx (new)
 ```
+
+**Central state:** `hooks/use-product-form.ts` (new hook)
+**Shared primitive:** `components/step-header.tsx` (new)
 
 ## Commit Plan
-- **Commit 1** (after tasks 1-3): "feat: backend support for images in product creation"
-- **Commit 2** (after tasks 4-6): "feat: frontend staged images and create-mode image management"
-- **Commit 3** (after task 7): "feat: variant image selection from staged images during creation"
+
+- **Commit 1** (after tasks 1-2): "feat: add useProductForm hook and StepHeader component"
+- **Commit 2** (after tasks 3-5): "feat: update BasicInfoCard, CategoryCard, and VariantRow"
+- **Commit 3** (after tasks 6-8): "feat: rewrite VariantsCard, update ImagesCard, add SummaryCard"
+- **Commit 4** (after task 9): "feat: rewrite product-form layout with TopBar and form submission"
 
 ## Tasks
 
-### Phase 1: Backend -- Accept Images in Store Request
+### Phase 1: Foundation
+- [x] Task 1: Create `useProductForm` hook — central state management
+- [x] Task 2: Create `StepHeader` component
+<!-- 🔄 Commit checkpoint: tasks 1-2 -->
 
-- [x] Task 1: Update StoreProductRequest validation
-  - File: `app/Http/Requests/StoreProductRequest.php` (or `ProductValidationRules` trait)
-  - Add rules:
-    - `images`: `nullable|array|max:50`
-    - `images.*`: `image|max:10240`
-    - `existing_image_ids`: `nullable|array`
-    - `existing_image_ids.*`: `integer|exists:images,id`
-    - `image_order`: `nullable|array` (preserves mixed upload/existing ordering)
-    - `image_order.*`: `string` (format: `upload:N` or `existing:N`)
-    - `variants.*.image_index`: `nullable|integer|min:0`
-  - Logging: log validation failures for image fields
+### Phase 2: Card Components
+- [x] Task 3: Update `ProductBasicFieldsCard` with StepHeader + spec styling (blocked by: 2)
+- [x] Task 4: Rewrite `ProductCategoryCard` — category chips + option blocks + generate button (blocked by: 1, 2)
+- [x] Task 5: Create `VariantRow` component — collapsible row with delete overlay (blocked by: 1)
+<!-- 🔄 Commit checkpoint: tasks 3-5 -->
 
-- [x] Task 2: Update ProductController::store() to process images
-  - File: `app/Http/Controllers/Admin/ProductController.php`
-  - Wrap in `DB::transaction()`
-  - After product creation, before variants:
-    1. Parse `image_order` to determine processing sequence
-    2. For `upload:N` entries: upload file via `FileService` -> create `Image` -> create `ProductImage`
-    3. For `existing:N` entries: verify Image belongs to brand -> create `ProductImage`
-    4. Build mapping: `image_order index -> ProductImage.id`
-    5. Inject `image_id` into each variant's data based on `image_index`
-    6. Pass enriched variants to `VariantService::createVariants()`
-  - Logging: log image processing count, S3 upload results, mapping table
+### Phase 3: Full Sections
+- [x] Task 6: Rewrite `ProductVariantsCard` — full variant management UI (blocked by: 1, 2, 5)
+- [x] Task 7: Update `ProductImagesCard` — add drag & drop file upload zone (blocked by: 1, 2)
+- [x] Task 8: Create `ProductSummaryCard` — reactive summary panel (blocked by: 1)
+<!-- 🔄 Commit checkpoint: tasks 6-8 -->
 
-- [x] Task 3: Update VariantService to handle image_index cleanup
-  - File: `app/Services/VariantService.php`
-  - Ensure `createVariants()` strips `image_index` field before mass-assignment
-  - The controller will have already mapped `image_index` -> `image_id`
-  - Logging: log variant creation with image_id when present
+### Phase 4: Assembly
+- [x] Task 9: Rewrite `product-form.tsx` — new layout, TopBar, form submission (blocked by: 3-8)
+<!-- 🔄 Commit checkpoint: task 9 -->
 
-<!-- Commit checkpoint: "feat: backend support for images in product creation" -->
+## Key Files
 
-### Phase 2: Frontend -- Staged Images Management
+| File | Action |
+|------|--------|
+| `resources/js/admin/hooks/use-product-form.ts` | CREATE |
+| `resources/js/admin/components/step-header.tsx` | CREATE |
+| `resources/js/admin/components/variant-row.tsx` | CREATE |
+| `resources/js/admin/components/product-summary-card.tsx` | CREATE |
+| `resources/js/admin/components/product-basic-fields-card.tsx` | UPDATE |
+| `resources/js/admin/components/product-category-card.tsx` | REWRITE |
+| `resources/js/admin/components/product-variants-card.tsx` | REWRITE |
+| `resources/js/admin/components/product-images-card.tsx` | UPDATE |
+| `resources/js/admin/components/product-form.tsx` | REWRITE |
+| `resources/css/admin.css` | UPDATE (add slideUp animation) |
 
-- [x] Task 4: Add staged images state to useProductForm
-  - File: `resources/js/admin/hooks/use-product-form.ts`
-  - Add types:
-    ```typescript
-    interface StagedImage {
-      tempId: string;           // crypto.randomUUID()
-      type: 'upload' | 'existing';
-      file?: File;              // for uploads
-      image?: Image;            // for existing (full Image object for display)
-      previewUrl: string;       // blob URL for uploads, image.url for existing
-    }
-    ```
-  - Add state: `stagedImages: StagedImage[]`
-  - Add functions: `addStagedUploads(files: File[])`, `addStagedExisting(images: Image[])`, `removeStagedImage(tempId)`, `reorderStagedImages(tempIds: string[])`
-  - Cleanup: revoke blob URLs on unmount and on remove
-  - Only active when `!formData.id` (create mode)
+## Backend Context (reference)
 
-- [x] Task 5: Create ProductImagesStaging component
-  - File: `resources/js/admin/components/product-images-staging.tsx` (new)
-  - Props: `stagedImages`, `onAddUploads`, `onAddExisting`, `onRemove`, `onReorder`, `disabled`
-  - UI: grid of staged image thumbnails (same layout as ProductImagesManager)
-  - Upload button -> opens `ImagePicker` with `onUpload` handler
-  - Attach button -> opens `ImagePicker` with `onSelect` handler (library tab)
-  - Remove button per image
-  - Drag-to-reorder (same DnD pattern as ProductImagesManager)
-  - Empty state when no images staged
-  - Use shadcn/ui Card, Button; same styling as ProductImagesManager
+The controller already provides:
+- `brand.categories.options.values` — all categories with their options and option values
+- Product with `variants.values.value`, `variants.values.option`
+- Image endpoints: upload, attach, detach, reorder
 
-- [x] Task 6: Update ProductForm to show images during creation
-  - File: `resources/js/admin/components/product-form.tsx`
-  - Replace `{!!formData?.id && <Card>...ProductImagesManager...</Card>}` with:
-    - If `formData.id` -> show `ProductImagesManager` (existing behavior)
-    - If `!formData.id` -> show `ProductImagesStaging` (new component)
-  - Pass staged images state and handlers from useProductForm context
-
-<!-- Commit checkpoint: "feat: frontend staged images and create-mode image management" -->
-
-### Phase 3: Variant Image Selection During Creation
-
-- [x] Task 7: Update variant image selection for create mode
-  - Files:
-    - `resources/js/admin/components/product-variant-list.tsx`
-    - `resources/js/admin/hooks/use-product-form.ts`
-  - In create mode (`!formData.id`):
-    - `ProductImagesPicker` should show staged images instead of server `ProductImage[]`
-    - Convert `StagedImage[]` -> mock `ProductImage[]` format for the picker
-    - On select: store `image_index` (position in stagedImages array) on variant
-    - Update `resolveImageUrl` to check staged images when `formData.id` is absent
-  - In edit mode: existing behavior unchanged (uses `ProductImage.id`)
-  - Update form submission:
-    - Create mode: build `FormData` with:
-      - Product fields (title, description, enabled, category_id)
-      - `images[]` -- File objects from staged uploads
-      - `existing_image_ids[]` -- Image.id values from staged existing images
-      - `image_order[]` -- ordered array like `['upload:0', 'existing:0', 'upload:1']`
-      - `variants[N][image_index]` -- index into image_order for each variant
-    - Use `router.post()` (Inertia auto-converts to multipart when Files present)
-    - Edit mode: unchanged (`router.put()` with JSON data)
-
-<!-- Commit checkpoint: "feat: variant image selection from staged images during creation" -->
-
-## File Summary
-
-| File | Action | Description |
-|------|--------|-------------|
-| `app/Http/Requests/StoreProductRequest.php` | Modify | Add image validation rules |
-| `app/Http/Requests/Traits/ProductValidationRules.php` | Modify | Add image_index rule to variants |
-| `app/Http/Controllers/Admin/ProductController.php` | Modify | Handle images in store() |
-| `app/Services/VariantService.php` | Modify | Strip image_index from data |
-| `resources/js/admin/hooks/use-product-form.ts` | Modify | Add staged images state, update submission |
-| `resources/js/admin/components/product-images-staging.tsx` | **Create** | New component for create-mode images |
-| `resources/js/admin/components/product-form.tsx` | Modify | Show staging component in create mode |
-| `resources/js/admin/components/product-variant-list.tsx` | Modify | Handle staged images for variant picker |
-| `resources/js/admin/types/models.ts` | Modify | Add StagedImage type |
-
-## Edge Cases
-
-1. **No images** -- Product creation works exactly as before (backward compatible)
-2. **Images but no variant image assignments** -- Images uploaded, variants have no image_id
-3. **Variant references removed image** -- If user removes a staged image that a variant references, clear that variant's image_index
-4. **Reordering staged images** -- Update variant image_index references when images are reordered
-5. **Mixed uploads + existing** -- image_order preserves correct sequence
-6. **Upload failure** -- Transaction rollback: no product, no images, no variants created
-7. **Large files** -- Existing 10MB limit per image, 50 images max
+Routes:
+- `admin.products.store` — POST (create)
+- `admin.products.update` — PUT/{product} (edit)
+- `admin.products.images.upload` — POST (upload files, edit mode)
+- `admin.products.images.reorder` — PUT (reorder, edit mode)
+- `admin.products.images.detach` — DELETE (remove, edit mode)

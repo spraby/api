@@ -48,12 +48,14 @@ export function ImagePicker({
     const [loadingMore, setLoadingMore] = useState(false);
 
     const abortControllerRef = useRef<AbortController | null>(null);
+    const loadMoreControllerRef = useRef<AbortController | null>(null);
     const loadingMoreRef = useRef(false);
 
     const handleSelectionChange = useCallback((values: string[]) => {
         setSelectedImages(values);
         if (onChange) {
             const currentImages = resource ? loadedImages : staticImages;
+
             onChange(currentImages.filter(img => values.includes(img.uid)));
         }
     }, [onChange, resource, loadedImages, staticImages]);
@@ -99,13 +101,23 @@ export function ImagePicker({
             return;
         }
 
+        // Abort any in-flight requests (including loadMore)
         abortControllerRef.current?.abort();
+        loadMoreControllerRef.current?.abort();
+        loadingMoreRef.current = false;
 
         const controller = new AbortController();
 
         abortControllerRef.current = controller;
 
+        // Reset state immediately so stale images don't show during fetch
+        setLoadedImages([]);
+        setCurrentPage(0);
+        setLastPage(1);
         setLoading(true);
+
+        console.log('[ImagePicker] resource changed, resetting images');
+
         void fetchPage(1, controller.signal)
             .catch(() => {/* aborted */})
             .finally(() => setLoading(false));
@@ -120,10 +132,14 @@ export function ImagePicker({
             return;
         }
 
+        loadMoreControllerRef.current?.abort();
+        const controller = new AbortController();
+
+        loadMoreControllerRef.current = controller;
         loadingMoreRef.current = true;
         setLoadingMore(true);
-        void fetchPage(currentPage + 1)
-            .catch(() => {/* handled in fetchPage */})
+        void fetchPage(currentPage + 1, controller.signal)
+            .catch(() => {/* aborted or handled in fetchPage */})
             .finally(() => {
                 loadingMoreRef.current = false;
                 setLoadingMore(false);
@@ -163,7 +179,7 @@ export function ImagePicker({
                 onStartLoading={handleStartLoading}
                 onFinishLoading={handleFinishLoading}
             />
-            <div className={'min-h-[200px] max-h-[400px] overflow-auto flex flex-col gap-5'}>
+            <div className="min-h-[200px] max-h-[400px] overflow-auto flex flex-col gap-5">
                 <ImageSelector
                     onChange={handleSelectionChange}
                     values={selectedImages}

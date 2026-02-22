@@ -213,6 +213,7 @@ return [
             'add_from_media' => 'Add from Media',
             'upload_new' => 'Upload New',
             'add_images' => 'Add Images',
+            'choose' => 'Choose',
             'no_images' => 'No images for this product',
             'position' => 'Position',
             'main' => 'Main',

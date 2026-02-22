@@ -10,7 +10,7 @@ export interface ImageSelectorItem {
     loading?: boolean;
 }
 
-type ImageSelectorProps = {
+interface ImageSelectorProps {
     images: ImageSelectorItem[];
     className?: string;
     columns?: 3 | 4 | 5 | 6 | 8 | 12;
@@ -28,16 +28,6 @@ const columnClasses = {
     12: 'grid-cols-12',
 } as const;
 
-/**
- *
- * @param images
- * @param values
- * @param onChange
- * @param multiple
- * @param columns
- * @param className
- * @constructor
- */
 export function ImageSelector({
                                   images,
                                   values,
@@ -46,27 +36,16 @@ export function ImageSelector({
                                   columns = 8,
                                   className,
                               }: ImageSelectorProps) {
-    /**
-     *
-     */
     const current = values ?? [];
 
-    /**
-     *
-     * @param uid
-     */
     const isSelected = (uid: string): boolean => current.includes(uid);
 
-    /**
-     *
-     * @param uid
-     * @param loading
-     */
     const handleClick = (uid: string, loading?: boolean) => {
-        if (!onChange || loading) return;
+        if (!onChange || loading) {return;}
 
         if (multiple) {
             const next = current.includes(uid) ? current.filter((v) => v !== uid) : [...current, uid];
+
             onChange(next);
         } else {
             onChange(current.includes(uid) ? [] : [uid]);

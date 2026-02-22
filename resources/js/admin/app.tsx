@@ -17,7 +17,7 @@ void createInertiaApp({
   resolve: (name) => {
     const pages = import.meta.glob<PageModule>('./Pages/**/*.tsx', { eager: true });
 
-    // @ts-ignore
+    // @ts-expect-error — pages[key] is typed as PageModule but .default is always present
       return pages[`./Pages/${name}.tsx`].default;
   },
   // eslint-disable-next-line @typescript-eslint/naming-convention
