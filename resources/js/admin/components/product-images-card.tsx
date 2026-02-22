@@ -11,6 +11,7 @@ import {SortableMediaItem} from '@/components/sortable-media-item';
 import {StepHeader} from '@/components/step-header';
 import {Card} from '@/components/ui/card';
 import type {LocalImage} from '@/hooks/use-product-form';
+import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
 import type {Product, ProductImage} from '@/types/models';
 
@@ -21,6 +22,10 @@ interface Props {
     onLocalImagesAdd: (images: LocalImage[]) => void;
     onLocalImageRemove: (uid: string) => void;
     onLocalImageMakeFirst: (uid: string) => void;
+    // Library images (create mode — selected from media library)
+    libraryImages?: ImageSelectorItem[];
+    onLibraryImagesAdd?: (images: ImageSelectorItem[]) => void;
+    onLibraryImageRemove?: (uid: string) => void;
 }
 
 export function ProductImagesCard({
@@ -30,7 +35,12 @@ export function ProductImagesCard({
     onLocalImagesAdd,
     onLocalImageRemove,
     onLocalImageMakeFirst,
+    libraryImages = [],
+    onLibraryImagesAdd,
+    onLibraryImageRemove,
 }: Props) {
+    const {t} = useLang();
+
     // ── Edit mode state ──────────────────────────────────────────────────────
     const sortedImages = useMemo(
         () => [...(product.images ?? [])].sort((a, b) => a.position - b.position),
@@ -80,7 +90,7 @@ export function ProductImagesCard({
 
     const handleDeleteImage = useCallback((productImageId: number) => {
         // eslint-disable-next-line no-alert
-        if (!confirm('Удалить изображение?')) {
+        if (!confirm(t('admin.products_edit.confirm_delete_local_image'))) {
             return;
         }
 
@@ -92,9 +102,13 @@ export function ProductImagesCard({
                 {preserveScroll: true},
             );
         }
-    }, [isEdit, product.id]);
+    }, [isEdit, product.id, t]);
 
     const handleImagesChosen = useCallback((images: ImageSelectorItem[]) => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[ProductImagesCard] library images chosen', {count: images.length, isEdit});
+        }
+
         if (images.length === 0) {
             return;
         }
@@ -105,8 +119,11 @@ export function ProductImagesCard({
                 {image_ids: images.map(item => Number(item.uid))},
                 {preserveScroll: true},
             );
+        } else {
+            // Create mode: store selected library images for later attachment
+            onLibraryImagesAdd?.(images);
         }
-    }, [isEdit, product.id]);
+    }, [isEdit, product.id, onLibraryImagesAdd]);
 
     // ── Create mode: file drag & drop ────────────────────────────────────────
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -162,7 +179,7 @@ export function ProductImagesCard({
 
     // ── Computed content (avoids nested ternary in JSX) ──────────────────────
     const editModeContent = orderedImages.length === 0
-        ? <p className="text-sm text-muted-foreground">Нет изображений</p>
+        ? <p className="text-sm text-muted-foreground">{t('admin.products_edit.no_images_short')}</p>
         : (
             <DndContext
                 collisionDetection={closestCenter}
@@ -213,10 +230,10 @@ export function ProductImagesCard({
                 <ImageIcon className="size-8 text-muted-foreground" />
                 <div className="text-center">
                     <p className="text-sm text-muted-foreground">
-                        Перетащите изображения сюда
+                        {t('admin.products_edit.drop_images_here')}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        или нажмите для выбора файлов · JPG, PNG, WebP
+                        {t('admin.products_edit.drop_or_click')}
                     </p>
                 </div>
             </button>
@@ -231,10 +248,10 @@ export function ProductImagesCard({
             />
 
             {/* Image grid */}
-            {localImages.length > 0 ? (
+            {(localImages.length > 0 || libraryImages.length > 0) ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3">
                     {localImages.map((img, index) => {
-                        const isFirst = index === 0;
+                        const isFirst = index === 0 && libraryImages.length === 0;
 
                         return (
                             <div
@@ -253,7 +270,7 @@ export function ProductImagesCard({
                                 {/* Main badge */}
                                 {isFirst ? (
                                     <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary-foreground">
-                                        ГЛАВНОЕ
+                                        {t('admin.products_edit.main_badge')}
                                     </span>
                                 ) : null}
 
@@ -270,7 +287,7 @@ export function ProductImagesCard({
                                         <button
                                             type="button"
                                             onClick={() => onLocalImageMakeFirst(img.uid)}
-                                            title="Сделать главным"
+                                            title={t('admin.products_edit.make_main_title')}
                                             className="flex size-7 items-center justify-center rounded-lg bg-white/90 text-foreground hover:bg-white"
                                         >
                                             <StarIcon className="size-3.5" />
@@ -279,7 +296,59 @@ export function ProductImagesCard({
                                     <button
                                         type="button"
                                         onClick={() => onLocalImageRemove(img.uid)}
-                                        title="Удалить"
+                                        title={t('admin.products_edit.delete_btn')}
+                                        className="flex size-7 items-center justify-center rounded-lg bg-white/90 text-destructive hover:bg-white"
+                                    >
+                                        <TrashIcon className="size-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {/* Library images (from media picker) */}
+                    {libraryImages.map((img, index) => {
+                        const isFirst = localImages.length === 0 && index === 0;
+
+                        return (
+                            <div
+                                key={img.uid}
+                                className={cn(
+                                    'group relative aspect-square overflow-hidden rounded-xl border-2',
+                                    isFirst ? 'border-primary' : 'border-border',
+                                )}
+                            >
+                                <img
+                                    src={img.url}
+                                    alt={img.alt ?? img.name}
+                                    className="h-full w-full object-cover"
+                                />
+
+                                {/* Main badge */}
+                                {isFirst ? (
+                                    <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary-foreground">
+                                        ГЛАВНОЕ
+                                    </span>
+                                ) : null}
+
+                                {/* Library badge */}
+                                <span className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[9px] text-white/80">
+                                    {t('admin.products_edit.library_badge')}
+                                </span>
+
+                                {/* Filename overlay */}
+                                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-1.5 pb-1.5 pt-4">
+                                    <p className="truncate font-mono text-[9px] text-white/80">
+                                        {img.name}
+                                    </p>
+                                </div>
+
+                                {/* Hover action buttons */}
+                                <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                                    <button
+                                        type="button"
+                                        onClick={() => onLibraryImageRemove?.(img.uid)}
+                                        title={t('admin.products_edit.delete_btn')}
                                         className="flex size-7 items-center justify-center rounded-lg bg-white/90 text-destructive hover:bg-white"
                                     >
                                         <TrashIcon className="size-3.5" />
@@ -299,12 +368,13 @@ export function ProductImagesCard({
         <Card className="flex flex-col gap-4 p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
                 <div className="flex-1">
-                    <StepHeader step={4} label="Изображения" />
+                    <StepHeader step={4} label={t('admin.products_edit.images_header')} />
                 </div>
-                {isEdit ? <ImagePickerDialog onChoose={handleImagesChosen} /> : null}
+                <ImagePickerDialog onChoose={handleImagesChosen} />
             </div>
 
             {isEdit ? editModeContent : createModeContent}
         </Card>
     );
 }
+

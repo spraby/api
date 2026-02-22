@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 
 import type {LocalVariant} from '@/hooks/use-product-form';
+import {useLang} from '@/lib/lang';
 
 interface Props {
     title: string;
@@ -28,6 +29,7 @@ function fmt(n: number): string {
 }
 
 export function ProductSummaryCard({title, categoryName, imagesCount, variants}: Props) {
+    const {t} = useLang();
     const activeCount = variants.filter(v => v.enabled).length;
     const prices = variants.filter(v => v.price > 0).map(v => v.price);
     const minPrice = prices.length > 0 ? Math.min(...prices) : null;
@@ -50,26 +52,26 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
     return (
         <div className="rounded-xl border bg-muted/30 p-4">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                СВОДКА
+                {t('admin.products_edit.summary_header')}
             </p>
 
             <SummaryRow
-                label="Название"
+                label={t('admin.products_edit.summary_name')}
                 value={title.trim() ? title : '—'}
             />
             <SummaryRow
-                label="Категория"
+                label={t('admin.products_edit.summary_category')}
                 value={categoryName ?? '—'}
             />
             <SummaryRow
-                label="Изображения"
+                label={t('admin.products_edit.summary_images')}
                 value={imagesCount > 0 ? imagesCount : '—'}
             />
 
             <hr className="my-2 border-border" />
 
             <SummaryRow
-                label="Вариантов"
+                label={t('admin.products_edit.summary_variants')}
                 value={
                     activeCount > 0 ? (
                         <span className="text-blue-600 dark:text-blue-400">{activeCount}</span>
@@ -79,7 +81,7 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
                 }
             />
             <SummaryRow
-                label="Цена"
+                label={t('admin.products_edit.summary_price')}
                 value={
                     priceRange ? (
                         <span className="font-mono font-bold">{priceRange}</span>
@@ -91,10 +93,10 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
 
             {discountedCount > 0 && (
                 <SummaryRow
-                    label="Со скидкой"
+                    label={t('admin.products_edit.summary_discounted')}
                     value={
                         <span className="rounded border border-green-300 bg-green-50 px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:border-green-700 dark:bg-green-950 dark:text-green-300">
-                            {discountedCount} вар.
+                            {discountedCount} {t('admin.products_edit.summary_var_short')}
                         </span>
                     }
                 />

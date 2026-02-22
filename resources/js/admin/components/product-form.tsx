@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {useCallback, useState} from 'react';
 
 import {router} from '@inertiajs/react';
 import {ArrowLeftIcon, CheckIcon} from 'lucide-react';
@@ -12,6 +12,8 @@ import {ProductSummaryCard} from '@/components/product-summary-card';
 import {ProductVariantsCard} from '@/components/product-variants-card';
 import {Button} from '@/components/ui/button';
 import {useProductForm} from '@/hooks/use-product-form';
+import {useLang} from '@/lib/lang';
+import {useSaveBar} from '@/stores/save-bar';
 import type {Product} from '@/types/models';
 
 interface Props {
@@ -52,6 +54,7 @@ function computeInitialSelectedValues(
 
 export function ProductForm({product}: Props) {
     const isEdit = !!product.id;
+    const {t} = useLang();
 
     // Build categories with options from brand data
     const categories = (product.brand?.categories ?? []).filter(
@@ -90,51 +93,102 @@ export function ProductForm({product}: Props) {
     // Variant errors: convert errors.variants string to array
     const variantErrors = form.errors.variants ? [form.errors.variants] : [];
 
+    const [isSaving, setIsSaving] = useState(false);
+
     // Count images for summary
     const imagesCount = isEdit
         ? (product.images?.length ?? 0)
-        : form.localImages.length;
+        : form.localImages.length + form.libraryImages.length;
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = useCallback(async (): Promise<boolean> => {
         const isValid = form.validate();
 
         if (process.env.NODE_ENV !== 'production') {
-            console.log('[ProductForm.handleSubmit]', {
+            console.log('[ProductForm.handleSubmit] start', {
                 isEdit,
                 isValid,
                 variantCount: form.variants.length,
                 imageCount: form.localImages.length,
+                libraryImagesCount: form.libraryImages.length,
             });
         }
 
-        if (!isValid) {return;}
+        if (!isValid) {return false;}
 
+        setIsSaving(true);
         const payload = form.buildSubmitPayload(isEdit);
 
-        if (isEdit && product.id) {
-            router.put(route('admin.products.update', {product: product.id}), payload, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Продукт обновлён');
-                },
-                onError: (errors) => {
-                    console.error('[ProductForm] update error', errors);
-                    toast.error('Ошибка при сохранении');
-                },
-            });
-        } else {
-            // For create mode with local images, Inertia handles File objects in FormData
-            router.post(route('admin.products.store'), payload, {
-                onSuccess: () => {
-                    toast.success('Продукт создан');
-                },
-                onError: (errors) => {
-                    console.error('[ProductForm] store error', errors);
-                    toast.error('Ошибка при создании');
-                },
-            });
+        return new Promise<boolean>((resolve) => {
+            if (isEdit && product.id) {
+                router.put(route('admin.products.update', {product: product.id}), payload, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success(t('admin.products_edit.toast_updated'));
+                        form.resetForm();
+                        setIsSaving(false);
+                        resolve(true);
+                    },
+                    onError: (errors) => {
+                        console.error('[ProductForm] update error', errors);
+                        toast.error(t('admin.products_edit.toast_error_save'));
+                        setIsSaving(false);
+                        resolve(false);
+                    },
+                });
+            } else {
+                // Capture library images before redirect (component will remount)
+                const capturedLibraryImages = form.libraryImages;
+
+                // For create mode with local images, Inertia handles File objects in FormData
+                router.post(route('admin.products.store'), payload, {
+                    onSuccess: (page) => {
+                        toast.success(t('admin.products_create.success.created'));
+
+                        // Attach library images after product is created (if any were selected)
+                        if (capturedLibraryImages.length > 0) {
+                            const newProductId = (page.props as {product?: {id?: number}}).product?.id;
+
+                            if (newProductId) {
+                                console.log('[ProductForm] attaching library images after create', {
+                                    count: capturedLibraryImages.length,
+                                    productId: newProductId,
+                                });
+                                router.post(
+                                    route('admin.products.images.attach', {product: newProductId}),
+                                    {image_ids: capturedLibraryImages.map(img => Number(img.uid))},
+                                    {preserveScroll: true},
+                                );
+                            }
+                        }
+
+                        setIsSaving(false);
+                        resolve(true);
+                    },
+                    onError: (errors) => {
+                        console.error('[ProductForm] store error', errors);
+                        toast.error(t('admin.products_create.toast_error_create'));
+                        setIsSaving(false);
+                        resolve(false);
+                    },
+                });
+            }
+        });
+    }, [form, isEdit, product.id, t]);
+
+    const handleDiscard = useCallback(() => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[ProductForm] SaveBar onDiscard triggered');
         }
-    }, [form, isEdit, product.id]);
+
+        form.resetForm();
+    }, [form]);
+
+    useSaveBar({
+        hasChanges: form.isDirty,
+        isSaving,
+        onSave: handleSubmit,
+        onDiscard: handleDiscard,
+    });
 
     const handleCancel = () => {
         router.visit(route('admin.products'));
@@ -154,7 +208,7 @@ export function ProductForm({product}: Props) {
                     </button>
                     <div>
                         <h1 className="text-xl font-extrabold">
-                            {isEdit ? 'Редактирование' : 'Новый продукт'}
+                            {isEdit ? t('admin.products_edit.title') : t('admin.products_create.title')}
                         </h1>
                         {isEdit && product.title ? <p className="text-[12px] text-muted-foreground">{product.title}</p> : null}
                     </div>
@@ -162,11 +216,11 @@ export function ProductForm({product}: Props) {
 
                 <div className="flex items-center gap-2">
                     <Button variant="outline" type="button" onClick={handleCancel}>
-                        Отмена
+                        {t('admin.products_edit.actions.cancel')}
                     </Button>
                     <Button type="button" onClick={handleSubmit} className="gap-2">
                         <CheckIcon className="size-4" />
-                        {isEdit ? 'Сохранить' : 'Создать'}
+                        {isEdit ? t('admin.products_edit.actions.save') : t('admin.products_create.actions.create')}
                     </Button>
                 </div>
             </div>
@@ -233,6 +287,9 @@ export function ProductForm({product}: Props) {
                         onLocalImagesAdd={form.addLocalImages}
                         onLocalImageRemove={form.removeLocalImage}
                         onLocalImageMakeFirst={form.makeLocalImageFirst}
+                        libraryImages={form.libraryImages}
+                        onLibraryImagesAdd={form.addLibraryImages}
+                        onLibraryImageRemove={form.removeLibraryImage}
                     />
 
                     <ProductSummaryCard

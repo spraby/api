@@ -159,10 +159,20 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       },
     });
 
-    // Update editor content when value prop changes externally
+    // Update editor content when value prop changes externally.
+    // Use emitUpdate: false to avoid triggering onChange (and marking the form dirty)
+    // when the change is programmatic (not from user input).
+    // Also normalize the empty-string comparison: empty editor returns '<p></p>',
+    // not '', so without normalization the effect fires on every mount.
     React.useEffect(() => {
-      if (editor && value !== editor.getHTML()) {
-        editor.commands.setContent(value);
+      if (!editor) {
+        return;
+      }
+
+      const editorHTML = editor.isEmpty ? '' : editor.getHTML();
+
+      if (value !== editorHTML) {
+        editor.commands.setContent(value, { emitUpdate: false });
       }
     }, [value, editor]);
 

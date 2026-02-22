@@ -1,4 +1,115 @@
-# Implementation Plan: Рефакторинг страницы продукта (аудит + чистка)
+# Implementation Plan: Переводы для страницы продукта
+
+Branch: main
+Created: 2026-02-22
+
+## Settings
+- Testing: no
+
+## Overview
+
+Все компоненты формы продукта содержат захардкоженные русские строки. Нужно добавить недостающие ключи в файлы локализации и заменить строки на `t()` вызовы через `useLang()`.
+
+**Переиспользуемые существующие ключи:**
+- `admin.products_edit.title`, `admin.products_create.title`
+- `admin.products_edit.actions.cancel/save`, `admin.products_create.actions.create`
+- `admin.products_create.success.created`, `admin.products_edit.sections.variants`
+- `admin.products_edit.actions.add_variant`, `admin.products_edit.fields.description`
+- `admin.products_edit.placeholders.title/description`
+
+**Новые ключи** добавляются в `products_edit` (и `toast_error_create` в `products_create`):
+`basic_info`, `product_title_label`, `category_options_header`, `select_all`, `deselect_all`,
+`generate_variants`, `combinations_count`, `new_variant_header`, `preview_label`, `duplicate_label`,
+`bulk_pricing_header`, `sale_price_label`, `compare_price_label`, `price_ph`, `old_price_ph`,
+`apply_to_all`, `add_btn`, `delete_btn`, `select_value_for`, `no_variants_message`,
+`no_options_message`, `select_category_variants`, `images_header`, `no_images_short`,
+`drop_images_here`, `drop_or_click`, `make_main_title`, `library_badge`,
+`confirm_delete_local_image`, `main_badge`, `summary_header`, `summary_name`,
+`summary_category`, `summary_images`, `summary_variants`, `summary_price`,
+`summary_discounted`, `summary_var_short`, `delete_variant_confirm`,
+`toast_updated`, `toast_error_save`
+
+## Tasks
+
+### Phase 1: Файлы переводов
+- [x] Task 1: Добавить новые ключи в `resources/lang/en/admin.php`
+- [x] Task 2: Добавить новые ключи в `resources/lang/ru/admin.php` (blocked by 1)
+
+### Phase 2: Компоненты (все зависят от tasks 1+2)
+- [x] Task 3: Update `product-form.tsx`
+- [x] Task 4: Update `product-basic-fields-card.tsx`
+- [x] Task 5: Update `product-images-card.tsx`
+- [x] Task 6: Update `product-category-card.tsx`
+- [x] Task 7: Update `product-summary-card.tsx`
+- [x] Task 8: Update `product-variants-card.tsx`
+- [x] Task 9: Update `variant-row.tsx`
+<!-- 🔄 Commit checkpoint: tasks 1-9 -->
+
+### Phase 3: Верификация
+- [x] Task 10: Run `npm run lint` (blocked by all component tasks)
+
+---
+
+# ARCHIVED: Implementation Plan: SaveBar / ImagePicker / RichTextEditor на странице продукта
+
+Branch: main
+Created: 2026-02-22
+
+## Settings
+- Testing: no
+- Logging: verbose (DEBUG logs в development)
+
+## Контекст
+
+Страница продукта (`/admin/products/{id}/edit` и `/admin/products/create`) — это `ProductForm` компонент.
+
+**Что уже есть:**
+- `<SaveBar>` рендерится в `AdminLayout`, но не подключён к форме продукта
+- `<ImagePickerDialog>` используется в edit mode, но не в create mode
+- `<RichTextEditor>` существует как компонент, но в форме продукта используется обычная `<textarea>`
+
+## Tasks
+
+### Phase 1: Независимые изменения
+- [x] Task 1: Заменить textarea на RichTextEditor в ProductBasicFieldsCard
+  - Файл: `resources/js/admin/components/product-basic-fields-card.tsx`
+
+### Phase 2: Расширение хука (основа для Tasks 3, 4, 5)
+- [x] Task 2: Добавить libraryImages + isDirty + resetForm в useProductForm
+  - Файл: `resources/js/admin/hooks/use-product-form.ts`
+
+### Phase 3: ImagePicker + SaveBar (зависят от Task 2)
+- [x] Task 3: Добавить ImagePickerDialog в create mode в ProductImagesCard (depends on Task 2)
+  - Файл: `resources/js/admin/components/product-images-card.tsx`
+- [x] Task 4: Передать libraryImages из ProductForm + обработать attach после create (depends on Tasks 2, 3)
+  - Файл: `resources/js/admin/components/product-form.tsx`
+- [x] Task 5: Интегрировать SaveBar в ProductForm (depends on Task 2)
+  - Файл: `resources/js/admin/components/product-form.tsx`
+
+<!-- 🔄 Commit: "feat: integrate SaveBar, ImagePicker, RichTextEditor on product page" -->
+
+## Зависимости
+
+```
+Task 1  (независимый)
+Task 2  (независимый)
+Task 3  → depends on Task 2
+Task 4  → depends on Tasks 2, 3
+Task 5  → depends on Task 2
+```
+
+## Файлы
+
+| Файл | Tasks |
+|------|-------|
+| `resources/js/admin/components/product-basic-fields-card.tsx` | 1 |
+| `resources/js/admin/hooks/use-product-form.ts` | 2 |
+| `resources/js/admin/components/product-images-card.tsx` | 3 |
+| `resources/js/admin/components/product-form.tsx` | 4, 5 |
+
+---
+
+# ARCHIVED: Implementation Plan: Рефакторинг страницы продукта (аудит + чистка)
 
 Branch: main
 Created: 2026-02-22

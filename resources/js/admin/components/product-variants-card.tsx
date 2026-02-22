@@ -7,6 +7,7 @@ import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
 import {VariantRow} from '@/components/variant-row';
 import type {LocalVariant} from '@/hooks/use-product-form';
+import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
 import type {Option, OptionValue} from '@/types/models';
 
@@ -40,6 +41,7 @@ export function ProductVariantsCard({
     onAdd,
     onBulkPricing,
 }: Props) {
+    const {t} = useLang();
     const [showAddForm, setShowAddForm] = useState(false);
     const [addFormValues, setAddFormValues] = useState<Record<number, number>>({});
     const [addFormError, setAddFormError] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export function ProductVariantsCard({
         }
 
         if (missing.length > 0) {
-            setAddFormError(`Выберите значение для: ${missing.join(', ')}`);
+            setAddFormError(`${t('admin.products_edit.select_value_for')} ${missing.join(', ')}`);
 
             return;
         }
@@ -138,14 +140,14 @@ export function ProductVariantsCard({
 
     const emptyStateMessage = (() => {
         if (categoryId === null) {
-            return 'Выберите категорию, чтобы добавить варианты';
+            return t('admin.products_edit.select_category_variants');
         }
 
         if (options.length === 0) {
-            return 'У выбранной категории нет опций';
+            return t('admin.products_edit.no_options_message');
         }
 
-        return 'Нет вариантов. Нажмите «Добавить вариант»';
+        return t('admin.products_edit.no_variants_message');
     })();
 
     return (
@@ -153,7 +155,7 @@ export function ProductVariantsCard({
             {/* Header */}
             <div className="flex items-center justify-between gap-3">
                 <div className="flex-1">
-                    <StepHeader step={3} label="Варианты товара" />
+                    <StepHeader step={3} label={t('admin.products_edit.sections.variants')} />
                 </div>
                 {!showAddForm && categoryId !== null && options.length > 0 && (
                     <Button
@@ -163,7 +165,7 @@ export function ProductVariantsCard({
                         onClick={() => setShowAddForm(true)}
                     >
                         <PlusIcon className="size-4" />
-                        Добавить вариант
+                        {t('admin.products_edit.actions.add_variant')}
                     </Button>
                 )}
             </div>
@@ -172,7 +174,7 @@ export function ProductVariantsCard({
             {showAddForm ? (
                 <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4">
                     <p className="mb-3 text-sm font-medium text-primary">
-                        Новый вариант
+                        {t('admin.products_edit.new_variant_header')}
                     </p>
 
                     {/* Per-option single-select chips */}
@@ -220,7 +222,7 @@ export function ProductVariantsCard({
                     {/* Live preview */}
                     {previewLabel ? (
                         <div className="mt-3 flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">Превью:</span>
+                            <span className="text-xs text-muted-foreground">{t('admin.products_edit.preview_label')}</span>
                             <span
                                 className={cn(
                                     'rounded border px-2 py-0.5 text-xs font-medium',
@@ -229,7 +231,7 @@ export function ProductVariantsCard({
                                         : 'border-primary/30 bg-primary/10 text-primary',
                                 )}
                             >
-                                {isDuplicate ? `${previewLabel} — уже существует` : previewLabel}
+                                {isDuplicate ? `${previewLabel}${t('admin.products_edit.duplicate_label')}` : previewLabel}
                             </span>
                         </div>
                     ) : null}
@@ -247,7 +249,7 @@ export function ProductVariantsCard({
                             onClick={handleAddSubmit}
                             disabled={isDuplicate}
                         >
-                            Добавить
+                            {t('admin.products_edit.add_btn')}
                         </Button>
                         <Button
                             type="button"
@@ -255,7 +257,7 @@ export function ProductVariantsCard({
                             size="sm"
                             onClick={handleAddCancel}
                         >
-                            Отмена
+                            {t('admin.products_edit.actions.cancel')}
                         </Button>
                     </div>
                 </div>
@@ -265,7 +267,7 @@ export function ProductVariantsCard({
             {variants.length > 0 ? (
                 <div className="rounded-xl bg-muted/50 p-4">
                     <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Массовое ценообразование
+                        {t('admin.products_edit.bulk_pricing_header')}
                     </p>
                     <div className="flex flex-wrap items-end gap-3">
                         <div className="flex flex-col gap-1">
@@ -273,7 +275,7 @@ export function ProductVariantsCard({
                                 htmlFor="bulk-price"
                                 className="text-xs text-muted-foreground"
                             >
-                                Цена продажи
+                                {t('admin.products_edit.sale_price_label')}
                             </label>
                             <div className="flex items-center overflow-hidden rounded-lg border border-input bg-background text-sm">
                                 <span className="px-2 py-1.5 text-xs text-muted-foreground">₽</span>
@@ -281,7 +283,7 @@ export function ProductVariantsCard({
                                     id="bulk-price"
                                     type="number"
                                     min={0}
-                                    placeholder="Цена"
+                                    placeholder={t('admin.products_edit.price_ph')}
                                     value={bulkPrice}
                                     onChange={e => setBulkPrice(e.target.value)}
                                     className="w-24 bg-transparent py-1.5 pr-2 text-sm focus:outline-none"
@@ -293,7 +295,7 @@ export function ProductVariantsCard({
                                 htmlFor="bulk-compare"
                                 className="text-xs text-muted-foreground"
                             >
-                                Цена до скидки
+                                {t('admin.products_edit.compare_price_label')}
                             </label>
                             <div className="flex items-center overflow-hidden rounded-lg border border-input bg-background text-sm">
                                 <span className="px-2 py-1.5 text-xs text-muted-foreground">₽</span>
@@ -301,7 +303,7 @@ export function ProductVariantsCard({
                                     id="bulk-compare"
                                     type="number"
                                     min={0}
-                                    placeholder="Старая"
+                                    placeholder={t('admin.products_edit.old_price_ph')}
                                     value={bulkCompare}
                                     onChange={e => setBulkCompare(e.target.value)}
                                     className="w-24 bg-transparent py-1.5 pr-2 text-sm focus:outline-none"
@@ -315,7 +317,7 @@ export function ProductVariantsCard({
                             disabled={!bulkPrice && !bulkCompare}
                             onClick={handleBulkApply}
                         >
-                            Применить ко всем
+                            {t('admin.products_edit.apply_to_all')}
                         </Button>
                     </div>
                 </div>

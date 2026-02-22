@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 
+import type {ImageSelectorItem} from '@/components/image-selector';
 import type {Category, Option, OptionValue, ProductImage} from '@/types/models';
 
 // ============================================================================
@@ -91,10 +92,20 @@ export interface ProductFormState {
     toggleVariantEnabled: (key: string) => void;
     applyBulkPricing: (price: number | null, comparePrice: number | null) => void;
 
-    // Images (create mode)
+    // Images (create mode — file uploads)
     addLocalImages: (images: LocalImage[]) => void;
     removeLocalImage: (uid: string) => void;
     makeLocalImageFirst: (uid: string) => void;
+
+    // Images (create mode — from media library)
+    libraryImages: ImageSelectorItem[];
+    addLibraryImages: (images: ImageSelectorItem[]) => void;
+    removeLibraryImage: (uid: string) => void;
+    clearLibraryImages: () => void;
+
+    // Dirty tracking & reset
+    isDirty: boolean;
+    resetForm: () => void;
 
     // Validation & submission
     validate: () => boolean;
@@ -117,6 +128,22 @@ export function useProductForm(initialProduct: {
     }[];
     images?: ProductImage[];
 }): ProductFormState {
+    // Store initial values for reset (captured once at mount)
+    const initialDataRef = useRef({
+        title: initialProduct.title ?? '',
+        description: initialProduct.description ?? '',
+        categoryId: initialProduct.category_id ?? null,
+        selectedValues: initialProduct.initialSelectedValues ?? {},
+        variantsData: (initialProduct.variants ?? []).map(v => ({
+            id: v.id,
+            comparePrice: Number(v.price) || 0,
+            price: Number(v.final_price) || 0,
+            enabled: v.enabled,
+            image_id: v.image_id ?? null,
+            values: v.values ?? [],
+        })),
+    });
+
     const [title, setTitleState] = useState(initialProduct.title ?? '');
     const [description, setDescriptionState] = useState(initialProduct.description ?? '');
     const [categoryId, setCategoryId] = useState<number | null>(initialProduct.category_id ?? null);
@@ -137,7 +164,19 @@ export function useProductForm(initialProduct: {
         })),
     );
     const [localImages, setLocalImages] = useState<LocalImage[]>([]);
+    const [libraryImages, setLibraryImages] = useState<ImageSelectorItem[]>([]);
+    const [isDirty, setIsDirty] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const markDirty = useCallback(() => {
+        setIsDirty(prev => {
+            if (!prev && process.env.NODE_ENV !== 'production') {
+                console.log('[useProductForm] isDirty → true');
+            }
+
+            return true;
+        });
+    }, []);
 
     // Keep a ref to localImages for cleanup on unmount (avoids stale closure)
     const localImagesRef = useRef(localImages);
@@ -157,6 +196,7 @@ export function useProductForm(initialProduct: {
 
     const setTitle = useCallback((v: string) => {
         setTitleState(v);
+        markDirty();
         setErrors(prev => {
             if (!prev.title) {return prev;}
             const next = {...prev};
@@ -165,11 +205,12 @@ export function useProductForm(initialProduct: {
 
             return next;
         });
-    }, []);
+    }, [markDirty]);
 
     const setDescription = useCallback((v: string) => {
         setDescriptionState(v);
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     // ---------- Category & options ----------
 
@@ -180,6 +221,7 @@ export function useProductForm(initialProduct: {
         setCategoryId(id);
         setSelectedValues({});
         setVariants([]);
+        markDirty();
         setErrors(prev => {
             const next = {...prev};
 
@@ -187,7 +229,7 @@ export function useProductForm(initialProduct: {
 
             return next;
         });
-    }, []);
+    }, [markDirty]);
 
     const toggleOptionValue = useCallback((optionId: number, valueId: number) => {
         setSelectedValues(prev => {
@@ -205,7 +247,8 @@ export function useProductForm(initialProduct: {
         });
         // Reset variants when options change
         setVariants([]);
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     const selectAllValues = useCallback((optionId: number, values: OptionValue[]) => {
         const ids = values.filter((v): v is OptionValue & {id: number} => v.id != null).map(v => v.id);
@@ -216,7 +259,8 @@ export function useProductForm(initialProduct: {
 
         setSelectedValues(prev => ({...prev, [optionId]: ids}));
         setVariants([]);
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     const deselectAllValues = useCallback((optionId: number) => {
         if (process.env.NODE_ENV !== 'production') {
@@ -225,7 +269,8 @@ export function useProductForm(initialProduct: {
 
         setSelectedValues(prev => ({...prev, [optionId]: []}));
         setVariants([]);
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     // ---------- Variant generation ----------
 
@@ -278,6 +323,7 @@ export function useProductForm(initialProduct: {
             }
 
             setVariants(generated);
+            markDirty();
             setErrors(prev => {
                 const next = {...prev};
 
@@ -286,7 +332,7 @@ export function useProductForm(initialProduct: {
                 return next;
             });
         },
-        [selectedValues],
+        [selectedValues, markDirty],
     );
 
     // ---------- Variant CRUD ----------
@@ -316,10 +362,11 @@ export function useProductForm(initialProduct: {
             };
 
             setVariants(prev => [...prev, newVariant]);
+            markDirty();
 
             return null;
         },
-        [variants],
+        [variants, markDirty],
     );
 
     const updateVariant = useCallback(
@@ -327,8 +374,9 @@ export function useProductForm(initialProduct: {
             setVariants(prev =>
                 prev.map(v => (v._key === key ? {...v, ...patch} : v)),
             );
+            markDirty();
         },
-        [],
+        [markDirty],
     );
 
     const deleteVariant = useCallback((key: string) => {
@@ -337,13 +385,15 @@ export function useProductForm(initialProduct: {
         }
 
         setVariants(prev => prev.filter(v => v._key !== key));
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     const toggleVariantEnabled = useCallback((key: string) => {
         setVariants(prev =>
             prev.map(v => (v._key === key ? {...v, enabled: !v.enabled} : v)),
         );
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     const applyBulkPricing = useCallback(
         (price: number | null, comparePrice: number | null) => {
@@ -358,8 +408,9 @@ export function useProductForm(initialProduct: {
                     ...(comparePrice !== null && comparePrice > 0 ? {comparePrice} : {}),
                 })),
             );
+            markDirty();
         },
-        [],
+        [markDirty],
     );
 
     // ---------- Local images (create mode) ----------
@@ -373,7 +424,8 @@ export function useProductForm(initialProduct: {
         }
 
         setLocalImages(prev => [...prev, ...newImages]);
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     const removeLocalImage = useCallback((uid: string) => {
         setLocalImages(prev => {
@@ -385,7 +437,8 @@ export function useProductForm(initialProduct: {
 
             return prev.filter(img => img.uid !== uid);
         });
-    }, []);
+        markDirty();
+    }, [markDirty]);
 
     const makeLocalImageFirst = useCallback((uid: string) => {
         setLocalImages(prev => {
@@ -400,6 +453,59 @@ export function useProductForm(initialProduct: {
 
             return next;
         });
+        markDirty();
+    }, [markDirty]);
+
+    // ---------- Library images (create mode — from media library) ----------
+
+    const addLibraryImages = useCallback((images: ImageSelectorItem[]) => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[useProductForm] addLibraryImages', {count: images.length});
+        }
+
+        setLibraryImages(prev => {
+            const existingUids = new Set(prev.map(img => img.uid));
+            const newItems = images.filter(img => !existingUids.has(img.uid));
+
+            return [...prev, ...newItems];
+        });
+        markDirty();
+    }, [markDirty]);
+
+    const removeLibraryImage = useCallback((uid: string) => {
+        setLibraryImages(prev => prev.filter(img => img.uid !== uid));
+        markDirty();
+    }, [markDirty]);
+
+    const clearLibraryImages = useCallback(() => {
+        setLibraryImages([]);
+    }, []);
+
+    // ---------- Reset ----------
+
+    const resetForm = useCallback(() => {
+        const data = initialDataRef.current;
+
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[useProductForm] resetForm called', {
+                title: data.title,
+                variantCount: data.variantsData.length,
+            });
+        }
+
+        setTitleState(data.title);
+        setDescriptionState(data.description);
+        setCategoryId(data.categoryId);
+        setSelectedValues(data.selectedValues);
+        setVariants(data.variantsData.map(v => ({
+            _key: generateKey(),
+            image_index: null,
+            ...v,
+        })));
+        setLocalImages([]);
+        setLibraryImages([]);
+        setIsDirty(false);
+        setErrors({});
     }, []);
 
     // ---------- Validation ----------
@@ -504,6 +610,8 @@ export function useProductForm(initialProduct: {
         selectedValues,
         variants,
         localImages,
+        libraryImages,
+        isDirty,
         errors,
         setTitle,
         setDescription,
@@ -521,6 +629,10 @@ export function useProductForm(initialProduct: {
         addLocalImages,
         removeLocalImage,
         makeLocalImageFirst,
+        addLibraryImages,
+        removeLibraryImage,
+        clearLibraryImages,
+        resetForm,
         validate,
         clearError,
         buildSubmitPayload,

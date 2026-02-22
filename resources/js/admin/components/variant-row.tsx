@@ -3,6 +3,7 @@ import {useState} from 'react';
 import {CheckIcon, TrashIcon, XIcon} from 'lucide-react';
 
 import type {LocalVariant} from '@/hooks/use-product-form';
+import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
 import type {Option, OptionValue} from '@/types/models';
 
@@ -51,6 +52,7 @@ function isColorOption(option: Option): boolean {
 }
 
 export function VariantRow({variant, displayIndex, options, onUpdate, onDelete}: VariantRowProps) {
+    const {t} = useLang();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const discount = formatDiscount(variant.price, variant.comparePrice);
@@ -115,7 +117,7 @@ export function VariantRow({variant, displayIndex, options, onUpdate, onDelete}:
                     <input
                         type="number"
                         min={0}
-                        placeholder="Цена"
+                        placeholder={t('admin.products_edit.price_ph')}
                         value={variant.price || ''}
                         onChange={e => handlePriceChange('price', e.target.value)}
                         className="w-20 bg-transparent py-1.5 pr-2 text-sm focus:outline-none"
@@ -136,7 +138,7 @@ export function VariantRow({variant, displayIndex, options, onUpdate, onDelete}:
                     <input
                         type="number"
                         min={0}
-                        placeholder="Старая"
+                        placeholder={t('admin.products_edit.old_price_ph')}
                         value={variant.comparePrice || ''}
                         onChange={e => handlePriceChange('comparePrice', e.target.value)}
                         className="w-20 bg-transparent py-1.5 pr-2 text-sm focus:outline-none"
@@ -193,7 +195,7 @@ export function VariantRow({variant, displayIndex, options, onUpdate, onDelete}:
             {/* Delete confirmation overlay */}
             {showDeleteConfirm ? (
                 <div className="absolute inset-0 z-10 flex animate-in fade-in-0 items-center justify-center gap-3 rounded-lg bg-background/95 backdrop-blur-sm">
-                    <span className="text-sm">Удалить вариант #{displayIndex}?</span>
+                    <span className="text-sm">{t('admin.products_edit.delete_variant_confirm')}{displayIndex}?</span>
                     <button
                         type="button"
                         onClick={() => {
@@ -202,14 +204,14 @@ export function VariantRow({variant, displayIndex, options, onUpdate, onDelete}:
                         }}
                         className="rounded-lg bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
                     >
-                        Удалить
+                        {t('admin.products_edit.delete_btn')}
                     </button>
                     <button
                         type="button"
                         onClick={() => setShowDeleteConfirm(false)}
                         className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted"
                     >
-                        Отмена
+                        {t('admin.products_edit.actions.cancel')}
                     </button>
                 </div>
             ) : null}

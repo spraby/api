@@ -1,6 +1,7 @@
 import {StepHeader} from '@/components/step-header';
 import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
+import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
 import type {Category, Option, OptionValue} from '@/types/models';
 
@@ -45,6 +46,7 @@ export function ProductCategoryCard({
     onGenerateVariants,
     combinationCount,
 }: ProductCategoryCardProps) {
+    const {t} = useLang();
     const selectedCategory = categories.find(c => c.id === categoryId) ?? null;
     const totalSelected = Object.values(selectedValues).reduce(
         (acc, ids) => acc + ids.length,
@@ -53,7 +55,7 @@ export function ProductCategoryCard({
 
     return (
         <Card className="flex flex-col gap-5 p-4 sm:p-6">
-            <StepHeader step={2} label="Категория и опции" />
+            <StepHeader step={2} label={t('admin.products_edit.category_options_header')} />
 
             {/* Category chips */}
             <div className="flex flex-col gap-2">
@@ -112,7 +114,7 @@ export function ProductCategoryCard({
                                             : onSelectAllValues(optionId, option.values)}
                                         className="text-[11px] text-primary hover:underline"
                                     >
-                                        {allSelected ? 'Снять все' : 'Выбрать все'}
+                                        {allSelected ? t('admin.products_edit.deselect_all') : t('admin.products_edit.select_all')}
                                     </button>
                                 </div>
 
@@ -167,11 +169,11 @@ export function ProductCategoryCard({
                         disabled={totalSelected === 0}
                         onClick={onGenerateVariants}
                     >
-                        Сгенерировать варианты
+                        {t('admin.products_edit.generate_variants')}
                     </Button>
                     {combinationCount > 0 && (
                         <span className="font-mono text-xs text-muted-foreground">
-                            {combinationCount} комб.
+                            {combinationCount} {t('admin.products_edit.combinations_count')}
                         </span>
                     )}
                 </div>
