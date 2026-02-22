@@ -131,6 +131,12 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
 
 const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
   ({ value = '', onChange, placeholder, disabled = false, className }, ref) => {
+    // Track whether the editor has finished its initial creation.
+    // TipTap may fire onUpdate during initialization in some versions —
+    // this guard ensures onChange (and markDirty) is never called before
+    // the user actually interacts with the editor.
+    const isInitializedRef = React.useRef(false);
+
     const editor = useEditor({
       extensions: [
         StarterKit.configure({
@@ -154,14 +160,28 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           ),
         },
       },
+      onCreate: () => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[RichTextEditor] editor created, marking initialized');
+        }
+        isInitializedRef.current = true;
+      },
       onUpdate: ({ editor }) => {
+        if (!isInitializedRef.current) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[RichTextEditor] onUpdate skipped — not yet initialized');
+          }
+
+          return;
+        }
         onChange?.(editor.isEmpty ? '' : editor.getHTML());
       },
     });
 
     // Update editor content when value prop changes externally.
-    // Use emitUpdate: false to avoid triggering onChange (and marking the form dirty)
-    // when the change is programmatic (not from user input).
+    // Pass `false` as the second argument to setContent so TipTap does NOT
+    // emit an 'update' event — otherwise onChange fires for programmatic
+    // updates and marks the form dirty before the user touches anything.
     // Also normalize the empty-string comparison: empty editor returns '<p></p>',
     // not '', so without normalization the effect fires on every mount.
     React.useEffect(() => {
@@ -172,7 +192,12 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       const editorHTML = editor.isEmpty ? '' : editor.getHTML();
 
       if (value !== editorHTML) {
-        editor.commands.setContent(value, { emitUpdate: false });
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[RichTextEditor] setContent (no emit)', { value, editorHTML });
+        }
+        // NOTE: second arg is boolean `false`, NOT `{ emitUpdate: false }`.
+        // An object would be truthy and would cause the update to be emitted.
+        editor.commands.setContent(value, false);
       }
     }, [value, editor]);
 
