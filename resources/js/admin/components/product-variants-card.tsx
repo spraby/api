@@ -5,6 +5,7 @@ import {PlusIcon} from 'lucide-react';
 import {StepHeader} from '@/components/step-header';
 import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
+import type {PickableImage} from '@/components/variant-image-picker-dialog';
 import {VariantRow} from '@/components/variant-row';
 import type {LocalVariant} from '@/hooks/use-product-form';
 import {useLang} from '@/lib/lang';
@@ -16,6 +17,10 @@ interface Props {
     options: (Option & {values: OptionValue[]})[];
     categoryId: number | null;
     variantErrors: string[];
+    pickableImages?: PickableImage[];
+    productId?: number;
+    isEdit?: boolean;
+    onNewImageAttached?: (img: PickableImage) => void;
     onUpdate: (key: string, patch: Partial<LocalVariant>) => void;
     onDelete: (key: string) => void;
     onAdd: (values: {option_id: number; option_value_id: number}[]) => string | null;
@@ -36,6 +41,10 @@ export function ProductVariantsCard({
     options,
     categoryId,
     variantErrors,
+    pickableImages,
+    productId,
+    isEdit,
+    onNewImageAttached,
     onUpdate,
     onDelete,
     onAdd,
@@ -332,6 +341,10 @@ export function ProductVariantsCard({
                             variant={variant}
                             displayIndex={index + 1}
                             options={options}
+                            pickableImages={pickableImages}
+                            productId={productId}
+                            isEdit={isEdit}
+                            onNewImageAttached={onNewImageAttached}
                             onUpdate={patch => onUpdate(variant._key, patch)}
                             onDelete={() => onDelete(variant._key)}
                         />

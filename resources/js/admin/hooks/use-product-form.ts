@@ -16,8 +16,9 @@ export interface LocalVariant {
     /** Original price before discount (maps to DB price on submit) */
     comparePrice: number;
     enabled: boolean;
-    image_id: number | null;   // ProductImageId (FK to product_images, edit mode)
+    image_id: number | null;    // ProductImageId (FK to product_images, edit mode)
     image_index: number | null; // position in localImages array (create mode)
+    image_url?: string | null;  // URL for display when image not in pickableImages (newly attached)
 }
 
 export interface LocalImage {
@@ -312,6 +313,7 @@ export function useProductForm(initialProduct: {
                 enabled: true,
                 image_id: null,
                 image_index: null,
+                image_url: null,
             }));
 
             if (process.env.NODE_ENV !== 'production') {
@@ -359,6 +361,7 @@ export function useProductForm(initialProduct: {
                 enabled: true,
                 image_id: null,
                 image_index: null,
+                image_url: null,
             };
 
             setVariants(prev => [...prev, newVariant]);
@@ -500,6 +503,7 @@ export function useProductForm(initialProduct: {
         setVariants(data.variantsData.map(v => ({
             _key: generateKey(),
             image_index: null,
+            image_url: null,
             ...v,
         })));
         setLocalImages([]);

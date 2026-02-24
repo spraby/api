@@ -75,6 +75,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
                 Route::prefix('images')->group(function () {
                     Route::post('/attach', [App\Http\Controllers\Admin\ProductController::class, 'attachImages'])->name('products.images.attach');
                     Route::post('/upload', [App\Http\Controllers\Admin\ProductController::class, 'uploadImages'])->name('products.images.upload');
+                    Route::post('/api-attach', [App\Http\Controllers\Admin\ProductController::class, 'apiAttachImage'])->name('products.images.api.attach');
                     Route::delete('/{productImageId}', [App\Http\Controllers\Admin\ProductController::class, 'detachImage'])->name('products.images.detach');
                     Route::put('/reorder', [App\Http\Controllers\Admin\ProductController::class, 'reorderImages'])->name('products.images.reorder');
                 });

@@ -1,4 +1,4 @@
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
 import {router} from '@inertiajs/react';
 import {ArrowLeftIcon, CheckIcon} from 'lucide-react';
@@ -9,6 +9,7 @@ import {ProductCategoryCard} from '@/components/product-category-card';
 import type {CategoryWithOptions} from '@/components/product-category-card';
 import {ProductImagesCard} from '@/components/product-images-card';
 import {ProductSummaryCard} from '@/components/product-summary-card';
+import type {PickableImage} from '@/components/variant-image-picker-dialog';
 import {ProductVariantsCard} from '@/components/product-variants-card';
 import {Button} from '@/components/ui/button';
 import {useProductForm} from '@/hooks/use-product-form';
@@ -94,6 +95,47 @@ export function ProductForm({product}: Props) {
     const variantErrors = form.errors.variants ? [form.errors.variants] : [];
 
     const [isSaving, setIsSaving] = useState(false);
+
+    // Edit mode: local pickable images list (initialized from product.images, grows as new images attached)
+    const [localPickableImages, setLocalPickableImages] = useState<PickableImage[]>(() =>
+        (product.images ?? []).map(pi => ({
+            id: pi.id!,
+            url: pi.image?.url,
+            alt: pi.image?.alt,
+            name: pi.image?.name,
+        })),
+    );
+
+    // Sync localPickableImages when product.images changes (e.g. after page reload)
+    useEffect(() => {
+        setLocalPickableImages(
+            (product.images ?? []).map(pi => ({
+                id: pi.id!,
+                url: pi.image?.url,
+                alt: pi.image?.alt,
+                name: pi.image?.name,
+            })),
+        );
+    }, [product.images]);
+
+    // Called when variant image picker attaches a new image to the product via API
+    const handleNewImageAttached = useCallback((img: PickableImage) => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[ProductForm] handleNewImageAttached', {id: img.id, url: img.url});
+        }
+        setLocalPickableImages(prev => {
+            if (prev.find(p => p.id === img.id)) {return prev;}
+            return [...prev, img];
+        });
+    }, []);
+
+    // Create mode: build pickable images from staged local uploads (image_index = position in localImages)
+    const createModePickableImages: PickableImage[] = form.localImages.map((img, i) => ({
+        id: i,
+        url: img.url,
+        name: img.name,
+        alt: null,
+    }));
 
     // Count images for summary
     const imagesCount = isEdit
@@ -265,6 +307,10 @@ export function ProductForm({product}: Props) {
                             options={selectedCategory?.options ?? []}
                             categoryId={form.categoryId}
                             variantErrors={variantErrors}
+                            pickableImages={isEdit ? localPickableImages : createModePickableImages}
+                            productId={isEdit ? product.id : undefined}
+                            isEdit={isEdit}
+                            onNewImageAttached={handleNewImageAttached}
                             onUpdate={(key, patch) => form.updateVariant(key, patch)}
                             onDelete={(key) => form.deleteVariant(key)}
                             onAdd={(values) => form.addVariant(values)}

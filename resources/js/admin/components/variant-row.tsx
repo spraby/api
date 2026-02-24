@@ -1,7 +1,9 @@
 import {useState} from 'react';
 
-import {CheckIcon, TrashIcon, XIcon} from 'lucide-react';
+import {CheckIcon, ImageIcon, TrashIcon, XIcon} from 'lucide-react';
 
+import type {PickableImage} from '@/components/variant-image-picker-dialog';
+import {VariantImagePickerDialog} from '@/components/variant-image-picker-dialog';
 import type {LocalVariant} from '@/hooks/use-product-form';
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
@@ -11,6 +13,10 @@ interface VariantRowProps {
     variant: LocalVariant;
     displayIndex: number;
     options: (Option & {values: OptionValue[]})[];
+    pickableImages?: PickableImage[];
+    productId?: number;
+    isEdit?: boolean;
+    onNewImageAttached?: (img: PickableImage) => void;
     onUpdate: (patch: Partial<LocalVariant>) => void;
     onDelete: () => void;
 }
@@ -51,12 +57,28 @@ function isColorOption(option: Option): boolean {
     return name === 'color' || name === 'colour' || name === 'цвет';
 }
 
-export function VariantRow({variant, displayIndex, options, onUpdate, onDelete}: VariantRowProps) {
+export function VariantRow({
+    variant,
+    displayIndex,
+    options,
+    pickableImages,
+    productId,
+    isEdit,
+    onNewImageAttached,
+    onUpdate,
+    onDelete,
+}: VariantRowProps) {
     const {t} = useLang();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const discount = formatDiscount(variant.price, variant.comparePrice);
     const isDisabled = !variant.enabled;
+
+    // Determine the current selected image id and its display URL
+    const currentImageId = isEdit ? variant.image_id : variant.image_index;
+    const imageUrl = pickableImages?.find(img => img.id === currentImageId)?.url
+        ?? variant.image_url
+        ?? null;
 
     const handlePriceChange = (field: 'price' | 'comparePrice', raw: string) => {
         const val = parseFloat(raw);
@@ -77,6 +99,29 @@ export function VariantRow({variant, displayIndex, options, onUpdate, onDelete}:
                 <span className="w-6 shrink-0 font-mono text-[11px] text-muted-foreground">
                     #{displayIndex}
                 </span>
+
+                {/* Variant image picker */}
+                {pickableImages !== undefined && (
+                    <div
+                        role="presentation"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <VariantImagePickerDialog
+                            images={pickableImages}
+                            selectedId={currentImageId}
+                            productId={productId}
+                            size="sm"
+                            onSelect={(id, url) => {
+                                if (isEdit) {
+                                    onUpdate({image_id: id, image_url: url ?? null});
+                                } else {
+                                    onUpdate({image_index: id, image_url: url ?? null});
+                                }
+                            }}
+                            onNewImageAttached={onNewImageAttached}
+                        />
+                    </div>
+                )}
 
                 {/* Value badges */}
                 <div className="flex flex-1 flex-wrap items-center gap-1">

@@ -15,6 +15,7 @@ use App\Models\ProductImage;
 use App\Models\User;
 use App\Services\FileService;
 use App\Services\VariantService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -416,6 +417,73 @@ class ProductController extends Controller
     // ========================================
     // INERTIA PRODUCT IMAGES METHODS
     // ========================================
+
+    /**
+     * API (JSON): Attach a single existing image to a product and return the created ProductImage.
+     * Used by variant image picker when user selects from media library.
+     */
+    public function apiAttachImage(Request $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', Product::class);
+
+        $request->validate([
+            'image_id' => 'required|integer|exists:images,id',
+        ]);
+
+        try {
+            /**
+             * @var User $user
+             * @var Brand $brand
+             */
+            $user = auth()->user();
+            $brand = $user->getBrand();
+
+            if (!$brand || $product->brand_id !== $brand->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $imageId = (int) $request->input('image_id');
+
+            // Return existing product_image if image already attached
+            $productImage = ProductImage::where('product_id', $product->id)
+                ->where('image_id', $imageId)
+                ->first();
+
+            if (!$productImage) {
+                $maxPosition = $product->images()->max('position') ?? 0;
+                $productImage = $product->images()->create([
+                    'image_id' => $imageId,
+                    'position' => $maxPosition + 1,
+                ]);
+            }
+
+            $productImage->load('image');
+
+            Log::info('[ProductController.apiAttachImage] image attached', [
+                'product_id'       => $product->id,
+                'image_id'         => $imageId,
+                'product_image_id' => $productImage->id,
+            ]);
+
+            return response()->json([
+                'id'    => $productImage->id,
+                'image' => [
+                    'id'  => $productImage->image->id,
+                    'url' => $productImage->image->url,
+                    'name' => $productImage->image->name,
+                    'alt' => $productImage->image->alt,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[ProductController.apiAttachImage] failed', [
+                'product_id' => $product->id,
+                'image_id'   => $request->input('image_id'),
+                'error'      => $e->getMessage(),
+            ]);
+
+            return response()->json(['message' => 'Failed to attach image: ' . $e->getMessage()], 422);
+        }
+    }
 
     /**
      * Inertia: Attach images to product
