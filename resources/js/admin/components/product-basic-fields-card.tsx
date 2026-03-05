@@ -1,4 +1,3 @@
-import {StepHeader} from '@/components/step-header';
 import {Card} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {RichTextEditor} from '@/components/ui/rich-text-editor';
@@ -17,8 +16,6 @@ export function ProductBasicFieldsCard({title, description, errors, onChange}: P
 
     return (
         <Card className="flex flex-col gap-5 p-4 sm:p-6">
-            <StepHeader step={1} label={t('admin.products_edit.basic_info')} />
-
             <div className="flex flex-col gap-1.5">
                 <label className="flex items-center gap-1 text-xs font-semibold text-muted-foreground" htmlFor="product-title">
                     {t('admin.products_edit.product_title_label')}

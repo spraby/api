@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import {Loader2} from 'lucide-react';
 import {toast} from 'sonner';
@@ -9,7 +9,7 @@ import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
 
 interface ApiImage {
-    id: number | string;
+    id: number;
     url: string;
     name: string;
     alt?: string | null;
@@ -23,6 +23,10 @@ interface ApiPaginatedResponse {
     };
 }
 
+interface ResourceImageSelectorHandle {
+    refresh: () => void;
+}
+
 interface Props {
     resource?: string;
     images?: ImageSelectorItem[];
@@ -31,42 +35,148 @@ interface Props {
     onChange?: (selected: ImageSelectorItem[]) => void;
 }
 
+/**
+ *
+ * @param resource
+ * @param images
+ * @param perPage
+ * @param multiple
+ * @param onChange
+ * @constructor
+ */
 export function ImagePicker({
                                 resource,
-                                images: staticImages = [],
+                                images = [],
                                 perPage = 24,
                                 multiple = true,
                                 onChange,
                             }: Props) {
+    const [selectedImages, setSelectedImages] = useState<ImageSelectorItem[]>([]);
+    const [loadedImages, setLoadedImages] = useState<ImageSelectorItem[]>([]);
+    const resourceSelectorRef = useRef<ResourceImageSelectorHandle>(null);
+
+    useEffect(() => {
+        console.log('selectedImages => ', selectedImages)
+        if (onChange) {
+            onChange(selectedImages);
+        }
+    }, [selectedImages]);
+
+    const handleStartLoading = useCallback((previews: { uid: string; url: string; name: string }[]) => {
+        const items: ImageSelectorItem[] = previews.map((p) => ({
+            uid: p.uid,
+            url: p.url,
+            name: p.name,
+            loading: true,
+        }));
+
+        setLoadedImages(items);
+    }, []);
+
+    const handleFinishLoading = useCallback(() => {
+        setLoadedImages([]);
+        resourceSelectorRef.current?.refresh();
+    }, []);
+
+    return (
+        <div className="space-y-4 p-5">
+            <ImageUploader
+                multiple={multiple}
+                onStartLoading={handleStartLoading}
+                onFinishLoading={handleFinishLoading}
+            />
+            <div className="min-h-[200px] max-h-[500px] overflow-auto flex flex-col gap-5">
+                {
+                    !!images?.length && <DataImageSelector
+                        images={images}
+                        multiple={multiple}
+                        selectedImages={selectedImages}
+                        setSelectedImages={setSelectedImages}
+                    />
+                }
+                {
+                    !!resource && <ResourceImageSelector
+                        ref={resourceSelectorRef}
+                        loadedImages={loadedImages}
+                        resource={resource}
+                        multiple={multiple}
+                        selectedImages={selectedImages}
+                        setSelectedImages={setSelectedImages}
+                        perPage={perPage}
+                    />
+                }
+            </div>
+        </div>
+    );
+}
+
+/**
+ *
+ * @param images
+ * @param selectedImages
+ * @param setSelectedImages
+ * @param multiple
+ * @constructor
+ */
+const DataImageSelector = ({images, selectedImages, setSelectedImages, multiple = false}: {
+    images: ImageSelectorItem[]
+    multiple: boolean,
+    selectedImages: ImageSelectorItem[],
+    setSelectedImages: (selected: ImageSelectorItem[]) => void
+}) => {
+
+    const handleSelectionChange = useCallback((values: string[]) => {
+        if (setSelectedImages) {
+            setSelectedImages(images.filter(img => values.includes(img.uid)));
+        }
+    }, [setSelectedImages, images]);
+
+    return <ImageSelector
+        onChange={handleSelectionChange}
+        values={selectedImages.map(i => i.uid)}
+        multiple={multiple}
+        images={images}
+    />
+}
+
+/**
+ *
+ */
+const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
+    loadedImages: ImageSelectorItem[],
+    resource: string,
+    multiple: boolean,
+    selectedImages: ImageSelectorItem[],
+    setSelectedImages: (selected: ImageSelectorItem[]) => void,
+    perPage?: number;
+}>(({resource, multiple = false, selectedImages, setSelectedImages, perPage = 24, loadedImages = []}, ref) => {
     const {t} = useLang();
 
-    const [selectedImages, setSelectedImages] = useState<string[]>([]);
-    const [loadedImages, setLoadedImages] = useState<ImageSelectorItem[]>([]);
+    const [images, setImages] = useState<ImageSelectorItem[]>([]);
+
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [lastPage, setLastPage] = useState(1);
-    const [loading, setLoading] = useState(!!resource);
-    const [loadingMore, setLoadingMore] = useState(false);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const loadMoreControllerRef = useRef<AbortController | null>(null);
     const loadingMoreRef = useRef(false);
 
-    const handleSelectionChange = useCallback((values: string[]) => {
-        setSelectedImages(values);
-        if (onChange) {
-            const currentImages = resource ? loadedImages : staticImages;
-
-            onChange(currentImages.filter(img => values.includes(img.uid)));
+    useEffect(() => {
+        if (loadedImages.length > 0) {
+            setImages((prev) => [...loadedImages, ...prev]);
         }
-    }, [onChange, resource, loadedImages, staticImages]);
+    }, [loadedImages]);
+
+    const handleSelectionChange = useCallback((values: string[]) => {
+        if (setSelectedImages) {
+            setSelectedImages(images.filter(img => values.includes(img.uid)));
+        }
+    }, [setSelectedImages, images]);
 
     const fetchPage = useCallback(async (page: number, signal?: AbortSignal) => {
-        if (!resource) {
-            return;
-        }
-
         const url = new URL(resource, window.location.origin);
-
         url.searchParams.set('page', String(page));
         url.searchParams.set('per_page', String(perPage));
 
@@ -78,57 +188,62 @@ export function ImagePicker({
 
         if (!res.ok) {
             toast.error(t('image_picker.load_failed'));
-
             return;
         }
 
         const json: ApiPaginatedResponse = await res.json();
 
         const items: ImageSelectorItem[] = json.data.map(img => ({
-            uid: String(img.id),
+            id: img.id,
+            uid: crypto.randomUUID(),
             url: img.url,
             name: img.name,
             alt: img.alt,
         }));
 
-        setLoadedImages(prev => page === 1 ? items : [...prev, ...items]);
+        setImages(prev => page === 1 ? items : [...prev, ...items]);
         setCurrentPage(json.meta.current_page);
         setLastPage(json.meta.last_page);
     }, [resource, perPage, t]);
 
-    useEffect(() => {
-        if (!resource) {
-            return;
-        }
-
-        // Abort any in-flight requests (including loadMore)
+    const resetAndFetch = useCallback(() => {
         abortControllerRef.current?.abort();
         loadMoreControllerRef.current?.abort();
         loadingMoreRef.current = false;
 
         const controller = new AbortController();
-
         abortControllerRef.current = controller;
 
-        // Reset state immediately so stale images don't show during fetch
-        setLoadedImages([]);
+        setImages([]);
         setCurrentPage(0);
         setLastPage(1);
         setLoading(true);
 
-        console.log('[ImagePicker] resource changed, resetting images');
-
         void fetchPage(1, controller.signal)
-            .catch(() => {/* aborted */})
+            .catch(() => {
+            })
             .finally(() => setLoading(false));
+
+        return controller;
+    }, [fetchPage]);
+
+    useImperativeHandle(ref, () => ({
+        refresh: () => {
+            resetAndFetch();
+        },
+    }), [resetAndFetch]);
+
+    useEffect(() => {
+        const controller = resetAndFetch();
 
         return () => {
             controller.abort();
+            loadMoreControllerRef.current?.abort();
         };
-    }, [resource, fetchPage]);
+    }, [resource, resetAndFetch]);
 
     const loadMore = () => {
-        if (!resource || currentPage >= lastPage || loadingMoreRef.current) {
+        if (currentPage >= lastPage || loadingMoreRef.current) {
             return;
         }
 
@@ -139,30 +254,13 @@ export function ImagePicker({
         loadingMoreRef.current = true;
         setLoadingMore(true);
         void fetchPage(currentPage + 1, controller.signal)
-            .catch(() => {/* aborted or handled in fetchPage */})
+            .catch(() => {
+            })
             .finally(() => {
                 loadingMoreRef.current = false;
                 setLoadingMore(false);
             });
     };
-
-    const handleStartLoading = useCallback((previews: { uid: string; url: string; name: string }[]) => {
-        const items: ImageSelectorItem[] = previews.map((p) => ({
-            uid: p.uid,
-            url: p.url,
-            name: p.name,
-            loading: true,
-        }));
-
-        setLoadedImages((prev) => [...items, ...prev]);
-    }, []);
-
-    const handleFinishLoading = useCallback(() => {
-        void fetchPage(1);
-    }, [fetchPage]);
-
-    const images = resource ? loadedImages : staticImages;
-    const hasMore = resource && currentPage < lastPage;
 
     if (loading) {
         return (
@@ -172,34 +270,25 @@ export function ImagePicker({
         );
     }
 
-    return (
-        <div className="space-y-4 p-5">
-            <ImageUploader
-                multiple={multiple}
-                onStartLoading={handleStartLoading}
-                onFinishLoading={handleFinishLoading}
-            />
-            <div className="min-h-[200px] max-h-[400px] overflow-auto flex flex-col gap-5">
-                <ImageSelector
-                    onChange={handleSelectionChange}
-                    values={selectedImages}
-                    multiple={multiple}
-                    images={images}
-                />
-                {hasMore ? (
-                    <div className="flex justify-center">
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={loadMore}
-                            disabled={loadingMore}
-                        >
-                            {loadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                            {t('image_picker.load_more')}
-                        </Button>
-                    </div>
-                ) : null}
+    return <div className={'flex flex-col gap-5'}>
+        <ImageSelector
+            onChange={handleSelectionChange}
+            values={selectedImages.map(i => i.uid)}
+            multiple={multiple}
+            images={images}
+        />
+        {(currentPage < lastPage) ? (
+            <div className="flex justify-center">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                >
+                    {loadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                    {t('image_picker.load_more')}
+                </Button>
             </div>
-        </div>
-    );
-}
+        ) : null}
+    </div>
+});

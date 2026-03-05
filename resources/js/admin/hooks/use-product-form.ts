@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 
 import type {ImageSelectorItem} from '@/components/image-selector';
-import type {Category, Option, OptionValue, ProductImage} from '@/types/models';
+import type {CategoryWithOptions} from '@/components/product-category-card';
+import type {OptionValue, ProductImage} from '@/types/models';
 
 // ============================================================================
 // Local types for form state
@@ -27,10 +28,6 @@ export interface LocalImage {
     url: string; // createObjectURL(file)
     name: string;
 }
-
-export type CategoryWithOptions = Category & {
-    options: (Option & {values: OptionValue[]})[];
-};
 
 // ============================================================================
 // Helpers
@@ -90,7 +87,6 @@ export interface ProductFormState {
     ) => string | null;
     updateVariant: (key: string, patch: Partial<Omit<LocalVariant, '_key'>>) => void;
     deleteVariant: (key: string) => void;
-    toggleVariantEnabled: (key: string) => void;
     applyBulkPricing: (price: number | null, comparePrice: number | null) => void;
 
     // Images (create mode — file uploads)
@@ -128,9 +124,9 @@ export function useProductForm(initialProduct: {
         values?: {option_id: number; option_value_id: number}[];
     }[];
     images?: ProductImage[];
-}): ProductFormState {
-    // Store initial values for reset (captured once at mount)
-    const initialDataRef = useRef({
+}, t: (key: string) => string): ProductFormState {
+    // Compute initial data from Inertia props
+    const initialData = {
         title: initialProduct.title ?? '',
         description: initialProduct.description ?? '',
         categoryId: initialProduct.category_id ?? null,
@@ -143,7 +139,12 @@ export function useProductForm(initialProduct: {
             image_id: v.image_id ?? null,
             values: v.values ?? [],
         })),
-    });
+    };
+
+    // Keep ref in sync with Inertia props so resetForm() uses fresh server data after redirect
+    const initialDataRef = useRef(initialData);
+
+    initialDataRef.current = initialData;
 
     const [title, setTitleState] = useState(initialProduct.title ?? '');
     const [description, setDescriptionState] = useState(initialProduct.description ?? '');
@@ -350,7 +351,7 @@ export function useProductForm(initialProduct: {
             const isDuplicate = variants.some(v => serializeCombo(v.values) === comboKey);
 
             if (isDuplicate) {
-                return 'Такая комбинация уже существует';
+                return t('admin.products_edit.validation.duplicate_combination');
             }
 
             const newVariant: LocalVariant = {
@@ -369,7 +370,7 @@ export function useProductForm(initialProduct: {
 
             return null;
         },
-        [variants, markDirty],
+        [variants, markDirty, t],
     );
 
     const updateVariant = useCallback(
@@ -388,13 +389,6 @@ export function useProductForm(initialProduct: {
         }
 
         setVariants(prev => prev.filter(v => v._key !== key));
-        markDirty();
-    }, [markDirty]);
-
-    const toggleVariantEnabled = useCallback((key: string) => {
-        setVariants(prev =>
-            prev.map(v => (v._key === key ? {...v, enabled: !v.enabled} : v)),
-        );
         markDirty();
     }, [markDirty]);
 
@@ -476,9 +470,39 @@ export function useProductForm(initialProduct: {
     }, [markDirty]);
 
     const removeLibraryImage = useCallback((uid: string) => {
-        setLibraryImages(prev => prev.filter(img => img.uid !== uid));
+        setLibraryImages(prev => {
+            const removedIndex = prev.findIndex(img => img.uid === uid);
+
+            if (removedIndex < 0) {return prev;}
+
+            // Pickable ID of the removed image = localImages count + its index in libraryImages
+            const removedPickableId = localImages.length + removedIndex;
+
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[useProductForm.removeLibraryImage]', {uid, removedIndex, removedPickableId});
+            }
+
+            // Fix variant image_index references that shift after removal
+            setVariants(prevVariants =>
+                prevVariants.map(v => {
+                    if (v.image_index === null) {return v;}
+
+                    if (v.image_index === removedPickableId) {
+                        return {...v, image_index: null, image_url: null};
+                    }
+
+                    if (v.image_index > removedPickableId) {
+                        return {...v, image_index: v.image_index - 1};
+                    }
+
+                    return v;
+                }),
+            );
+
+            return prev.filter(img => img.uid !== uid);
+        });
         markDirty();
-    }, [markDirty]);
+    }, [markDirty, localImages.length]);
 
     const clearLibraryImages = useCallback(() => {
         setLibraryImages([]);
@@ -518,29 +542,29 @@ export function useProductForm(initialProduct: {
         const newErrors: Record<string, string> = {};
 
         if (!title.trim()) {
-            newErrors.title = 'Введите название';
+            newErrors.title = t('admin.products_edit.validation.title_required');
         }
 
         if (!categoryId) {
-            newErrors.category_id = 'Выберите категорию';
+            newErrors.category_id = t('admin.products_edit.validation.category_required');
         }
 
         const activeVariants = variants.filter(v => v.enabled);
 
         if (activeVariants.length === 0) {
-            newErrors.variants = 'Нужен хотя бы один активный вариант';
+            newErrors.variants = t('admin.products_edit.validation.at_least_one_active_variant');
         } else {
             const hasNoPrice = activeVariants.some(v => v.price <= 0);
 
             if (hasNoPrice) {
-                newErrors.variants = 'У всех активных вариантов должна быть цена';
+                newErrors.variants = t('admin.products_edit.validation.all_variants_need_price');
             } else {
                 const hasInvalidCompare = activeVariants.some(
                     v => v.comparePrice > 0 && v.comparePrice <= v.price,
                 );
 
                 if (hasInvalidCompare) {
-                    newErrors.variants = 'Цена до скидки должна быть выше текущей';
+                    newErrors.variants = t('admin.products_edit.validation.compare_price_must_be_higher');
                 }
             }
         }
@@ -555,7 +579,7 @@ export function useProductForm(initialProduct: {
         setErrors(newErrors);
 
         return Object.keys(newErrors).length === 0;
-    }, [title, categoryId, variants]);
+    }, [title, categoryId, variants, t]);
 
     const clearError = useCallback((field: string) => {
         setErrors(prev => {
@@ -589,22 +613,36 @@ export function useProductForm(initialProduct: {
                 })),
             };
 
-            if (!isEdit && localImages.length > 0) {
-                payload['images'] = localImages.map(img => img.file);
-                payload['image_order'] = localImages.map((_, i) => `upload:${i}`);
+            if (!isEdit) {
+                const imageOrder: string[] = [];
+
+                if (localImages.length > 0) {
+                    payload['images'] = localImages.map(img => img.file);
+                    localImages.forEach((_, i) => imageOrder.push(`upload:${i}`));
+                }
+
+                if (libraryImages.length > 0) {
+                    payload['existing_image_ids'] = libraryImages.map(img => Number(img.uid));
+                    libraryImages.forEach((_, i) => imageOrder.push(`existing:${i}`));
+                }
+
+                if (imageOrder.length > 0) {
+                    payload['image_order'] = imageOrder;
+                }
             }
 
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[useProductForm.buildSubmitPayload]', {
                     isEdit,
                     variantCount: variants.length,
-                    imageCount: localImages.length,
+                    localImageCount: localImages.length,
+                    libraryImageCount: libraryImages.length,
                 });
             }
 
             return payload;
         },
-        [title, description, categoryId, variants, localImages],
+        [title, description, categoryId, variants, localImages, libraryImages],
     );
 
     return {
@@ -628,7 +666,6 @@ export function useProductForm(initialProduct: {
         addVariant,
         updateVariant,
         deleteVariant,
-        toggleVariantEnabled,
         applyBulkPricing,
         addLocalImages,
         removeLocalImage,

@@ -1,49 +1,157 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
-import {SortableContext, arrayMove, rectSortingStrategy} from '@dnd-kit/sortable';
+import {SortableContext, arrayMove, rectSortingStrategy, useSortable} from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 import {router} from '@inertiajs/react';
-import {ImageIcon, StarIcon, TrashIcon} from 'lucide-react';
+import {ImageIcon, TrashIcon} from 'lucide-react';
 
+import {ConfirmationPopover} from '@/components/confirmation-popover';
 import {ImagePickerDialog} from '@/components/image-picker-dialog';
 import type {ImageSelectorItem} from '@/components/image-selector';
-import {SortableMediaItem} from '@/components/sortable-media-item';
 import {StepHeader} from '@/components/step-header';
+import {Badge} from '@/components/ui/badge';
 import {Card} from '@/components/ui/card';
-import type {LocalImage} from '@/hooks/use-product-form';
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
-import type {Product, ProductImage} from '@/types/models';
+import type {Product, ProductImage} from '@/types/data';
+
+interface ImageThumbnailProps {
+    url: string;
+    alt?: string | null;
+    name: string;
+    isFirst?: boolean;
+    badgeLabel?: string;
+    onRemove?: () => void;
+    className?: string;
+}
+
+function ImageThumbnail({url, alt, name, isFirst, badgeLabel, onRemove, className}: ImageThumbnailProps) {
+    const {t} = useLang();
+
+    return (
+        <div
+            className={cn(
+                'group relative aspect-square overflow-hidden rounded-xl border-2 bg-muted transition-shadow hover:shadow-md',
+                isFirst ? 'border-primary ring-1 ring-primary/20' : 'border-border',
+                className,
+            )}
+        >
+            <img
+                src={url}
+                alt={alt ?? name}
+                className="size-full object-cover"
+                draggable={false}
+            />
+
+            {/* Badges */}
+            {isFirst ? (
+                <Badge className="absolute left-1.5 top-1.5 px-1.5 py-0 text-[10px]">
+                    {t('admin.products_edit.main_badge')}
+                </Badge>
+            ) : null}
+            {badgeLabel ? (
+                <Badge
+                    variant="secondary"
+                    className="absolute right-1.5 top-1.5 bg-black/50 px-1.5 py-0 text-[9px] text-white hover:bg-black/50"
+                >
+                    {badgeLabel}
+                </Badge>
+            ) : null}
+
+            {/* Bottom filename */}
+            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/60 to-transparent px-2 pb-1.5 pt-5">
+                <p className="truncate text-[10px] text-white/80">
+                    {name}
+                </p>
+            </div>
+
+            {/* Delete button — top-right corner with confirmation popover */}
+            {onRemove != null && (
+                <ConfirmationPopover
+                    message={t('admin.products_edit.confirm_delete_local_image')}
+                    onConfirm={onRemove}
+                    trigger={
+                        <button
+                            type="button"
+                            onPointerDown={e => e.stopPropagation()}
+                            title={t('admin.products_edit.delete_btn')}
+                            className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity hover:bg-destructive group-hover:opacity-100"
+                        >
+                            <TrashIcon className="size-3.5"/>
+                        </button>
+                    }
+                />
+            )}
+        </div>
+    );
+}
+
+interface SortableImageThumbnailProps extends Omit<ImageThumbnailProps, 'className'> {
+    id: string;
+    isDragging?: boolean;
+}
+
+function SortableImageThumbnail({id, isDragging, isFirst, ...thumbnailProps}: SortableImageThumbnailProps) {
+    const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id});
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={cn(
+                'cursor-grab active:cursor-grabbing',
+                isFirst && 'col-span-2 row-span-2',
+                isDragging && 'z-10 opacity-80 shadow-lg',
+            )}
+            {...attributes}
+            {...listeners}
+        >
+            <ImageThumbnail {...thumbnailProps} isFirst={isFirst}/>
+        </div>
+    );
+}
+
+function EmptyState() {
+    const {t} = useLang();
+
+    return (
+        <div
+            className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-10 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                <ImageIcon className="size-6 text-muted-foreground"/>
+            </div>
+            <p className="text-sm text-muted-foreground">
+                {t('admin.products_edit.no_images_short')}
+            </p>
+        </div>
+    );
+}
 
 interface Props {
     product: Product;
     isEdit: boolean;
-    localImages: LocalImage[];
-    onLocalImagesAdd: (images: LocalImage[]) => void;
-    onLocalImageRemove: (uid: string) => void;
-    onLocalImageMakeFirst: (uid: string) => void;
-    // Library images (create mode — selected from media library)
     libraryImages?: ImageSelectorItem[];
     onLibraryImagesAdd?: (images: ImageSelectorItem[]) => void;
     onLibraryImageRemove?: (uid: string) => void;
 }
 
 export function ProductImagesCard({
-    product,
-    isEdit,
-    localImages,
-    onLocalImagesAdd,
-    onLocalImageRemove,
-    onLocalImageMakeFirst,
-    libraryImages = [],
-    onLibraryImagesAdd,
-    onLibraryImageRemove,
-}: Props) {
+                                      product,
+                                      isEdit,
+                                      libraryImages = [],
+                                      onLibraryImagesAdd,
+                                      onLibraryImageRemove,
+                                  }: Props) {
     const {t} = useLang();
 
-    // ── Edit mode state ──────────────────────────────────────────────────────
     const sortedImages = useMemo(
-        () => [...(product.images ?? [])].sort((a, b) => a.position - b.position),
+        () => [...(product.images ?? [])].sort((a, b) => (a?.position ?? 0) - (b?.position ?? 0)),
         [product.images],
     );
 
@@ -51,7 +159,7 @@ export function ProductImagesCard({
     const [draggingId, setDraggingId] = useState<string | null>(null);
 
     useEffect(() => {
-        setOrderedImages([...(product.images ?? [])].sort((a, b) => a.position - b.position));
+        setOrderedImages([...(product.images ?? [])].sort((a, b) => (a?.position ?? 0) - (b?.position ?? 0)));
     }, [product.images]);
 
     const sensors = useSensors(
@@ -89,11 +197,6 @@ export function ProductImagesCard({
     }, [isEdit, product.id]);
 
     const handleDeleteImage = useCallback((productImageId: number) => {
-        // eslint-disable-next-line no-alert
-        if (!confirm(t('admin.products_edit.confirm_delete_local_image'))) {
-            return;
-        }
-
         setOrderedImages(prev => prev.filter(pi => pi.id !== productImageId));
 
         if (isEdit && product.id) {
@@ -102,10 +205,12 @@ export function ProductImagesCard({
                 {preserveScroll: true},
             );
         }
-    }, [isEdit, product.id, t]);
+    }, [isEdit, product.id]);
+
+    // ── Image picker handler ────────────────────────────────────────────────
 
     const handleImagesChosen = useCallback((images: ImageSelectorItem[]) => {
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env["NODE_ENV"] !== 'production') {
             console.log('[ProductImagesCard] library images chosen', {count: images.length, isEdit});
         }
 
@@ -120,245 +225,62 @@ export function ProductImagesCard({
                 {preserveScroll: true},
             );
         } else {
-            // Create mode: store selected library images for later attachment
             onLibraryImagesAdd?.(images);
         }
     }, [isEdit, product.id, onLibraryImagesAdd]);
 
-    // ── Create mode: file drag & drop ────────────────────────────────────────
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isDragOver, setIsDragOver] = useState(false);
+    // ── Unified image grid ──────────────────────────────────────────────────
 
-    const processFiles = (files: FileList | File[]) => {
-        const fileArray = Array.from(files).filter(
-            f => f.type === 'image/jpeg' || f.type === 'image/png' || f.type === 'image/webp',
-        );
+    const hasImages = isEdit ? orderedImages.length > 0 : libraryImages.length > 0;
 
-        if (fileArray.length === 0) {
-            return;
-        }
+    const imageGrid = isEdit ? (
+        <DndContext
+            collisionDetection={closestCenter}
+            sensors={sensors}
+            onDragEnd={handleDragEnd}
+            onDragStart={({active}) => setDraggingId(String(active.id))}
+            onDragCancel={() => setDraggingId(null)}
+        >
+            <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-2 gap-2">
+                    {orderedImages.map((pi, index) => {
+                        const piId = pi.id;
 
-        const newImages: LocalImage[] = fileArray.map(file => ({
-            uid: Math.random().toString(36).slice(2),
-            file,
-            url: URL.createObjectURL(file),
-            name: file.name,
-        }));
+                        return (
+                            <SortableImageThumbnail
+                                key={piId}
+                                id={String(piId)}
+                                url={pi.image?.url ?? ''}
+                                alt={pi.image?.alt}
+                                name={pi.image?.name ?? ''}
+                                isFirst={index === 0}
+                                isDragging={draggingId === String(piId)}
+                                onRemove={piId != null ? () => {
+                                    handleDeleteImage(piId);
+                                } : undefined}
+                            />
+                        );
+                    })}
+                </div>
+            </SortableContext>
+        </DndContext>
+    ) : (
+        <div className="grid grid-cols-2 gap-2">
+            {libraryImages.map((img, index) => {
+                const first = index === 0;
 
-        onLocalImagesAdd(newImages);
-    };
-
-    const handleDropZoneClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            processFiles(e.target.files);
-            e.target.value = '';
-        }
-    };
-
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragOver(true);
-    };
-
-    const handleDragLeave = () => {
-        setIsDragOver(false);
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragOver(false);
-
-        if (e.dataTransfer.files) {
-            processFiles(e.dataTransfer.files);
-        }
-    };
-
-    // ── Computed content (avoids nested ternary in JSX) ──────────────────────
-    const editModeContent = orderedImages.length === 0
-        ? <p className="text-sm text-muted-foreground">{t('admin.products_edit.no_images_short')}</p>
-        : (
-            <DndContext
-                collisionDetection={closestCenter}
-                sensors={sensors}
-                onDragEnd={handleDragEnd}
-                onDragStart={({active}) => setDraggingId(String(active.id))}
-                onDragCancel={() => setDraggingId(null)}
-            >
-                <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
-                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                        {orderedImages.map((pi, index) => {
-                            const {id} = pi;
-
-                            return (
-                                <SortableMediaItem
-                                    key={id}
-                                    id={String(id)}
-                                    url={pi.image?.url}
-                                    alt={pi.image?.alt}
-                                    name={pi.image?.name}
-                                    isFirst={index === 0}
-                                    isDragging={draggingId === String(id)}
-                                    onDelete={id !== undefined ? () => handleDeleteImage(id) : undefined}
-                                />
-                            );
-                        })}
+                return (
+                    <div key={img.uid} className={cn(first && 'col-span-2 row-span-2')}>
+                        <ImageThumbnail
+                            url={img.url}
+                            alt={img.alt}
+                            name={img.name}
+                            isFirst={first}
+                            onRemove={() => onLibraryImageRemove?.(img.uid)}
+                        />
                     </div>
-                </SortableContext>
-            </DndContext>
-        );
-
-    const createModeContent = (
-        <div className="flex flex-col gap-3">
-            {/* Drop zone */}
-            <button
-                type="button"
-                onClick={handleDropZoneClick}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={cn(
-                    'flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-8 transition-colors',
-                    isDragOver
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50 hover:bg-muted/30',
-                )}
-            >
-                <ImageIcon className="size-8 text-muted-foreground" />
-                <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                        {t('admin.products_edit.drop_images_here')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                        {t('admin.products_edit.drop_or_click')}
-                    </p>
-                </div>
-            </button>
-
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                className="hidden"
-                onChange={handleFileInputChange}
-            />
-
-            {/* Image grid */}
-            {(localImages.length > 0 || libraryImages.length > 0) ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3">
-                    {localImages.map((img, index) => {
-                        const isFirst = index === 0 && libraryImages.length === 0;
-
-                        return (
-                            <div
-                                key={img.uid}
-                                className={cn(
-                                    'group relative aspect-square overflow-hidden rounded-xl border-2',
-                                    isFirst ? 'border-primary' : 'border-border',
-                                )}
-                            >
-                                <img
-                                    src={img.url}
-                                    alt={img.name}
-                                    className="h-full w-full object-cover"
-                                />
-
-                                {/* Main badge */}
-                                {isFirst ? (
-                                    <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary-foreground">
-                                        {t('admin.products_edit.main_badge')}
-                                    </span>
-                                ) : null}
-
-                                {/* Filename overlay */}
-                                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-1.5 pb-1.5 pt-4">
-                                    <p className="truncate font-mono text-[9px] text-white/80">
-                                        {img.name}
-                                    </p>
-                                </div>
-
-                                {/* Hover action buttons */}
-                                <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                                    {!isFirst ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => onLocalImageMakeFirst(img.uid)}
-                                            title={t('admin.products_edit.make_main_title')}
-                                            className="flex size-7 items-center justify-center rounded-lg bg-white/90 text-foreground hover:bg-white"
-                                        >
-                                            <StarIcon className="size-3.5" />
-                                        </button>
-                                    ) : null}
-                                    <button
-                                        type="button"
-                                        onClick={() => onLocalImageRemove(img.uid)}
-                                        title={t('admin.products_edit.delete_btn')}
-                                        className="flex size-7 items-center justify-center rounded-lg bg-white/90 text-destructive hover:bg-white"
-                                    >
-                                        <TrashIcon className="size-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
-
-                    {/* Library images (from media picker) */}
-                    {libraryImages.map((img, index) => {
-                        const isFirst = localImages.length === 0 && index === 0;
-
-                        return (
-                            <div
-                                key={img.uid}
-                                className={cn(
-                                    'group relative aspect-square overflow-hidden rounded-xl border-2',
-                                    isFirst ? 'border-primary' : 'border-border',
-                                )}
-                            >
-                                <img
-                                    src={img.url}
-                                    alt={img.alt ?? img.name}
-                                    className="h-full w-full object-cover"
-                                />
-
-                                {/* Main badge */}
-                                {isFirst ? (
-                                    <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary-foreground">
-                                        ГЛАВНОЕ
-                                    </span>
-                                ) : null}
-
-                                {/* Library badge */}
-                                <span className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[9px] text-white/80">
-                                    {t('admin.products_edit.library_badge')}
-                                </span>
-
-                                {/* Filename overlay */}
-                                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-1.5 pb-1.5 pt-4">
-                                    <p className="truncate font-mono text-[9px] text-white/80">
-                                        {img.name}
-                                    </p>
-                                </div>
-
-                                {/* Hover action buttons */}
-                                <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                                    <button
-                                        type="button"
-                                        onClick={() => onLibraryImageRemove?.(img.uid)}
-                                        title={t('admin.products_edit.delete_btn')}
-                                        className="flex size-7 items-center justify-center rounded-lg bg-white/90 text-destructive hover:bg-white"
-                                    >
-                                        <TrashIcon className="size-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            ) : null}
+                );
+            })}
         </div>
     );
 
@@ -367,14 +289,10 @@ export function ProductImagesCard({
     return (
         <Card className="flex flex-col gap-4 p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
-                <div className="flex-1">
-                    <StepHeader step={4} label={t('admin.products_edit.images_header')} />
-                </div>
-                <ImagePickerDialog onChoose={handleImagesChosen} />
+                <ImagePickerDialog onChoose={handleImagesChosen}/>
             </div>
 
-            {isEdit ? editModeContent : createModeContent}
+            {hasImages ? imageGrid : <EmptyState/>}
         </Card>
     );
 }
-

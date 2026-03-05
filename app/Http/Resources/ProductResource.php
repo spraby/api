@@ -9,25 +9,28 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * @mixin Product
  */
-class ProductListResource extends JsonResource
+class ProductResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'uid' => uniqid(),
             'id' => $this->id,
+            'brand_id' => $this->brand_id,
+            'category_id' => $this->category_id,
             'title' => $this->title,
             'description' => $this->description,
             'enabled' => $this->enabled,
-            'brand_id' => $this->brand_id,
-            'category_id' => $this->category_id,
-            'brand' => BrandResource::make($this->whenLoaded('brand')),
-            'category' => CategoryResource::make($this->whenLoaded('category')),
             'image_url' => $this->imageUrl,
             'external_url' => $this->externalUrl,
             'min_price' => $this->minPrice,
             'max_price' => $this->maxPrice,
             'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
+            'brand' => BrandResource::make($this->whenLoaded('brand')),
+            'category' => CategoryResource::make($this->whenLoaded('category')),
+            'images' => ProductImageResource::collection($this->whenLoaded('images')),
+            'variants' => VariantResource::collection($this->whenLoaded('variants')),
         ];
     }
 }

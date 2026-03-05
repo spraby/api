@@ -325,7 +325,9 @@ return [
         'drop_or_click' => 'или нажмите для выбора файлов · JPG, PNG, WebP',
         'make_main_title' => 'Сделать главным',
         'library_badge' => 'библ.',
-        'confirm_delete_local_image' => 'Удалить изображение?',
+        'confirm_delete_title' => 'Удалить изображение',
+        'confirm_delete_local_image' => 'Изображение будет убрано из товара. Оно останется в медиатеке.',
+        'confirm_delete_cancel' => 'Отмена',
         'main_badge' => 'ГЛАВНОЕ',
         'summary_header' => 'СВОДКА',
         'summary_name' => 'Название',
@@ -338,6 +340,14 @@ return [
         'delete_variant_confirm' => 'Удалить вариант #',
         'toast_updated' => 'Продукт обновлён',
         'toast_error_save' => 'Ошибка при сохранении',
+        'validation' => [
+            'title_required' => 'Введите название',
+            'category_required' => 'Выберите категорию',
+            'at_least_one_active_variant' => 'Нужен хотя бы один активный вариант',
+            'all_variants_need_price' => 'У всех активных вариантов должна быть цена',
+            'compare_price_must_be_higher' => 'Цена до скидки должна быть выше текущей',
+            'duplicate_combination' => 'Такая комбинация уже существует',
+        ],
     ],
 
     'products_create' => [

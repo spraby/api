@@ -325,7 +325,9 @@ return [
         'drop_or_click' => 'or click to select files · JPG, PNG, WebP',
         'make_main_title' => 'Make main',
         'library_badge' => 'lib.',
-        'confirm_delete_local_image' => 'Delete image?',
+        'confirm_delete_title' => 'Delete image',
+        'confirm_delete_local_image' => 'This image will be removed from the product. It will remain in the media library.',
+        'confirm_delete_cancel' => 'Cancel',
         'main_badge' => 'MAIN',
         'summary_header' => 'SUMMARY',
         'summary_name' => 'Name',
@@ -338,6 +340,14 @@ return [
         'delete_variant_confirm' => 'Delete variant #',
         'toast_updated' => 'Product updated',
         'toast_error_save' => 'Error saving',
+        'validation' => [
+            'title_required' => 'Enter a title',
+            'category_required' => 'Select a category',
+            'at_least_one_active_variant' => 'At least one active variant is required',
+            'all_variants_need_price' => 'All active variants must have a price',
+            'compare_price_must_be_higher' => 'Compare price must be higher than sale price',
+            'duplicate_combination' => 'This combination already exists',
+        ],
     ],
 
     'products_create' => [

@@ -8,9 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductListResource;
+use App\Http\Resources\ProductResource;
 use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Product;
+use App\Models\Variant;
 use App\Models\ProductImage;
 use App\Models\User;
 use App\Services\FileService;
@@ -72,30 +74,27 @@ class ProductController extends Controller
         $brand = $user->getBrand();
 
         if (!$brand) {
-            return Inertia::render('ProductEdit', [
+            return Inertia::render('ProductCreate', [
                 'errors' => ['No brand associated with user']
             ]);
         }
 
         $brand->load('categories.options.values');
 
-        $product = [
+        $product = new Product([
             'brand_id' => $brand->id,
             'category_id' => null,
             'title' => '',
             'description' => '',
             'enabled' => false,
-            'brand' => $brand->toArray(),
-            'variants' => [[
-                'title' => '',
-                'price' => 0,
-                'final_price' => 0,
-                'enabled' => false,
-            ]],
-        ];
+        ]);
 
-        return Inertia::render('ProductEdit', [
-            'product' => $product,
+        $product->setRelation('brand', $brand);
+        $product->setRelation('variants', collect());
+        $product->setRelation('images', collect());
+
+        return Inertia::render('ProductCreate', [
+            'product' => ProductResource::make($product)->resolve(),
         ]);
     }
 
@@ -140,7 +139,7 @@ class ProductController extends Controller
         ]);
 
         return Inertia::render('ProductEdit', [
-            'product' => $product,
+            'product' => ProductResource::make($product)->resolve(),
         ]);
     }
 
