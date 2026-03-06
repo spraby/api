@@ -3,9 +3,8 @@ import {Check, Loader2} from 'lucide-react';
 import {cn} from '@/lib/utils';
 
 export interface ImageSelectorItem {
-    id?: number | null;
-    product_id?: number | null;
     uid: string;
+    id?: number | null;
     url: string;
     name: string;
     alt?: string | null;
@@ -38,12 +37,26 @@ export function ImageSelector({
                                   columns = 8,
                                   className,
                               }: ImageSelectorProps) {
+    /**
+     *
+     */
     const current = values ?? [];
 
+    /**
+     *
+     * @param uid
+     */
     const isSelected = (uid: string): boolean => current.includes(uid);
 
+    /**
+     *
+     * @param uid
+     * @param loading
+     */
     const handleClick = (uid: string, loading?: boolean) => {
-        if (!onChange || loading) {return;}
+        if (!onChange || loading) {
+            return;
+        }
 
         if (multiple) {
             const next = current.includes(uid) ? current.filter((v) => v !== uid) : [...current, uid];
@@ -75,24 +88,23 @@ export function ImageSelector({
                     <img
                         src={image.url}
                         alt={image.alt ?? image.name}
-                        className={cn(
-                            'h-full w-full object-cover',
-                            image.loading && 'blur-[1px]',
-                        )}
+                        className={cn('h-full w-full object-cover', image.loading && 'blur-[1px]')}
                     />
 
-                    {image.loading ? (
+                    {
+                        image.loading &&
                         <div className="absolute inset-0 flex items-center justify-center bg-background/40">
                             <Loader2 className="h-6 w-6 animate-spin text-primary"/>
                         </div>
-                    ) : null}
+                    }
 
-                    {isSelected(image.uid) && !image.loading ? (
+                    {
+                        (isSelected(image.uid) && !image.loading) &&
                         <div
                             className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
                             <Check className="h-3 w-3"/>
                         </div>
-                    ) : null}
+                    }
                 </button>
             ))}
         </div>

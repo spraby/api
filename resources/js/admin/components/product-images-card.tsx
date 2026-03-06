@@ -3,13 +3,11 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import {DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
 import {SortableContext, arrayMove, rectSortingStrategy, useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import {router} from '@inertiajs/react';
 import {ImageIcon, TrashIcon} from 'lucide-react';
 
 import {ConfirmationPopover} from '@/components/confirmation-popover';
 import {ImagePickerDialog} from '@/components/image-picker-dialog';
 import type {ImageSelectorItem} from '@/components/image-selector';
-import {StepHeader} from '@/components/step-header';
 import {Badge} from '@/components/ui/badge';
 import {Card} from '@/components/ui/card';
 import {useLang} from '@/lib/lang';
@@ -136,17 +134,17 @@ function EmptyState() {
 interface Props {
     product: Product;
     isEdit: boolean;
-    libraryImages?: ImageSelectorItem[];
     onLibraryImagesAdd?: (images: ImageSelectorItem[]) => void;
     onLibraryImageRemove?: (uid: string) => void;
+    onReorder?: (images: ProductImage[]) => void;
 }
 
 export function ProductImagesCard({
                                       product,
                                       isEdit,
-                                      libraryImages = [],
                                       onLibraryImagesAdd,
                                       onLibraryImageRemove,
+                                      onReorder,
                                   }: Props) {
     const {t} = useLang();
 
@@ -167,7 +165,7 @@ export function ProductImagesCard({
     );
 
     const sortableIds = useMemo(
-        () => orderedImages.map(pi => String(pi.id)),
+        () => orderedImages.map(pi => pi.uid),
         [orderedImages],
     );
 
@@ -180,60 +178,31 @@ export function ProductImagesCard({
         }
 
         setOrderedImages(prev => {
-            const oldIndex = prev.findIndex(pi => String(pi.id) === String(active.id));
-            const newIndex = prev.findIndex(pi => String(pi.id) === String(over.id));
-            const reordered = arrayMove(prev, oldIndex, newIndex);
+            const oldIndex = prev.findIndex(pi => pi.uid === String(active.id));
+            const newIndex = prev.findIndex(pi => pi.uid === String(over.id));
+            const reordered = arrayMove(prev, oldIndex, newIndex).map((pi, i) => ({...pi, position: i}));
 
-            if (isEdit && product.id) {
-                router.put(
-                    route('admin.products.images.reorder', {product: product.id}),
-                    {image_ids: reordered.map(pi => pi.id)},
-                    {preserveScroll: true},
-                );
-            }
+            onReorder?.(reordered);
 
             return reordered;
         });
-    }, [isEdit, product.id]);
-
-    const handleDeleteImage = useCallback((productImageId: number) => {
-        setOrderedImages(prev => prev.filter(pi => pi.id !== productImageId));
-
-        if (isEdit && product.id) {
-            router.delete(
-                route('admin.products.images.detach', {product: product.id, productImageId}),
-                {preserveScroll: true},
-            );
-        }
-    }, [isEdit, product.id]);
+    }, [onReorder]);
 
     // ── Image picker handler ────────────────────────────────────────────────
 
     const handleImagesChosen = useCallback((images: ImageSelectorItem[]) => {
-        if (process.env["NODE_ENV"] !== 'production') {
-            console.log('[ProductImagesCard] library images chosen', {count: images.length, isEdit});
-        }
-
         if (images.length === 0) {
             return;
         }
 
-        if (isEdit && product.id) {
-            router.post(
-                route('admin.products.images.attach', {product: product.id}),
-                {image_ids: images.map(item => Number(item.uid))},
-                {preserveScroll: true},
-            );
-        } else {
-            onLibraryImagesAdd?.(images);
-        }
-    }, [isEdit, product.id, onLibraryImagesAdd]);
+        onLibraryImagesAdd?.(images);
+    }, [onLibraryImagesAdd]);
 
-    // ── Unified image grid ──────────────────────────────────────────────────
+    // ── Image grid ────────────────────────────────────────────────────────
 
-    const hasImages = isEdit ? orderedImages.length > 0 : libraryImages.length > 0;
+    const hasImages = orderedImages.length > 0;
 
-    const imageGrid = isEdit ? (
+    const imageGrid = (
         <DndContext
             collisionDetection={closestCenter}
             sensors={sensors}
@@ -243,45 +212,21 @@ export function ProductImagesCard({
         >
             <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
                 <div className="grid grid-cols-2 gap-2">
-                    {orderedImages.map((pi, index) => {
-                        const piId = pi.id;
-
-                        return (
-                            <SortableImageThumbnail
-                                key={piId}
-                                id={String(piId)}
-                                url={pi.image?.url ?? ''}
-                                alt={pi.image?.alt}
-                                name={pi.image?.name ?? ''}
-                                isFirst={index === 0}
-                                isDragging={draggingId === String(piId)}
-                                onRemove={piId != null ? () => {
-                                    handleDeleteImage(piId);
-                                } : undefined}
-                            />
-                        );
-                    })}
+                    {orderedImages.map((pi, index) => (
+                        <SortableImageThumbnail
+                            key={pi.uid}
+                            id={pi.uid}
+                            url={pi.image?.url ?? ''}
+                            alt={pi.image?.alt}
+                            name={pi.image?.name ?? ''}
+                            isFirst={index === 0}
+                            isDragging={draggingId === pi.uid}
+                            onRemove={() => onLibraryImageRemove?.(pi.uid)}
+                        />
+                    ))}
                 </div>
             </SortableContext>
         </DndContext>
-    ) : (
-        <div className="grid grid-cols-2 gap-2">
-            {libraryImages.map((img, index) => {
-                const first = index === 0;
-
-                return (
-                    <div key={img.uid} className={cn(first && 'col-span-2 row-span-2')}>
-                        <ImageThumbnail
-                            url={img.url}
-                            alt={img.alt}
-                            name={img.name}
-                            isFirst={first}
-                            onRemove={() => onLibraryImageRemove?.(img.uid)}
-                        />
-                    </div>
-                );
-            })}
-        </div>
     );
 
     // ── Render ───────────────────────────────────────────────────────────────

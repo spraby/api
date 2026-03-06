@@ -7,16 +7,10 @@ import {ImageSelector, type ImageSelectorItem} from '@/components/image-selector
 import {ImageUploader} from '@/components/image-uploader';
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
-
-interface ApiImage {
-    id: number;
-    url: string;
-    name: string;
-    alt?: string | null;
-}
+import {Image} from "@/types/data.ts";
 
 interface ApiPaginatedResponse {
-    data: ApiImage[];
+    data: Image[];
     meta: {
         current_page: number;
         last_page: number;
@@ -56,12 +50,14 @@ export function ImagePicker({
     const resourceSelectorRef = useRef<ResourceImageSelectorHandle>(null);
 
     useEffect(() => {
-        console.log('selectedImages => ', selectedImages)
         if (onChange) {
             onChange(selectedImages);
         }
     }, [selectedImages]);
 
+    /**
+     *
+     */
     const handleStartLoading = useCallback((previews: { uid: string; url: string; name: string }[]) => {
         const items: ImageSelectorItem[] = previews.map((p) => ({
             uid: p.uid,
@@ -73,6 +69,9 @@ export function ImagePicker({
         setLoadedImages(items);
     }, []);
 
+    /**
+     *
+     */
     const handleFinishLoading = useCallback(() => {
         setLoadedImages([]);
         resourceSelectorRef.current?.refresh();
@@ -103,6 +102,7 @@ export function ImagePicker({
                         selectedImages={selectedImages}
                         setSelectedImages={setSelectedImages}
                         perPage={perPage}
+                        excludeIds={images.filter(i => i.id != null).map(i => i.id!)}
                     />
                 }
             </div>
@@ -149,7 +149,8 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
     selectedImages: ImageSelectorItem[],
     setSelectedImages: (selected: ImageSelectorItem[]) => void,
     perPage?: number;
-}>(({resource, multiple = false, selectedImages, setSelectedImages, perPage = 24, loadedImages = []}, ref) => {
+    excludeIds?: number[];
+}>(({resource, multiple = false, selectedImages, setSelectedImages, perPage = 24, loadedImages = [], excludeIds = []}, ref) => {
     const {t} = useLang();
 
     const [images, setImages] = useState<ImageSelectorItem[]>([]);
@@ -179,6 +180,9 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
         const url = new URL(resource, window.location.origin);
         url.searchParams.set('page', String(page));
         url.searchParams.set('per_page', String(perPage));
+        if (excludeIds.length > 0) {
+            url.searchParams.set('exclude_ids', excludeIds.join(','));
+        }
 
         const res = await fetch(url.toString(), {
             headers: {'Accept': 'application/json'},
@@ -195,7 +199,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
 
         const items: ImageSelectorItem[] = json.data.map(img => ({
             id: img.id,
-            uid: crypto.randomUUID(),
+            uid: img.uid,
             url: img.url,
             name: img.name,
             alt: img.alt,

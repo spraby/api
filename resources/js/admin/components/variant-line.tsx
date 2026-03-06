@@ -8,7 +8,6 @@ import {ImagePicker} from "@/components/image-picker.tsx";
 import type {ImageSelectorItem} from "@/components/image-selector.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {MediaThumbnail} from "@/components/media-thumbnail.tsx";
-import {v4 as uuidv4} from "uuid";
 
 /**
  *
@@ -46,18 +45,19 @@ export const VariantLine = ({variant: defaultVariant, images = [], onChange}: {
             onSelect={(image?: ImageSelectorItem) => {
                 const productImage = image ? {
                     uid: image.uid,
+                    image_id: image.id,
                     image: {
-                        uid: uuidv4(),
+                        uid: image.uid,
                         id: image.id,
                         name: image.name,
-                        url: image.url
+                        url: image.url,
+                        alt: image.alt
                     }
                 } as ProductImage : null;
 
                 onSelect({
                     ...(productImage ? {image: productImage} : {}),
                 } as Variant);
-
             }}/>
         <div className={'flex gap-1 justify-start items-center'}>
             {variant.values?.map(v => (
@@ -77,6 +77,13 @@ export const VariantLine = ({variant: defaultVariant, images = [], onChange}: {
     </div>
 }
 
+/**
+ *
+ * @param image
+ * @param images
+ * @param onSelect
+ * @constructor
+ */
 const VariantImagePicker = ({image, images, onSelect}: {
     image?: string,
     images: ProductImage[],
@@ -100,16 +107,14 @@ const VariantImagePicker = ({image, images, onSelect}: {
                 <ImagePicker
                     resource={route('admin.media.api.index')}
                     images={images.map(i => ({
-                        id: i?.image_id ?? null,
-                        product_image_id: i?.product_id ?? null,
-                        uid: crypto.randomUUID(),
+                        id: i.image_id ?? null,
+                        uid: i.uid,
                         url: i.image?.url ?? '',
                         name: i.image?.name ?? '',
                         alt: i.image?.alt ?? null,
                     }))}
                     multiple={false}
                     onChange={(items) => {
-                        console.log('items ===> ', items);
                         selectedImagesRef.current = items
                     }}
                 />

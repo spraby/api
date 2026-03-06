@@ -187,7 +187,7 @@ export interface ProductImage {
     uid: string;
     id?: number | null;
     product_id?: number;
-    image_id?: number;
+    image_id: number;
     position?: number;
     created_at?: string | null;
     updated_at?: string | null;
