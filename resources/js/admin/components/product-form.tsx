@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {ProductBasicFieldsCard} from '@/components/product-basic-fields-card';
 import {ProductImagesCard} from '@/components/product-images-card';
 import {ProductSummaryCard} from '@/components/product-summary-card';
@@ -7,7 +7,7 @@ import {v4 as uuidv4} from 'uuid';
 import {CategoryVariantsGenerator} from "@/components/category-variants-generator.tsx";
 import {VariantList} from "@/components/variant-list.tsx";
 import {router} from '@inertiajs/react';
-import {Button} from '@/components/ui/button';
+import {useSaveBar} from '@/stores/save-bar';
 
 
 export function ProductForm({product: defaultProduct}: {
@@ -20,19 +20,35 @@ export function ProductForm({product: defaultProduct}: {
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [submitting, setSubmitting] = useState(false)
 
+    const hasChanges = useMemo(() => {
+        const current = JSON.stringify(product);
+        const initial = JSON.stringify(defaultProduct);
+        if (current !== initial) {
+            // Find which keys differ
+            const diff: Record<string, { current: unknown; initial: unknown }> = {};
+            const allKeys = new Set([...Object.keys(product), ...Object.keys(defaultProduct)]);
+            for (const key of allKeys) {
+                const cv = JSON.stringify((product as any)[key]);
+                const iv = JSON.stringify((defaultProduct as any)[key]);
+                if (cv !== iv) {
+                    diff[key] = { current: (product as any)[key], initial: (defaultProduct as any)[key] };
+                }
+            }
+            console.log('[ProductForm] hasChanges=true, diff:', diff);
+        }
+        return current !== initial;
+    }, [product, defaultProduct]);
 
     const onChange = (value: any) => {
         setProduct(v => ({...v, ...value}));
     }
 
-    const handleSubmit = () => {
+    const buildPayload = useCallback(() => {
         const images = product.images ?? [];
         const variants = product.variants ?? [];
 
-        // Build image arrays for backend
         const existingImageIds = images.map(pi => pi.image_id);
 
-        // Build variant payloads with image_index mapping
         const variantPayloads = variants.map(v => {
             let imageIndex: number | null = null;
             if (v.image?.image_id) {
@@ -65,7 +81,6 @@ export function ProductForm({product: defaultProduct}: {
             payload.existing_image_ids = existingImageIds;
         }
 
-        // image_order needed only for create (processStoreImages)
         if (!isEdit && existingImageIds.length > 0) {
             payload.image_order = existingImageIds.map((_, i) => `existing:${i}`);
         }
@@ -74,27 +89,43 @@ export function ProductForm({product: defaultProduct}: {
             payload.variants = variantPayloads;
         }
 
-        console.log('[ProductForm.handleSubmit]', {
-            images: images.map(pi => ({uid: pi.uid, image_id: pi.image_id})),
-            variants: variantPayloads.map(v => ({title: v.title, image_index: v.image_index})),
-            variantImages: variants.map(v => ({uid: v.uid, hasImage: !!v.image, image_id: v.image?.image_id})),
-            payload,
-        });
+        return payload;
+    }, [product, isEdit]);
+
+    const handleSubmit = useCallback((): Promise<boolean> => {
+        const payload = buildPayload();
 
         setSubmitting(true);
 
-        if (isEdit && product.id) {
-            router.put(route('admin.products.update', product.id), payload, {
-                onError: (err) => setErrors(err),
+        return new Promise<boolean>((resolve) => {
+            const callbacks = {
+                onError: (err: Record<string, string>) => {
+                    setErrors(err);
+                    resolve(false);
+                },
+                onSuccess: () => resolve(true),
                 onFinish: () => setSubmitting(false),
-            });
-        } else {
-            router.post(route('admin.products.store'), payload, {
-                onError: (err) => setErrors(err),
-                onFinish: () => setSubmitting(false),
-            });
-        }
-    }
+            };
+
+            if (isEdit && product.id) {
+                router.put(route('admin.products.update', product.id), payload, callbacks);
+            } else {
+                router.post(route('admin.products.store'), payload, callbacks);
+            }
+        });
+    }, [buildPayload, isEdit, product.id]);
+
+    const handleDiscard = useCallback(() => {
+        setProduct(defaultProduct);
+        setErrors({});
+    }, [defaultProduct]);
+
+    useSaveBar({
+        hasChanges,
+        isSaving: submitting,
+        onSave: handleSubmit,
+        onDiscard: handleDiscard,
+    });
 
 
     return (
@@ -192,15 +223,6 @@ export function ProductForm({product: defaultProduct}: {
                         imagesCount={product.images?.length ?? 0}
                         variants={[]}
                     />
-
-                    <Button
-                        type="button"
-                        className="w-full"
-                        disabled={submitting}
-                        onClick={handleSubmit}
-                    >
-                        {submitting ? '...' : (isEdit ? 'Сохранить' : 'Создать продукт')}
-                    </Button>
                 </div>
             </div>
         </div>

@@ -130,12 +130,14 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
 };
 
 const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
-  ({ value = '', onChange, placeholder, disabled = false, className }, ref) => {
-    // Track whether the editor has finished its initial creation.
-    // TipTap may fire onUpdate during initialization in some versions —
-    // this guard ensures onChange (and markDirty) is never called before
-    // the user actually interacts with the editor.
-    const isInitializedRef = React.useRef(false);
+  ({ value: rawValue, onChange, placeholder, disabled = false, className }, ref) => {
+    const value = rawValue || '';
+    // Track the last value we reported (or received) to avoid firing
+    // onChange when the editor produces the same semantic value — e.g.
+    // Tiptap emits onUpdate during init with '<p></p>' which we
+    // normalize to '', matching the original empty prop.
+    const lastValueRef = React.useRef(value);
+    lastValueRef.current = value;
 
     const editor = useEditor({
       extensions: [
@@ -160,21 +162,13 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           ),
         },
       },
-      onCreate: () => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('[RichTextEditor] editor created, marking initialized');
-        }
-        isInitializedRef.current = true;
-      },
       onUpdate: ({ editor }) => {
-        if (!isInitializedRef.current) {
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('[RichTextEditor] onUpdate skipped — not yet initialized');
-          }
-
+        const next = editor.isEmpty ? '' : editor.getHTML();
+        if (next === (lastValueRef.current || '')) {
           return;
         }
-        onChange?.(editor.isEmpty ? '' : editor.getHTML());
+        lastValueRef.current = next;
+        onChange?.(next);
       },
     });
 

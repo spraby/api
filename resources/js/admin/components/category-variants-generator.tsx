@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Category, OptionValue} from "@/types/data";
 import {OptionsValueGenerator} from "@/components/options-value-generator.tsx";
 import {ToggleButton} from "@/components/toggle-button.tsx";
@@ -16,8 +16,13 @@ export function CategoryVariantsGenerator({categories = [], onGenerate, onSetCat
     onSetCategory: (category: Category | null) => void
 }) {
     const [category, setCategory] = useState<Category>();
+    const isFirstRender = useRef(true);
 
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         onSetCategory(category ?? null)
     }, [category]);
 
