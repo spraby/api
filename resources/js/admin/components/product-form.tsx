@@ -6,6 +6,8 @@ import type {Product, ProductImage, Variant} from '@/types/data';
 import {v4 as uuidv4} from 'uuid';
 import {CategoryVariantsGenerator} from "@/components/category-variants-generator.tsx";
 import {VariantList} from "@/components/variant-list.tsx";
+import {router} from '@inertiajs/react';
+import {Button} from '@/components/ui/button';
 
 
 export function ProductForm({product: defaultProduct}: {
@@ -15,11 +17,83 @@ export function ProductForm({product: defaultProduct}: {
     const categories = defaultProduct.brand?.categories ?? [];
 
     const [product, setProduct] = useState<Product>(defaultProduct)
-    const [errors, serErrors] = useState<any>([])
+    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [submitting, setSubmitting] = useState(false)
 
 
     const onChange = (value: any) => {
         setProduct(v => ({...v, ...value}));
+    }
+
+    const handleSubmit = () => {
+        const images = product.images ?? [];
+        const variants = product.variants ?? [];
+
+        // Build image arrays for backend
+        const existingImageIds = images.map(pi => pi.image_id);
+
+        // Build variant payloads with image_index mapping
+        const variantPayloads = variants.map(v => {
+            let imageIndex: number | null = null;
+            if (v.image?.image_id) {
+                const idx = images.findIndex(pi => pi.image_id === v.image!.image_id);
+                if (idx >= 0) imageIndex = idx;
+            }
+
+            return {
+                ...(isEdit && v.id ? {id: v.id} : {}),
+                title: v.title ?? '',
+                price: Number(v.price) || 0,
+                final_price: Number(v.final_price) || 0,
+                enabled: v.enabled ?? true,
+                image_index: imageIndex,
+                values: (v.values ?? []).map(val => ({
+                    option_id: val.option_id!,
+                    option_value_id: val.option_value_id ?? val.value?.id,
+                })).filter(val => val.option_id && val.option_value_id),
+            };
+        });
+
+        const payload: Record<string, any> = {
+            title: product.title,
+            description: product.description,
+            enabled: variants.some(v => v.enabled),
+            category_id: product.category?.id ?? product.category_id,
+        };
+
+        if (existingImageIds.length > 0) {
+            payload.existing_image_ids = existingImageIds;
+        }
+
+        // image_order needed only for create (processStoreImages)
+        if (!isEdit && existingImageIds.length > 0) {
+            payload.image_order = existingImageIds.map((_, i) => `existing:${i}`);
+        }
+
+        if (variantPayloads.length > 0) {
+            payload.variants = variantPayloads;
+        }
+
+        console.log('[ProductForm.handleSubmit]', {
+            images: images.map(pi => ({uid: pi.uid, image_id: pi.image_id})),
+            variants: variantPayloads.map(v => ({title: v.title, image_index: v.image_index})),
+            variantImages: variants.map(v => ({uid: v.uid, hasImage: !!v.image, image_id: v.image?.image_id})),
+            payload,
+        });
+
+        setSubmitting(true);
+
+        if (isEdit && product.id) {
+            router.put(route('admin.products.update', product.id), payload, {
+                onError: (err) => setErrors(err),
+                onFinish: () => setSubmitting(false),
+            });
+        } else {
+            router.post(route('admin.products.store'), payload, {
+                onError: (err) => setErrors(err),
+                onFinish: () => setSubmitting(false),
+            });
+        }
     }
 
 
@@ -48,11 +122,14 @@ export function ProductForm({product: defaultProduct}: {
                                 title: optionValues.slice().sort((a, b) => a.position - b.position).map(v => v.value).join(' / '),
                                 price: 0,
                                 final_price: 0,
+                                enabled: true,
                                 values: optionValues.map(i => ({
                                     uid: uuidv4(),
                                     option_id: i.option_id,
+                                    option_value_id: i.id ?? undefined,
                                     value: {
                                         uid: uuidv4(),
+                                        id: i.id ?? undefined,
                                         value: i.value,
                                         position: i.position
                                     }
@@ -115,6 +192,15 @@ export function ProductForm({product: defaultProduct}: {
                         imagesCount={product.images?.length ?? 0}
                         variants={[]}
                     />
+
+                    <Button
+                        type="button"
+                        className="w-full"
+                        disabled={submitting}
+                        onClick={handleSubmit}
+                    >
+                        {submitting ? '...' : (isEdit ? 'Сохранить' : 'Создать продукт')}
+                    </Button>
                 </div>
             </div>
         </div>

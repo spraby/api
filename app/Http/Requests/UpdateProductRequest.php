@@ -36,6 +36,11 @@ class UpdateProductRequest extends FormRequest
         return array_merge($this->baseProductRules(), [
             'variants.*.id' => ['nullable', 'integer', 'exists:variants,id'],
             'variants.*.image_id' => ['nullable', 'integer', 'exists:product_images,id'],
+            'variants.*.image_index' => ['nullable', 'integer', 'min:0'],
+
+            // Image sync
+            'existing_image_ids' => ['nullable', 'array'],
+            'existing_image_ids.*' => ['integer', 'exists:images,id'],
         ]);
     }
 }

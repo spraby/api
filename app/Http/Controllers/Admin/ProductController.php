@@ -169,16 +169,39 @@ class ProductController extends Controller
                 abort(403, 'Unauthorized');
             }
 
-            // Update product
-            $product->update([
-                'title' => $request->input('title'),
-                'description' => $request->input('description'),
-                'enabled' => $request->input('enabled'),
-                'category_id' => $request->input('category_id'),
-            ]);
+            DB::transaction(function () use ($request, $product, $brand) {
+                // Update product
+                $product->update([
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                    'enabled' => $request->input('enabled'),
+                    'category_id' => $request->input('category_id'),
+                ]);
 
-            // Sync variants
-            app(VariantService::class)->syncVariants($product, $request->input('variants'));
+                // Sync product images if provided
+                $existingImageIds = $request->input('existing_image_ids');
+                if (is_array($existingImageIds)) {
+                    $this->syncProductImages($product, $existingImageIds);
+                }
+
+                // Sync variants
+                $variants = $request->input('variants');
+
+                // If image_index is used (same format as store), resolve to image_id
+                $productImages = $product->images()->orderBy('position')->get();
+                foreach ($variants as &$variant) {
+                    if (isset($variant['image_index']) && $variant['image_index'] !== null) {
+                        $pi = $productImages->get($variant['image_index']);
+                        if ($pi) {
+                            $variant['image_id'] = $pi->id;
+                        }
+                    }
+                    unset($variant['image_index']);
+                }
+                unset($variant);
+
+                app(VariantService::class)->syncVariants($product, $variants);
+            });
 
             $product->refresh()->load('variants');
 
@@ -187,6 +210,29 @@ class ProductController extends Controller
 
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to update product: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Sync product images: keep only the given image IDs in order.
+     */
+    private function syncProductImages(Product $product, array $imageIds): void
+    {
+        // Remove images no longer in the list
+        $product->images()->whereNotIn('image_id', $imageIds)->delete();
+
+        // Ensure all image_ids are attached with correct position
+        $position = 0;
+        foreach ($imageIds as $imageId) {
+            $existing = $product->images()->where('image_id', $imageId)->first();
+            if ($existing) {
+                $existing->updateQuietly(['position' => ++$position]);
+            } else {
+                $product->images()->create([
+                    'image_id' => (int) $imageId,
+                    'position' => ++$position,
+                ]);
+            }
         }
     }
 
@@ -231,6 +277,14 @@ class ProductController extends Controller
                     }
                     unset($variant);
                 }
+
+                Log::info('[ProductController.store] Variants before create', [
+                    'variants' => collect($variants)->map(fn ($v) => [
+                        'title' => $v['title'] ?? null,
+                        'image_index' => $v['image_index'] ?? 'NOT SET',
+                        'image_id' => $v['image_id'] ?? 'NOT SET',
+                    ])->toArray(),
+                ]);
 
                 // 4. Create variants
                 app(VariantService::class)->createVariants($product, $variants);

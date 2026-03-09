@@ -29,8 +29,27 @@ export interface ImageUploaderProps {
   onFinishLoading?: (images: UploadedImage[]) => void;
 }
 
-function getCsrfToken(): string | null {
-  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? null;
+function getCsrfToken(): { token: string; header: string } | null {
+  // Prefer XSRF-TOKEN cookie (updated with every Laravel response) over meta tag
+  // which can become stale in Inertia SPA navigation
+  const xsrfCookie = document.cookie
+    .split('; ')
+    .find((c) => c.startsWith('XSRF-TOKEN='));
+
+  if (xsrfCookie) {
+    return {
+      token: decodeURIComponent(xsrfCookie.split('=')[1]),
+      header: 'X-XSRF-TOKEN',
+    };
+  }
+
+  const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+  if (metaToken) {
+    return { token: metaToken, header: 'X-CSRF-TOKEN' };
+  }
+
+  return null;
 }
 
 function formatBytes(bytes: number): string {
@@ -96,14 +115,14 @@ export function ImageUploader({
       valid.forEach((f) => formData.append('images[]', f));
 
       try {
-        const csrfToken = getCsrfToken();
+        const csrf = getCsrfToken();
         const headers: Record<string, string> = {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
         };
 
-        if (csrfToken) {
-          headers['X-CSRF-TOKEN'] = csrfToken;
+        if (csrf) {
+          headers[csrf.header] = csrf.token;
         }
 
         const response = await fetch(route('admin.media.api.store'), {
