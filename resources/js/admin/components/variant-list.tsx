@@ -13,11 +13,16 @@ export const VariantList = ({variants, images = [], onChange}: {
         }))
     }
 
+    const onDeleteHandle = (uid: string) => {
+        onChange(variants.filter(v => v.uid !== uid))
+    }
+
     return <>
         {
             variants.map(variant => <div
+                key={variant.uid}
                 className={'p-5 rounded-lg border transition-colors hover:bg-muted/30 hover:border-primary/30'}>
-                <VariantLine variant={variant} images={images} onChange={onChangeHandle}/>
+                <VariantLine variant={variant} images={images} onChange={onChangeHandle} onDelete={() => onDeleteHandle(variant.uid)}/>
             </div>)
         }
     </>

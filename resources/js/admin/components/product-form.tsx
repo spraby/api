@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ProductBasicFieldsCard} from '@/components/product-basic-fields-card';
 import {ProductImagesCard} from '@/components/product-images-card';
 import {ProductSummaryCard} from '@/components/product-summary-card';
@@ -19,6 +19,11 @@ export function ProductForm({product: defaultProduct}: {
     const [product, setProduct] = useState<Product>(defaultProduct)
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [submitting, setSubmitting] = useState(false)
+
+    useEffect(() => {
+        setProduct(defaultProduct);
+        setErrors({});
+    }, [defaultProduct]);
 
     const hasChanges = useMemo(() => {
         const current = JSON.stringify(product);

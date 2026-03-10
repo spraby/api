@@ -16,10 +16,11 @@ import {MediaThumbnail} from "@/components/media-thumbnail.tsx";
  * @param onChange
  * @constructor
  */
-export const VariantLine = ({variant: defaultVariant, images = [], onChange}: {
+export const VariantLine = ({variant: defaultVariant, images = [], onChange, onDelete}: {
     variant: Variant,
     images: ProductImage[]
     onChange: (variant: Variant) => void
+    onDelete: () => void
 }) => {
 
     const [variant, setVariant] = useState<Variant>(defaultVariant)
@@ -72,7 +73,7 @@ export const VariantLine = ({variant: defaultVariant, images = [], onChange}: {
             onChange={onSelect}
         />
         <div>
-            <TrashButton/>
+            <TrashButton onClick={onDelete}/>
         </div>
     </div>
 }
