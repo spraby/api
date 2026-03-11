@@ -3,12 +3,13 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import {DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
 import {SortableContext, arrayMove, rectSortingStrategy, useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import {ImageIcon, TrashIcon} from 'lucide-react';
+import {ChevronDown, ChevronUp, ImageIcon, TrashIcon} from 'lucide-react';
 
 import {ConfirmationPopover} from '@/components/confirmation-popover';
 import {ImagePickerDialog} from '@/components/image-picker-dialog';
 import type {ImageSelectorItem} from '@/components/image-selector';
 import {Badge} from '@/components/ui/badge';
+import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
@@ -155,6 +156,9 @@ export function ProductImagesCard({
 
     const [orderedImages, setOrderedImages] = useState<ProductImage[]>(sortedImages);
     const [draggingId, setDraggingId] = useState<string | null>(null);
+    const [expanded, setExpanded] = useState(false);
+
+    const VISIBLE_COUNT = 3;
 
     useEffect(() => {
         setOrderedImages([...(product.images ?? [])].sort((a, b) => (a?.position ?? 0) - (b?.position ?? 0)));
@@ -199,8 +203,9 @@ export function ProductImagesCard({
     }, [onLibraryImagesAdd]);
 
     // ── Image grid ────────────────────────────────────────────────────────
-
     const hasImages = orderedImages.length > 0;
+    const hiddenCount = orderedImages.length - VISIBLE_COUNT;
+    const visibleImages = expanded ? orderedImages : orderedImages.slice(0, VISIBLE_COUNT);
 
     const imageGrid = (
         <DndContext
@@ -212,7 +217,7 @@ export function ProductImagesCard({
         >
             <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
                 <div className="grid grid-cols-2 gap-2">
-                    {orderedImages.map((pi, index) => (
+                    {visibleImages.map((pi, index) => (
                         <SortableImageThumbnail
                             key={pi.uid}
                             id={pi.uid}
@@ -238,6 +243,28 @@ export function ProductImagesCard({
             </div>
 
             {hasImages ? imageGrid : <EmptyState/>}
+
+            {hiddenCount > 0 && (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setExpanded(prev => !prev)}
+                >
+                    {expanded ? (
+                        <>
+                            <ChevronUp className="mr-1.5 size-4"/>
+                            {t('admin.products_edit.show_less')}
+                        </>
+                    ) : (
+                        <>
+                            <ChevronDown className="mr-1.5 size-4"/>
+                            {`${t('admin.products_edit.show_more')} (${hiddenCount})`}
+                        </>
+                    )}
+                </Button>
+            )}
         </Card>
     );
 }

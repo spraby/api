@@ -8,6 +8,7 @@ import {CategoryVariantsGenerator} from "@/components/category-variants-generato
 import {VariantList} from "@/components/variant-list.tsx";
 import {router} from '@inertiajs/react';
 import {useSaveBar} from '@/stores/save-bar';
+import {isEqual} from 'lodash-es';
 
 
 export function ProductForm({product: defaultProduct}: {
@@ -26,32 +27,23 @@ export function ProductForm({product: defaultProduct}: {
     }, [defaultProduct]);
 
     const hasChanges = useMemo(() => {
-        const current = JSON.stringify(product);
-        const initial = JSON.stringify(defaultProduct);
-        if (current !== initial) {
-            // Find which keys differ
-            const diff: Record<string, { current: unknown; initial: unknown }> = {};
-            const allKeys = new Set([...Object.keys(product), ...Object.keys(defaultProduct)]);
-            for (const key of allKeys) {
-                const cv = JSON.stringify((product as any)[key]);
-                const iv = JSON.stringify((defaultProduct as any)[key]);
-                if (cv !== iv) {
-                    diff[key] = { current: (product as any)[key], initial: (defaultProduct as any)[key] };
-                }
-            }
-            console.log('[ProductForm] hasChanges=true, diff:', diff);
-        }
-        return current !== initial;
+        return !isEqual(product, defaultProduct);
     }, [product, defaultProduct]);
 
-    const onChange = (value: any) => {
+    const images = useMemo(() => product.images ?? [], [product.images]);
+    const variants = useMemo(() => product.variants ?? [], [product.variants]);
+
+    const onChange = useCallback((value: any) => {
         setProduct(v => ({...v, ...value}));
-    }
+    }, []);
+
+    const addUniqueImages = useCallback((existingImages: ProductImage[], newImages: ProductImage[]) => {
+        const existingIds = new Set(existingImages.map(i => i.image_id));
+        const unique = newImages.filter(img => !existingIds.has(img.image_id));
+        return unique.length > 0 ? [...existingImages, ...unique] : existingImages;
+    }, []);
 
     const buildPayload = useCallback(() => {
-        const images = product.images ?? [];
-        const variants = product.variants ?? [];
-
         const existingImageIds = images.map(pi => pi.image_id);
 
         const variantPayloads = variants.map(v => {
@@ -78,7 +70,7 @@ export function ProductForm({product: defaultProduct}: {
         const payload: Record<string, any> = {
             title: product.title,
             description: product.description,
-            enabled: variants.some(v => v.enabled),
+            enabled: product.enabled,
             category_id: product.category?.id ?? product.category_id,
         };
 
@@ -95,7 +87,7 @@ export function ProductForm({product: defaultProduct}: {
         }
 
         return payload;
-    }, [product, isEdit]);
+    }, [product, images, variants, isEdit]);
 
     const handleSubmit = useCallback((): Promise<boolean> => {
         const payload = buildPayload();
@@ -132,107 +124,99 @@ export function ProductForm({product: defaultProduct}: {
         onDiscard: handleDiscard,
     });
 
-
     return (
-        <div className="flex flex-col gap-4">
-            <div
-                className="grid gap-4"
-                style={{gridTemplateColumns: '1fr 340px'}}
-            >
-                <div className="flex flex-col gap-4">
-                    <ProductBasicFieldsCard
-                        title={product.title}
-                        description={product.description}
-                        errors={errors}
-                        onChange={(field, value) => {
-                            onChange({[field]: value})
-                        }}
-                    />
+        <div
+            className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_340px]"
+        >
+            <div className="flex flex-col gap-4">
+                <ProductBasicFieldsCard
+                    title={product.title}
+                    description={product.description}
+                    errors={errors}
+                    onChange={(field, value) => {
+                        onChange({[field]: value})
+                    }}
+                />
 
-                    {
-                        !product?.id &&
-                        <CategoryVariantsGenerator
-                            categories={categories}
-                            onSetCategory={category => onChange({category})}
-                            onGenerate={(combinations) => {
-                                const variants: Variant[] = combinations.map(optionValues => ({
+                {
+                    !product?.id &&
+                    <CategoryVariantsGenerator
+                        categories={categories}
+                        onSetCategory={category => onChange({category})}
+                        onGenerate={(combinations) => {
+                            const newVariants: Variant[] = combinations.map(optionValues => ({
+                                uid: uuidv4(),
+                                title: optionValues.slice().sort((a, b) => a.position - b.position).map(v => v.value).join(' / '),
+                                price: 0,
+                                final_price: 0,
+                                enabled: true,
+                                values: optionValues.map(i => ({
                                     uid: uuidv4(),
-                                    title: optionValues.slice().sort((a, b) => a.position - b.position).map(v => v.value).join(' / '),
-                                    price: 0,
-                                    final_price: 0,
-                                    enabled: true,
-                                    values: optionValues.map(i => ({
+                                    option_id: i.option_id,
+                                    option_value_id: i.id ?? undefined,
+                                    value: {
                                         uid: uuidv4(),
-                                        option_id: i.option_id,
-                                        option_value_id: i.id ?? undefined,
-                                        value: {
-                                            uid: uuidv4(),
-                                            id: i.id ?? undefined,
-                                            value: i.value,
-                                            position: i.position
-                                        }
-                                    })),
-                                }));
-                                onChange({variants})
-                            }}
-                        />
-                    }
-
-                    <VariantList
-                        variants={product?.variants ?? []}
-                        images={product?.images ?? []}
-                        options={product?.category?.options ?? []}
-                        onChange={(variants) => {
-                            const existingImages = product?.images ?? [];
-                            const existingImageIds = new Set(existingImages.map(i => i.image_id));
-                            const newImages = variants.map(v => v.image)
-                                .filter((img): img is ProductImage => !!img && !existingImageIds.has(img.image_id));
-                            onChange({variants, images: [...existingImages, ...newImages]});
+                                        id: i.id ?? undefined,
+                                        value: i.value,
+                                        position: i.position
+                                    }
+                                })),
+                            }));
+                            onChange({variants: newVariants})
                         }}
                     />
-                </div>
+                }
 
-                <div
-                    className="flex flex-col gap-4"
-                    style={{position: 'sticky', top: '20px', alignSelf: 'start'}}
-                >
-                    <ProductImagesCard
-                        product={product}
-                        isEdit={isEdit}
-                        onLibraryImagesAdd={(images) => {
-                            const existingImageIds = new Set((product?.images ?? []).map(i => i.image_id));
-                            const newImages: ProductImage[] = images
-                                .filter(img => img.id != null && !existingImageIds.has(img.id))
-                                .map(img => ({
+                <VariantList
+                    variants={variants}
+                    images={images}
+                    options={product?.category?.options ?? []}
+                    onChange={(updatedVariants) => {
+                        const variantImages = updatedVariants
+                            .map(v => v.image)
+                            .filter((img): img is ProductImage => !!img);
+                        onChange({variants: updatedVariants, images: addUniqueImages(images, variantImages)});
+                    }}
+                />
+            </div>
+
+            <div className="lg:sticky lg:top-5 lg:self-start flex flex-col gap-4">
+                <ProductImagesCard
+                    product={product}
+                    isEdit={isEdit}
+                    onLibraryImagesAdd={(libraryImages) => {
+                        const newImages: ProductImage[] = libraryImages
+                            .filter(img => img.id != null)
+                            .map(img => ({
+                                uid: uuidv4(),
+                                image_id: img.id!,
+                                image: {
                                     uid: uuidv4(),
-                                    image_id: img.id!,
-                                    image: {
-                                        uid: uuidv4(),
-                                        id: img.id!,
-                                        name: img.name,
-                                        url: img.url,
-                                        alt: img.alt ?? null,
-                                    },
-                                }));
-                            if (newImages.length > 0) {
-                                onChange({images: [...(product?.images ?? []), ...newImages]});
-                            }
-                        }}
-                        onLibraryImageRemove={(uid) => {
-                            onChange({images: (product?.images ?? []).filter(i => i.uid !== uid)});
-                        }}
-                        onReorder={(images) => {
-                            onChange({images});
-                        }}
-                    />
+                                    id: img.id!,
+                                    name: img.name,
+                                    url: img.url,
+                                    alt: img.alt ?? null,
+                                },
+                            }));
+                        const merged = addUniqueImages(images, newImages);
+                        if (merged !== images) {
+                            onChange({images: merged});
+                        }
+                    }}
+                    onLibraryImageRemove={(uid) => {
+                        onChange({images: images.filter(i => i.uid !== uid)});
+                    }}
+                    onReorder={(reorderedImages) => {
+                        onChange({images: reorderedImages});
+                    }}
+                />
 
-                    <ProductSummaryCard
-                        title={product.title}
-                        categoryName={product.category?.name ?? null}
-                        imagesCount={product.images?.length ?? 0}
-                        variants={product.variants}
-                    />
-                </div>
+                <ProductSummaryCard
+                    title={product.title}
+                    categoryName={product.category?.name ?? null}
+                    imagesCount={images.length}
+                    variants={variants}
+                />
             </div>
         </div>
     );

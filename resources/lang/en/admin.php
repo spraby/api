@@ -329,6 +329,8 @@ return [
         'confirm_delete_local_image' => 'This image will be removed from the product. It will remain in the media library.',
         'confirm_delete_cancel' => 'Cancel',
         'main_badge' => 'MAIN',
+        'show_more' => 'Show more',
+        'show_less' => 'Show less',
         'summary_header' => 'SUMMARY',
         'summary_name' => 'Name',
         'summary_category' => 'Category',

@@ -329,6 +329,8 @@ return [
         'confirm_delete_local_image' => 'Изображение будет убрано из товара. Оно останется в медиатеке.',
         'confirm_delete_cancel' => 'Отмена',
         'main_badge' => 'ГЛАВНОЕ',
+        'show_more' => 'Показать ещё',
+        'show_less' => 'Скрыть',
         'summary_header' => 'СВОДКА',
         'summary_name' => 'Название',
         'summary_category' => 'Категория',
