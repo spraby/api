@@ -44,7 +44,7 @@ export const VariantLine = ({variant: defaultVariant, images = [], options = [],
     }
 
     return <div
-        className={'col-span-4 grid grid-cols-subgrid items-center p-5 rounded-lg border transition-colors hover:bg-muted/30 hover:border-primary/30'}>
+        className={'md:col-span-4 flex flex-col gap-3 md:grid md:grid-cols-subgrid md:items-center p-5 rounded-lg border transition-colors hover:bg-muted/30 hover:border-primary/30'}>
         <VariantImagePicker
             image={variant?.image?.image?.url ?? undefined}
             images={images}
@@ -65,7 +65,7 @@ export const VariantLine = ({variant: defaultVariant, images = [], options = [],
                     ...(productImage ? {image: productImage} : {}),
                 } as Variant);
             }}/>
-        <div className={'flex gap-1 justify-start items-center'}>
+        <div className={'flex flex-wrap gap-1 justify-start items-center'}>
             {variant.values?.map(v => (
                 <VariantValueSelect
                     key={v.uid}

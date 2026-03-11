@@ -63,7 +63,7 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
     );
 
     return <>
-        <div className={'grid grid-cols-[90px_1fr_auto_auto] gap-x-4 gap-y-2'}>
+        <div className={'flex flex-col gap-2 md:grid md:grid-cols-[90px_1fr_auto_auto] md:gap-x-4 md:gap-y-2'}>
             {variants.map(variant =>
                 <VariantLine key={variant.uid} variant={variant} images={images} options={options} onChange={onChangeHandle} onDelete={() => onDeleteHandle(variant.uid)}/>
             )}
