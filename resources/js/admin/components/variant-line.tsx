@@ -43,7 +43,8 @@ export const VariantLine = ({variant: defaultVariant, images = [], options = [],
         setVariant(v => ({...v, ...values}))
     }
 
-    return <div className={'grid grid-cols-[64px_1fr_3fr_auto] items-center gap-4'}>
+    return <div
+        className={'col-span-4 grid grid-cols-subgrid items-center p-5 rounded-lg border transition-colors hover:bg-muted/30 hover:border-primary/30'}>
         <VariantImagePicker
             image={variant?.image?.image?.url ?? undefined}
             images={images}
@@ -146,7 +147,7 @@ const VariantImagePicker = ({image, images, onSelect}: {
         className={'shrink-0 transition-colors hover:bg-muted/60 '}>
         {
             image ?
-                <MediaThumbnail url={image}/> :
+                <MediaThumbnail url={image} className={'w-16 h-16'}/> :
                 <div
                     className={'w-16 h-16 flex justify-center items-center rounded-lg border-2 border-dashed border-border hover:border-primary/40'}>
                     <ImageOffIcon className={'w-4 h-4 text-muted-foreground'}/>

@@ -149,31 +149,34 @@ export function ProductForm({product: defaultProduct}: {
                         }}
                     />
 
-                    <CategoryVariantsGenerator
-                        categories={categories}
-                        onSetCategory={category => onChange({category})}
-                        onGenerate={(combinations) => {
-                            const variants: Variant[] = combinations.map(optionValues => ({
-                                uid: uuidv4(),
-                                title: optionValues.slice().sort((a, b) => a.position - b.position).map(v => v.value).join(' / '),
-                                price: 0,
-                                final_price: 0,
-                                enabled: true,
-                                values: optionValues.map(i => ({
+                    {
+                        !product?.id &&
+                        <CategoryVariantsGenerator
+                            categories={categories}
+                            onSetCategory={category => onChange({category})}
+                            onGenerate={(combinations) => {
+                                const variants: Variant[] = combinations.map(optionValues => ({
                                     uid: uuidv4(),
-                                    option_id: i.option_id,
-                                    option_value_id: i.id ?? undefined,
-                                    value: {
+                                    title: optionValues.slice().sort((a, b) => a.position - b.position).map(v => v.value).join(' / '),
+                                    price: 0,
+                                    final_price: 0,
+                                    enabled: true,
+                                    values: optionValues.map(i => ({
                                         uid: uuidv4(),
-                                        id: i.id ?? undefined,
-                                        value: i.value,
-                                        position: i.position
-                                    }
-                                })),
-                            }));
-                            onChange({variants})
-                        }}
-                    />
+                                        option_id: i.option_id,
+                                        option_value_id: i.id ?? undefined,
+                                        value: {
+                                            uid: uuidv4(),
+                                            id: i.id ?? undefined,
+                                            value: i.value,
+                                            position: i.position
+                                        }
+                                    })),
+                                }));
+                                onChange({variants})
+                            }}
+                        />
+                    }
 
                     <VariantList
                         variants={product?.variants ?? []}
@@ -227,7 +230,7 @@ export function ProductForm({product: defaultProduct}: {
                         title={product.title}
                         categoryName={product.category?.name ?? null}
                         imagesCount={product.images?.length ?? 0}
-                        variants={[]}
+                        variants={product.variants}
                     />
                 </div>
             </div>

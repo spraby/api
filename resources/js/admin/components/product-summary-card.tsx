@@ -1,13 +1,13 @@
 import type {ReactNode} from 'react';
 
-import type {LocalVariant} from '@/hooks/use-product-form';
+import type {Variant} from '@/types/data';
 import {useLang} from '@/lib/lang';
 
 interface Props {
     title: string;
     categoryName: string | null;
     imagesCount: number;
-    variants: LocalVariant[];
+    variants: Variant[];
 }
 
 interface SummaryRowProps {
@@ -31,7 +31,7 @@ function fmt(n: number): string {
 export function ProductSummaryCard({title, categoryName, imagesCount, variants}: Props) {
     const {t} = useLang();
     const activeCount = variants.filter(v => v.enabled).length;
-    const prices = variants.filter(v => v.price > 0).map(v => v.price);
+    const prices = variants.map(v => Number(v.final_price) || 0).filter(p => p > 0);
     const minPrice = prices.length > 0 ? Math.min(...prices) : null;
     const maxPrice = prices.length > 0 ? Math.max(...prices) : null;
 
@@ -46,7 +46,7 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
     }
 
     const discountedCount = variants.filter(
-        v => v.comparePrice > v.price && v.price > 0,
+        v => Number(v.price) > Number(v.final_price) && Number(v.final_price) > 0,
     ).length;
 
     return (
