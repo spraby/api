@@ -1,4 +1,4 @@
-import {ProductImage, Variant} from "@/types/data";
+import {Option, ProductImage, Variant, VariantValue} from "@/types/data";
 import {ImageOffIcon} from "lucide-react";
 import {TrashButton} from "@/components/trash-button.tsx";
 import {PricingSection} from "@/components/pricing-section.tsx";
@@ -8,17 +8,21 @@ import {ImagePicker} from "@/components/image-picker.tsx";
 import type {ImageSelectorItem} from "@/components/image-selector.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {MediaThumbnail} from "@/components/media-thumbnail.tsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 
 /**
  *
  * @param defaultVariant
  * @param images
+ * @param options
  * @param onChange
+ * @param onDelete
  * @constructor
  */
-export const VariantLine = ({variant: defaultVariant, images = [], onChange, onDelete}: {
+export const VariantLine = ({variant: defaultVariant, images = [], options = [], onChange, onDelete}: {
     variant: Variant,
     images: ProductImage[]
+    options: Option[]
     onChange: (variant: Variant) => void
     onDelete: () => void
 }) => {
@@ -62,9 +66,17 @@ export const VariantLine = ({variant: defaultVariant, images = [], onChange, onD
             }}/>
         <div className={'flex gap-1 justify-start items-center'}>
             {variant.values?.map(v => (
-                <span key={v.id} className={'flex rounded border border-border bg-muted px-2 py-1 text-[13px]'}>
-                    {v.value?.value}
-                </span>
+                <VariantValueSelect
+                    key={v.uid}
+                    variantValue={v}
+                    option={options.find(o => o.id === v.option_id)}
+                    onChange={(updated) => {
+                        setVariant(prev => ({
+                            ...prev,
+                            values: prev.values?.map(val => val.uid === v.uid ? updated : val),
+                        }));
+                    }}
+                />
             ))}
         </div>
         <PricingSection
@@ -141,4 +153,43 @@ const VariantImagePicker = ({image, images, onSelect}: {
                 </div>
         }
     </button>
+}
+
+/**
+ *
+ * @param variantValue
+ * @param option
+ * @param onChange
+ * @constructor
+ */
+const VariantValueSelect = ({variantValue, option, onChange}: {
+    variantValue: VariantValue,
+    option?: Option,
+    onChange: (updated: VariantValue) => void
+}) => {
+    if (!option?.values?.length) {
+        return <span className={'flex rounded border border-border bg-muted px-2 py-1 text-[13px]'}>
+            {variantValue.value?.value}
+        </span>
+    }
+
+    return <Select
+        value={variantValue.option_value_id?.toString() ?? ''}
+        onValueChange={(newValueId) => {
+            const newOptionValue = option.values?.find(ov => ov.id?.toString() === newValueId);
+            if (!newOptionValue) return;
+            onChange({...variantValue, option_value_id: newOptionValue.id ?? undefined, value: newOptionValue});
+        }}
+    >
+        <SelectTrigger className={'h-auto w-auto gap-1 rounded border-border bg-muted px-2 py-1 text-[13px]'}>
+            <SelectValue/>
+        </SelectTrigger>
+        <SelectContent>
+            {option.values.map(ov => (
+                <SelectItem key={ov.id} value={ov.id?.toString() ?? ''}>
+                    {ov.value}
+                </SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
 }

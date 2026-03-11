@@ -178,6 +178,7 @@ export function ProductForm({product: defaultProduct}: {
                     <VariantList
                         variants={product?.variants ?? []}
                         images={product?.images ?? []}
+                        options={product?.category?.options ?? []}
                         onChange={(variants) => {
                             const existingImages = product?.images ?? [];
                             const existingImageIds = new Set(existingImages.map(i => i.image_id));
