@@ -1,14 +1,15 @@
 import {Option, ProductImage, Variant, VariantValue} from "@/types/data";
-import {ImageOffIcon} from "lucide-react";
+import {AlertTriangleIcon, ImageOffIcon} from "lucide-react";
 import {TrashButton} from "@/components/trash-button.tsx";
 import {PricingSection} from "@/components/pricing-section.tsx";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useRef} from "react";
 import {useDialog} from "@/stores/dialog.ts";
 import {ImagePicker} from "@/components/image-picker.tsx";
 import type {ImageSelectorItem} from "@/components/image-selector.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {MediaThumbnail} from "@/components/media-thumbnail.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
+import {useLang} from "@/lib/lang";
 
 /**
  *
@@ -19,32 +20,23 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
  * @param onDelete
  * @constructor
  */
-export const VariantLine = ({variant: defaultVariant, images = [], options = [], onChange, onDelete}: {
+export const VariantLine = ({variant, images = [], options = [], onChange, onDelete, isDuplicate = false}: {
     variant: Variant,
     images: ProductImage[]
     options: Option[]
     onChange: (variant: Variant) => void
     onDelete: () => void
+    isDuplicate?: boolean
 }) => {
 
-    const [variant, setVariant] = useState<Variant>(defaultVariant)
+    const {t} = useLang();
 
-    useEffect(() => {
-        if (onChange) {
-            onChange(variant);
-        }
-    }, [variant]);
-
-    /**
-     *
-     * @param values
-     */
-    const onSelect = (values: any) => {
-        setVariant(v => ({...v, ...values}))
-    }
+    const update = useCallback((patch: Partial<Variant>) => {
+        onChange({...variant, ...patch});
+    }, [variant, onChange]);
 
     return <div
-        className={'md:col-span-4 flex flex-col gap-3 md:grid md:grid-cols-subgrid md:items-center p-5 rounded-lg border transition-colors hover:bg-muted/30 hover:border-primary/30'}>
+        className={`md:col-span-4 flex flex-col gap-3 md:grid md:grid-cols-subgrid md:items-center p-5 rounded-lg border transition-colors ${isDuplicate ? 'border-destructive bg-destructive/5 hover:bg-destructive/10' : 'hover:bg-muted/30 hover:border-primary/30'}`}>
         <VariantImagePicker
             image={variant?.image?.image?.url ?? undefined}
             images={images}
@@ -61,9 +53,9 @@ export const VariantLine = ({variant: defaultVariant, images = [], options = [],
                     }
                 } as ProductImage : null;
 
-                onSelect({
+                update({
                     ...(productImage ? {image: productImage} : {}),
-                } as Variant);
+                } as Partial<Variant>);
             }}/>
         <div className={'flex flex-wrap gap-1 justify-start items-center'}>
             {variant.values?.map(v => (
@@ -72,10 +64,9 @@ export const VariantLine = ({variant: defaultVariant, images = [], options = [],
                     variantValue={v}
                     option={options.find(o => o.id === v.option_id)}
                     onChange={(updated) => {
-                        setVariant(prev => ({
-                            ...prev,
-                            values: prev.values?.map(val => val.uid === v.uid ? updated : val),
-                        }));
+                        update({
+                            values: variant.values?.map(val => val.uid === v.uid ? updated : val),
+                        });
                     }}
                 />
             ))}
@@ -83,11 +74,17 @@ export const VariantLine = ({variant: defaultVariant, images = [], options = [],
         <PricingSection
             price={(variant.price ?? 0).toString()}
             finalPrice={(variant.final_price ?? 0).toString()}
-            onChange={onSelect}
+            onChange={update}
         />
         <div>
             <TrashButton onClick={onDelete}/>
         </div>
+        {isDuplicate && (
+            <div className="md:col-span-4 flex items-center gap-2 text-destructive text-sm">
+                <AlertTriangleIcon className="h-4 w-4 shrink-0" />
+                <span>{t('admin.products_edit.duplicate_variants.line_message')}</span>
+            </div>
+        )}
     </div>
 }
 
@@ -103,6 +100,7 @@ const VariantImagePicker = ({image, images, onSelect}: {
     images: ProductImage[],
     onSelect: (image?: ImageSelectorItem) => void
 }) => {
+    const {t} = useLang();
     const {openDialog, closeDialog} = useDialog();
 
     const selectedImagesRef = useRef<ImageSelectorItem[]>([])
@@ -115,7 +113,7 @@ const VariantImagePicker = ({image, images, onSelect}: {
 
     const onClick = () => {
         openDialog({
-            title: 'Select image',
+            title: t('admin.products_edit.actions.select_image'),
             className: 'w-full md:max-w-[70%]',
             content: (
                 <ImagePicker
@@ -135,7 +133,7 @@ const VariantImagePicker = ({image, images, onSelect}: {
             ),
             footer: (
                 <div className={'pt-5'}>
-                    <Button onClick={onChoose}>Choose</Button>
+                    <Button onClick={onChoose}>{t('admin.products_edit.images.choose')}</Button>
                 </div>
             )
         });

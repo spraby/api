@@ -295,7 +295,9 @@ return [
         'duplicate_variants' => [
             'title' => 'Duplicate Variants Detected',
             'description' => 'The following variants have identical option values. Each variant should have a unique combination of options.',
+            'description_short' => 'Duplicate combinations:',
             'group_label' => 'Variants',
+            'line_message' => 'This variant is a duplicate. Change the option values or delete it.',
         ],
         'basic_info' => 'Basic Information',
         'product_title_label' => 'Product Title',
@@ -397,7 +399,9 @@ return [
         'duplicate_variants' => [
             'title' => 'Duplicate Variants Detected',
             'description' => 'The following variants have identical option values. Each variant should have a unique combination of options.',
+            'description_short' => 'Duplicate combinations:',
             'group_label' => 'Variants',
+            'line_message' => 'This variant is a duplicate. Change the option values or delete it.',
         ],
         'toast_error_create' => 'Error creating',
     ],

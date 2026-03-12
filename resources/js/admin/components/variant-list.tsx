@@ -1,9 +1,11 @@
 import {useMemo} from "react";
 import {Option, OptionValue, ProductImage, Variant} from "@/types/data";
 import {VariantLine} from "@/components/variant-line.tsx";
-import {PlusIcon} from "lucide-react";
+import {AlertTriangleIcon, PlusIcon} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {v4 as uuidv4} from 'uuid';
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
+import {useLang} from "@/lib/lang";
 
 interface CombinationItem {
     optionId: number;
@@ -36,12 +38,16 @@ const createVariant = (combination: CombinationItem[], options: Option[]): Varia
     };
 }
 
+const getVariantKey = (variant: Variant, opts: Option[]) =>
+    opts.map(o => variant.values?.find(v => v.option_id === o.id)?.option_value_id ?? '').join(':');
+
 export const VariantList = ({variants, images = [], options = [], onChange}: {
     variants: Variant[],
     images: ProductImage[],
     options: Option[],
     onChange: (variants: Variant[]) => void
 }) => {
+    const {t} = useLang();
 
     const onChangeHandle = (variant: Variant) => {
         onChange(variants.map(v => variant.uid === v.uid ? variant : v))
@@ -62,10 +68,55 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
         [variants, options]
     );
 
+    // Detect duplicate variants and build descriptions in a single pass
+    const {duplicateUids, duplicateDescriptions} = useMemo(() => {
+        const uids = new Set<string>();
+        const descriptions: string[] = [];
+
+        const optionsWithValues = options.filter(o => o.id != null && o.values && o.values.length > 0);
+        if (!optionsWithValues.length) return {duplicateUids: uids, duplicateDescriptions: descriptions};
+
+        // O(n) — build key -> uids map
+        const keyToGroup = new Map<string, { uids: string[]; label: string }>();
+        for (const variant of variants) {
+            if (!variant.values?.length) continue;
+            const key = getVariantKey(variant, optionsWithValues);
+            const group = keyToGroup.get(key);
+            if (group) {
+                group.uids.push(variant.uid);
+            } else {
+                const label = variant.title || variant.values?.map(v => v.value?.value).filter(Boolean).join(' / ') || key;
+                keyToGroup.set(key, {uids: [variant.uid], label});
+            }
+        }
+
+        for (const group of keyToGroup.values()) {
+            if (group.uids.length > 1) {
+                group.uids.forEach(uid => uids.add(uid));
+                descriptions.push(group.label);
+            }
+        }
+
+        return {duplicateUids: uids, duplicateDescriptions: descriptions};
+    }, [variants, options]);
+
     return <>
+        {duplicateDescriptions.length > 0 && (
+            <Alert variant="destructive" className="mb-4">
+                <AlertTriangleIcon className="h-4 w-4" />
+                <AlertTitle>{t('admin.products_edit.duplicate_variants.title')}</AlertTitle>
+                <AlertDescription>
+                    {t('admin.products_edit.duplicate_variants.description_short')}{' '}
+                    {duplicateDescriptions.map((desc, i) => (
+                        <span key={i} className="font-medium">{desc}{i < duplicateDescriptions.length - 1 ? ', ' : ''}</span>
+                    ))}
+                </AlertDescription>
+            </Alert>
+        )}
+
         <div className={'flex flex-col gap-2 md:grid md:grid-cols-[90px_1fr_auto_auto] md:gap-x-4 md:gap-y-2'}>
             {variants.map(variant =>
-                <VariantLine key={variant.uid} variant={variant} images={images} options={options} onChange={onChangeHandle} onDelete={() => onDeleteHandle(variant.uid)}/>
+                <VariantLine key={variant.uid} variant={variant} images={images} options={options} onChange={onChangeHandle} onDelete={() => onDeleteHandle(variant.uid)} isDuplicate={duplicateUids.has(variant.uid)}/>
             )}
         </div>
 
@@ -78,7 +129,7 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
                     onClick={onAddVariant}
                 >
                     <PlusIcon className="w-4 h-4 mr-2"/>
-                    Add variant
+                    {t('admin.products_edit.actions.add_variant')}
                 </Button>
             </div>
 
