@@ -78,7 +78,7 @@ export function ProductForm({product: defaultProduct}: {
             payload.existing_image_ids = existingImageIds;
         }
 
-        if (!isEdit && existingImageIds.length > 0) {
+        if (!isEdit && existingImageIds.length > 0 ) {
             payload.image_order = existingImageIds.map((_, i) => `existing:${i}`);
         }
 
