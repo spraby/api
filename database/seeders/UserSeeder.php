@@ -34,7 +34,7 @@ class UserSeeder extends Seeder
          */
         $user = User::where('email', 'admin@gmail.com')->first();
         if (! $user) {
-            $user = User::factory()->admin()->create([
+            $user = User::factory()->create([
                 'email' => 'admin@gmail.com',
             ]);
         }

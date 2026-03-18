@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\ProductValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\App;
 
 class StoreProductRequest extends FormRequest
 {
+    use ProductValidationRules;
+
     /**
      * Prepare the data for validation.
      */
@@ -30,20 +33,21 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'enabled' => ['required', 'boolean'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
+        return array_merge($this->baseProductRules(), [
+            // Image file uploads
+            'images' => ['nullable', 'array', 'max:50'],
+            'images.*' => ['image', 'max:10240'],
 
-            'variants' => ['required', 'array', 'min:1'],
-            'variants.*.title' => ['nullable', 'string', 'max:255'],
-            'variants.*.price' => ['required', 'numeric', 'min:0'],
-            'variants.*.final_price' => ['required', 'numeric', 'min:0'],
-            'variants.*.enabled' => ['required', 'boolean'],
-            'variants.*.values' => ['nullable', 'array'],
-            'variants.*.values.*.option_id' => ['required', 'exists:options,id'],
-            'variants.*.values.*.option_value_id' => ['required', 'exists:option_values,id'],
-        ];
+            // Attach existing images by ID
+            'existing_image_ids' => ['nullable', 'array'],
+            'existing_image_ids.*' => ['integer', 'exists:images,id'],
+
+            // Ordering: preserves mixed upload/existing sequence (e.g., 'upload:0', 'existing:0')
+            'image_order' => ['nullable', 'array'],
+            'image_order.*' => ['string', 'regex:/^(upload|existing):\d+$/'],
+
+            // Variant-to-image mapping by index into image_order
+            'variants.*.image_index' => ['nullable', 'integer', 'min:0'],
+        ]);
     }
 }

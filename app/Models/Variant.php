@@ -34,7 +34,7 @@ class Variant extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = ['product_id', 'image_id', 'title', 'price', 'final_price', 'enabled'];
 
     protected $casts = [
         'price' => 'decimal:2',

@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+
 import { usePage } from '@inertiajs/react';
 
 import type { PageProps } from '@/types/inertia';
@@ -12,7 +14,7 @@ export function useLang() {
    * Получить перевод по ключу
    * @example t('admin.nav.dashboard')
    */
-  const t = (key: string): string => {
+  const t = useCallback((key: string): string => {
     const keys = key.split('.');
     let value: unknown = lang;
 
@@ -25,13 +27,13 @@ export function useLang() {
     }
 
     return typeof value === 'string' ? value : key;
-  };
+  }, [lang]);
 
   /**
    * Получить перевод с заменой плейсхолдеров
    * @example trans('admin.welcome', { name: 'John' })
    */
-  const trans = (key: string, replacements?: Record<string, string | number>): string => {
+  const trans = useCallback((key: string, replacements?: Record<string, string | number>): string => {
     let translation = t(key);
 
     if (replacements) {
@@ -42,7 +44,7 @@ export function useLang() {
     }
 
     return translation;
-  };
+  }, [t]);
 
   return { t, trans, locale };
 }

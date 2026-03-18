@@ -17,13 +17,11 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'brand_id' => Brand::inRandomOrder()->first()?->id,
-            'category_id' => Category::inRandomOrder()->first()?->id,
+            'brand_id' => Brand::factory(),
+            'category_id' => Category::factory(),
             'title' => $this->faker->words(3, true),
             'description' => $this->faker->optional()->paragraph(),
             'enabled' => $this->faker->boolean(90),
-            'price' => $this->faker->randomFloat(2, 10, 300),
-            'final_price' => $this->faker->randomFloat(2, 5, 250),
         ];
     }
 }

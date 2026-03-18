@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Image;
 use App\Models\User;
+use App\Http\Resources\ImageResource;
 use App\Services\FileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -94,6 +95,49 @@ class MediaController extends Controller
     }
 
     /**
+     * API: Upload images and return JSON with created records
+     */
+    public function apiStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'images' => 'required|array|max:50',
+            'images.*' => 'required|image|max:10240',
+        ]);
+
+        /** @var User $user */
+        $user = auth()->user();
+        $brand = $user->brands->first();
+
+        if (! $brand) {
+            return response()->json(['message' => 'No brand associated with user'], 422);
+        }
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: "brands/{$brand->id}",
+            visibility: 'public'
+        );
+
+        $paths = $this->fileService->uploadMultiple($validated['images'], $dto);
+
+        $images = [];
+        foreach ($paths as $index => $path) {
+            $originalName = $validated['images'][$index]->getClientOriginalName();
+
+            $image = Image::create([
+                'name' => $originalName,
+                'src' => $path,
+            ]);
+
+            $images[] = $image;
+        }
+
+        return response()->json([
+            'data' => $images,
+        ]);
+    }
+
+    /**
      * Delete an image
      */
     public function destroy(Image $image): RedirectResponse
@@ -119,7 +163,7 @@ class MediaController extends Controller
     /**
      * API: Get all images as JSON
      */
-    public function apiIndex(Request $request): JsonResponse
+    public function apiIndex(Request $request)
     {
         /**
          * @var User $user
@@ -138,6 +182,12 @@ class MediaController extends Controller
             }
         }
 
+        // Exclude specific image IDs
+        if ($request->filled('exclude_ids')) {
+            $excludeIds = array_map('intval', explode(',', $request->input('exclude_ids')));
+            $query->whereNotIn('id', $excludeIds);
+        }
+
         // Apply search filter if provided
         if ($request->has('search') && $request->input('search')) {
             $search = $request->input('search');
@@ -147,18 +197,6 @@ class MediaController extends Controller
         $perPage = $request->input('per_page', 24);
         $paginated = $query->latest()->paginate($perPage);
 
-        // Transform to match frontend expected structure
-        return response()->json([
-            'data' => $paginated->items(),
-            'meta' => [
-                'current_page' => $paginated->currentPage(),
-                'from' => $paginated->firstItem(),
-                'to' => $paginated->lastItem(),
-                'last_page' => $paginated->lastPage(),
-                'path' => $paginated->path(),
-                'per_page' => $paginated->perPage(),
-                'total' => $paginated->total(),
-            ],
-        ]);
+        return ImageResource::collection($paginated);
     }
 }

@@ -240,3 +240,38 @@ export interface MediaFilters {
   page?: number;
   per_page?: number;
 }
+
+// ============================================
+// ADDRESS TYPES
+// ============================================
+
+export interface Address {
+  id: number;
+  name: string | null;
+  country: string;
+  province: string | null;
+  city: string;
+  zip_code: string | null;
+  address1: string | null;
+  address2: string | null;
+  created_at: string;
+}
+
+// ============================================
+// CONTACT TYPES
+// ============================================
+
+export type ContactType = 'email' | 'phone' | 'whatsapp' | 'telegram' | 'instagram' | 'facebook';
+
+export type ContactsMap = Partial<Record<ContactType, string>>;
+
+// ============================================
+// SHIPPING METHOD TYPES
+// ============================================
+
+export interface ShippingMethod {
+  id: number;
+  key: string;
+  name: string;
+}
+

@@ -1,10 +1,12 @@
 import {useEffect} from 'react';
 
-import {usePage} from '@inertiajs/react';
+import {Head, usePage} from '@inertiajs/react';
 import {toast} from 'sonner';
 
 import {AppSidebar} from "@/components/app-sidebar"
+import {GlobalDialog} from "@/components/global-dialog"
 import {ImpersonationBanner} from "@/components/impersonation-banner"
+import {SaveBar} from "@/components/save-bar"
 import {SiteHeader} from "@/components/site-header"
 import {
     SidebarInset,
@@ -12,7 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import type {PageProps} from '@/types/inertia';
 
-export default function Page({children}: { children: React.ReactNode, title?: string }) {
+export default function Page({children, title}: { children: React.ReactNode, title?: string }) {
     const { flash, auth } = usePage<PageProps>().props;
 
 
@@ -35,16 +37,19 @@ export default function Page({children}: { children: React.ReactNode, title?: st
 
     return (
         <SidebarProvider>
+            {!!title && <Head title={title}/>}
             <AppSidebar user={auth?.user} variant="inset"/>
             <SidebarInset>
                 {auth?.impersonator && auth?.user ? (
                     <ImpersonationBanner user={auth.user}/>
                 ) : null}
                 <SiteHeader/>
+                <SaveBar/>
                 <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                     {children}
                 </div>
             </SidebarInset>
+            <GlobalDialog/>
         </SidebarProvider>
     )
 }

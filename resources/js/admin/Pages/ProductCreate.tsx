@@ -1,21 +1,20 @@
-import {router} from '@inertiajs/react';
-import {ArrowLeftIcon} from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { ArrowLeftIcon } from 'lucide-react';
 
-import {ProductForm} from "@/components/product-form.tsx";
-import {Button} from '@/components/ui/button';
-import {useLang} from '@/lib/lang';
-import type {Product} from "@/types/models.ts";
+import {ProductForm} from "@/components/product-form";
+import { Button } from '@/components/ui/button';
+import { useLang } from '@/lib/lang';
+import type {Product} from "@/types/data";
 
 import AdminLayout from '../layouts/AdminLayout';
 
 export default function ProductCreate({product}: { product: Product }) {
-    const {t} = useLang();
+    const { t } = useLang();
 
     return (
-        <AdminLayout title={t('admin.products_edit.title')}>
+        <AdminLayout title={t('admin.products_create.title')}>
             <div className="flex items-center flex-col gap-5">
-                <div
-                    className="max-w-[1200px] min-w-[1200px] @container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
+                <div className="w-full @container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -27,14 +26,14 @@ export default function ProductCreate({product}: { product: Product }) {
                                         router.visit('/admin/products');
                                     }}
                                 >
-                                    <ArrowLeftIcon className="size-4"/>
+                                    <ArrowLeftIcon className="size-4" />
                                 </Button>
                                 <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-                                    {t('admin.products_edit.title')}
+                                    {t('admin.products_create.title')}
                                 </h1>
                             </div>
                             <p className="pl-10 text-sm text-muted-foreground">
-                                {t('admin.products_edit.description')}
+                                {t('admin.products_create.description')}
                             </p>
                         </div>
                     </div>

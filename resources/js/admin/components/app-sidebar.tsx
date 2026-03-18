@@ -178,7 +178,7 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
         navSecondary: [
             {
                 title: t('admin.nav.settings'),
-                url: "#",
+                url: "/admin/settings",
                 icon: SettingsIcon,
             },
         ],

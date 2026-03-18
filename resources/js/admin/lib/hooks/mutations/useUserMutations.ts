@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import {
   bulkDeleteUsers,
   bulkUpdateUserRoles,
-  createUser,
   deleteUser,
   updateUser,
 } from '@/lib/api/endpoints/users';
@@ -22,7 +21,6 @@ import { userKeys } from '@/lib/api/query-keys';
 import type {
   BulkDeleteUsersRequest,
   BulkUpdateUserRolesRequest,
-  CreateUserRequest,
   UpdateUserRequest,
   User,
 } from '@/types/api';
@@ -31,34 +29,6 @@ import type {
   UseMutationOptions,
   UseMutationResult} from '@tanstack/react-query';
 
-
-// ============================================
-// CREATE USER
-// ============================================
-
-export function useCreateUser(
-  options?: Omit<
-    UseMutationOptions<User, ApiError, CreateUserRequest>,
-    'mutationFn'
-  >
-): UseMutationResult<User, ApiError, CreateUserRequest> {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    ...options,
-    mutationFn: createUser,
-    onSuccess: (data, variables, context) => {
-      // Invalidate users list to refetch
-      void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-      toast.success('User created successfully');
-      // Call user's custom onSuccess if provided
-      if (options?.onSuccess) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (options.onSuccess as any)(data, variables, context);
-      }
-    },
-  });
-}
 
 // ============================================
 // UPDATE USER

@@ -1,26 +1,21 @@
-import {router} from '@inertiajs/react';
-import {ArrowLeftIcon, ExternalLinkIcon} from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { ArrowLeftIcon } from 'lucide-react';
 
-import {ProductForm} from "@/components/product-form.tsx";
-import {Button} from '@/components/ui/button';
-import {useLang} from '@/lib/lang';
-import type {Product} from "@/types/models.ts";
+import {ProductForm} from "@/components/product-form";
+import { Button } from '@/components/ui/button';
+import { useLang } from '@/lib/lang';
+import type {Product} from "@/types/data";
 
 import AdminLayout from '../layouts/AdminLayout';
 
-interface ProductEditProps {
-    product: Product;
-    errors: string[]
-}
-
-export default function ProductEdit({product}: ProductEditProps) {
-    const {t} = useLang();
+export default function ProductEdit({product}: { product: Product }) {
+    const { t } = useLang();
+    const pageTitle = product.id ? t('admin.products_edit.title') : t('admin.products_create.title');
 
     return (
-        <AdminLayout title={t('admin.products_edit.title')}>
+        <AdminLayout title={pageTitle}>
             <div className="flex items-center flex-col gap-5">
-                <div
-                    className="max-w-[1200px] w-full @container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
+                <div className="w-full @container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -32,29 +27,17 @@ export default function ProductEdit({product}: ProductEditProps) {
                                         router.visit('/admin/products');
                                     }}
                                 >
-                                    <ArrowLeftIcon className="size-4"/>
+                                    <ArrowLeftIcon className="size-4" />
                                 </Button>
                                 <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-                                    {t('admin.products_edit.title')}
+                                    {pageTitle}
                                 </h1>
                             </div>
                             <p className="pl-10 text-sm text-muted-foreground">
-                                {t('admin.products_edit.description')}
+                                {product.id ? t('admin.products_edit.description') : t('admin.products_create.description')}
                             </p>
-                            {product.externalUrl ? (
-                                <a
-                                    className="pl-10 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground underline"
-                                    href={product.externalUrl}
-                                    rel="noopener noreferrer"
-                                    target="_blank"
-                                >
-                                    View on store
-                                    <ExternalLinkIcon className="size-3"/>
-                                </a>
-                            ) : null}
                         </div>
                     </div>
-
                     <ProductForm product={product}/>
                 </div>
             </div>

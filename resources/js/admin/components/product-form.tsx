@@ -1,430 +1,223 @@
-/**
- * Variant Option Selector Component
- *
- * Allows selecting option values for a product variant based on category options
- */
-import {type FormEventHandler, useCallback, useEffect, useMemo, useRef} from "react";
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {ProductBasicFieldsCard} from '@/components/product-basic-fields-card';
+import {ProductImagesCard} from '@/components/product-images-card';
+import {ProductSummaryCard} from '@/components/product-summary-card';
+import type {Product, ProductImage, Variant} from '@/types/data';
+import {v4 as uuidv4} from 'uuid';
+import {CategoryVariantsGenerator} from "@/components/category-variants-generator.tsx";
+import {VariantList} from "@/components/variant-list.tsx";
+import {router} from '@inertiajs/react';
+import {useSaveBar} from '@/stores/save-bar';
+import {isEqual} from 'lodash-es';
 
-import {useForm, router} from '@inertiajs/react';
-import isEqual from 'lodash-es/isEqual';
-import {toast} from "sonner";
 
+export function ProductForm({product: defaultProduct}: {
+    product: Product
+}) {
+    const isEdit = !!defaultProduct.id;
+    const categories = defaultProduct.brand?.categories ?? [];
 
-import {ProductImagesManager} from "@/components/product-images-manager.tsx";
-import {ProductVariantList} from "@/components/product-variant-list.tsx";
-import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import {Card} from "@/components/ui/card.tsx";
-import {Checkbox} from '@/components/ui/checkbox';
-import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
-import {RichTextEditor} from '@/components/ui/rich-text-editor';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {UnsavedChangesBar} from "@/components/unsaved-changes-bar.tsx";
-import {useLang} from '@/lib/lang';
-import {VariantService} from '@/services/variant-service';
-import type {Product, ProductImage, Variant} from "@/types/models.ts";
-
-// Simplified variant type for form data (excludes nested relations that cause FormDataType issues)
-interface FormVariant {
-    id?: number;
-    _tempId?: string;
-    product_id: number;
-    image_id: number | null;
-    title: string | null;
-    price: string;
-    final_price: string;
-    enabled: boolean;
-    values?: {
-        variant_id?: number;
-        option_id: number;
-        option_value_id: number;
-    }[];
-}
-
-// Form-specific type that only includes editable fields to avoid Inertia FormDataType issues
-// with deeply nested relations (brand.settings[].data: Record<string, unknown>)
-interface ProductFormData {
-    id?: number;
-    brand_id: number;
-    category_id: number | null;
-    title: string;
-    description: string | null;
-    enabled: boolean;
-    variants: FormVariant[];
-}
-
-// Read-only data passed from server (not part of form submission)
-interface ProductReadOnlyData {
-    images: ProductImage[];
-    externalUrl?: string;
-}
-
-// Convert full Variant to simplified FormVariant
-function toFormVariant(variant: Variant): FormVariant {
-    return {
-        id: variant.id,
-        product_id: variant.product_id,
-        image_id: variant.image_id,
-        title: variant.title,
-        price: variant.price,
-        final_price: variant.final_price,
-        enabled: variant.enabled,
-        values: variant.values?.map(v => ({
-            variant_id: v.variant_id,
-            option_id: v.option_id,
-            option_value_id: v.option_value_id,
-        })),
-    };
-}
-
-// Convert full Variant array to FormVariant array
-function toFormVariants(variants?: Variant[]): FormVariant[] {
-    return (variants ?? []).map(toFormVariant);
-}
-
-export function ProductForm({product: defaultProduct}: { product: Product }) {
-    const {t} = useLang();
-
-    const initialFormData: ProductFormData = {
-        id: defaultProduct.id,
-        brand_id: defaultProduct.brand_id,
-        category_id: defaultProduct.category_id,
-        title: defaultProduct.title,
-        description: defaultProduct.description,
-        enabled: defaultProduct.enabled,
-        variants: toFormVariants(defaultProduct.variants),
-    };
-
-    // Read-only data (kept outside form state, updated on server response)
-    const readOnlyDataRef = useRef<ProductReadOnlyData>({
-        images: defaultProduct.images ?? [],
-        externalUrl: defaultProduct.externalUrl,
-    });
-
-    const {data: formData, setData, errors, put, post, processing, reset} = useForm<ProductFormData>(initialFormData);
-    const isEditMode = useMemo(() => !!formData?.id, [formData?.id]);
-    const brandCategories = useMemo(() => defaultProduct?.brand?.categories ?? [], [defaultProduct?.brand?.categories]);
-    const category = useMemo(() => {
-        if (!brandCategories?.length) {return null;}
-        if (formData?.category_id) {
-            return brandCategories.find(i => i.id === formData.category_id);
-        }
-
-        return brandCategories[0]
-    }, [formData, brandCategories])
-
-    // Track saved state for unsaved changes detection
-    const savedDataRef = useRef<ProductFormData>(initialFormData);
-    // Track if description has been normalized by the rich text editor
-    const descriptionNormalizedRef = useRef(false);
-    const hasUnsavedChanges = useMemo(() => {
-        // Compare only editable fields to avoid false positives from computed properties
-        const editableFields = ['title', 'description', 'enabled', 'category_id', 'variants'] as const;
-        const currentData = editableFields.reduce<Record<string, unknown>>((acc, key) => ({...acc, [key]: formData[key]}), {});
-        const savedData = editableFields.reduce<Record<string, unknown>>((acc, key) => ({...acc, [key]: savedDataRef.current[key]}), {});
-
-        const hasChanges = !isEqual(currentData, savedData);
-
-        // Debug
-        if (hasChanges) {
-            console.log('hasUnsavedChanges:', {
-                currentData,
-                savedData,
-                descriptionNormalized: descriptionNormalizedRef.current,
-                descriptionEqual: currentData['description'] === savedData['description'],
-            });
-        }
-
-        return hasChanges;
-    }, [formData]);
-
-    // Check for duplicate variants
-    const hasDuplicateVariants = useMemo(() => {
-        const duplicateGroups = VariantService.findDuplicateGroups(formData.variants ?? []);
-
-        return duplicateGroups.length > 0;
-    }, [formData.variants]);
-
-    // Track if variant values have been initialized to prevent overwriting user changes
-    const variantsInitialized = useRef(false);
+    const [product, setProduct] = useState<Product>(defaultProduct)
+    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
-        if (!formData?.category_id && !!category?.id) {
-            setData('category_id', category.id);
-            savedDataRef.current = {...savedDataRef.current, category_id: category.id};
-        }
-    }, [formData?.category_id, category?.id, setData]);
+        setProduct(defaultProduct);
+        setErrors({});
+    }, [defaultProduct]);
 
-    // Auto-generate variant values ONLY on initial load (not on every change)
-    useEffect(() => {
-        // Skip if already initialized or no data
-        if (variantsInitialized.current || !category?.options?.length || !formData?.variants?.length) {
-            return;
-        }
+    const hasChanges = useMemo(() => {
+        return !isEqual(product, defaultProduct);
+    }, [product, defaultProduct]);
 
-        let hasChanges = false;
+    const images = useMemo(() => product.images ?? [], [product.images]);
+    const variants = useMemo(() => product.variants ?? [], [product.variants]);
 
-        const updatedVariants = formData.variants.map((variant, index) => {
-            // Skip variants that already have an ID (existing variants)
-            if (variant?.id) {
-                return variant;
+    const onChange = useCallback((value: any) => {
+        setProduct(v => ({...v, ...value}));
+    }, []);
+
+    const addUniqueImages = useCallback((existingImages: ProductImage[], newImages: ProductImage[]) => {
+        const existingIds = new Set(existingImages.map(i => i.image_id));
+        const unique = newImages.filter(img => !existingIds.has(img.image_id));
+        return unique.length > 0 ? [...existingImages, ...unique] : existingImages;
+    }, []);
+
+    const buildPayload = useCallback(() => {
+        const existingImageIds = images.map(pi => pi.image_id);
+
+        const variantPayloads = variants.map(v => {
+            let imageIndex: number | null = null;
+            if (v.image?.image_id) {
+                const idx = images.findIndex(pi => pi.image_id === v.image!.image_id);
+                if (idx >= 0) imageIndex = idx;
             }
 
-            // Skip variants that already have values (user might have set them)
-            if (variant.values && variant.values.length > 0) {
-                return variant;
-            }
-
-            // Get all other variants (excluding current one being processed)
-            const otherVariants = (formData.variants ?? []).filter((_, i) => i !== index);
-
-            // Generate first unique combination for this variant
-            const generatedValues = VariantService.generateVariantValues(
-                category.options ?? [],
-                otherVariants
-            );
-
-            // If no available combinations, keep variant as is
-            if (!generatedValues) {
-                return variant;
-            }
-
-            hasChanges = true;
-
-            return { ...variant, values: generatedValues };
+            return {
+                ...(isEdit && v.id ? {id: v.id} : {}),
+                title: v.title ?? '',
+                price: Number(v.price) || 0,
+                final_price: Number(v.final_price) || 0,
+                enabled: v.enabled ?? true,
+                image_index: imageIndex,
+                values: (v.values ?? []).map(val => ({
+                    option_id: val.option_id!,
+                    option_value_id: val.option_value_id ?? val.value?.id,
+                })).filter(val => val.option_id && val.option_value_id),
+            };
         });
 
-        if (hasChanges) {
-            setData('variants', updatedVariants);
-            // Also update savedDataRef so auto-generated values don't trigger unsaved changes
-            savedDataRef.current = {...savedDataRef.current, variants: updatedVariants};
-            variantsInitialized.current = true; // Mark as initialized
-        }
-    }, [category, formData.variants, setData]);
+        const payload: Record<string, any> = {
+            title: product.title,
+            description: product.description,
+            enabled: product.enabled,
+            category_id: product.category?.id ?? product.category_id,
+        };
 
-    /**
-     * Handle form submission with duplicate validation
-     */
-    const submitForm = useCallback(() => {
-        // Prevent saving if there are duplicate variants
-        if (hasDuplicateVariants) {
-            toast.error(t('admin.products_edit.errors.duplicate_variants'));
-
-            return;
+        if (existingImageIds.length > 0) {
+            payload.existing_image_ids = existingImageIds;
         }
 
-        if (formData?.id) {
-            put(route('admin.products.update', formData.id), {
-                preserveScroll: true,
-                onSuccess: (page) => {
-                    const updatedProduct = page.props['product'] as Product;
-                    const updatedFormData: ProductFormData = {
-                        id: updatedProduct.id,
-                        brand_id: updatedProduct.brand_id,
-                        category_id: updatedProduct.category_id,
-                        title: updatedProduct.title,
-                        description: updatedProduct.description,
-                        enabled: updatedProduct.enabled,
-                        variants: toFormVariants(updatedProduct.variants),
-                    };
+        if (!isEdit && existingImageIds.length > 0 ) {
+            payload.image_order = existingImageIds.map((_, i) => `existing:${i}`);
+        }
 
-                    // Update read-only data
-                    readOnlyDataRef.current = {
-                        images: updatedProduct.images ?? [],
-                        externalUrl: updatedProduct.externalUrl,
-                    };
+        if (variantPayloads.length > 0) {
+            payload.variants = variantPayloads;
+        }
 
-                    setData(updatedFormData);
-                    savedDataRef.current = updatedFormData;
+        return payload;
+    }, [product, images, variants, isEdit]);
+
+    const handleSubmit = useCallback((): Promise<boolean> => {
+        const payload = buildPayload();
+
+        setSubmitting(true);
+
+        return new Promise<boolean>((resolve) => {
+            const callbacks = {
+                onError: (err: Record<string, string>) => {
+                    setErrors(err);
+                    resolve(false);
                 },
-            });
-        } else {
-            post(route('admin.products.store'));
-        }
-    }, [hasDuplicateVariants, t, formData?.id, put, setData, post]);
+                onSuccess: () => resolve(true),
+                onFinish: () => setSubmitting(false),
+            };
 
-    const onSubmit: FormEventHandler = (e) => {
-        e.preventDefault();
-        submitForm();
-    }
+            if (isEdit && product.id) {
+                router.put(route('admin.products.update', product.id), payload, callbacks);
+            } else {
+                router.post(route('admin.products.store'), payload, callbacks);
+            }
+        });
+    }, [buildPayload, isEdit, product.id]);
 
-    /**
-     * Discard unsaved changes
-     */
     const handleDiscard = useCallback(() => {
-        reset();
-        setData(savedDataRef.current);
-    }, [reset, setData]);
+        setProduct(defaultProduct);
+        setErrors({});
+    }, [defaultProduct]);
 
-    return <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
-            <div className="col-span-1 md:col-span-9">
-                <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
-                    <div className="col-span-12 gap-2 flex flex-col">
-                        <Label className="flex items-center gap-1" htmlFor="title">
-                            {t('admin.products_edit.fields.title')}
-                            <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                            required
-                            id="title"
-                            placeholder={t('admin.products_edit.placeholders.title')}
-                            type="text"
-                            value={formData.title}
-                            onChange={e => setData('title', e.target.value)}
-                            className={errors.title ? 'border-destructive' : ''}
-                        />
-                        {!!errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
-                    </div>
-                    <div className="col-span-12 gap-2 flex flex-col">
-                        <Label
-                            htmlFor="description">{t('admin.products_edit.fields.description')}</Label>
-                        <RichTextEditor
-                            placeholder={t('admin.products_edit.placeholders.description')}
-                            value={formData.description ?? ''}
-                            onChange={v => {
-                                // On first change, update savedDataRef with normalized HTML
-                                // to avoid false positive unsaved changes detection
-                                if (!descriptionNormalizedRef.current) {
-                                    descriptionNormalizedRef.current = true;
-                                    savedDataRef.current = {...savedDataRef.current, description: v};
-                                }
-                                setData('description', v);
-                            }}
-                        />
-                        {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
-                    </div>
-                </Card>
-            </div>
+    useSaveBar({
+        hasChanges,
+        isSaving: submitting,
+        onSave: handleSubmit,
+        onDiscard: handleDiscard,
+    });
 
-            <div className="col-span-1 md:col-span-3">
-                <Card className="flex flex-col gap-4 md:gap-5 rounded-lg border bg-card p-4 sm:p-6">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                            <Checkbox
-                                checked={formData.enabled}
-                                id="enabled"
-                                onCheckedChange={v => setData('enabled', v as boolean)}
-                            />
-                            <Label className="cursor-pointer" htmlFor="enabled">
-                                {t('admin.products_edit.fields.enabled')}
-                            </Label>
-                        </div>
-                        {!!errors.enabled && <p className="text-xs text-destructive">{errors.enabled}</p>}
-                    </div>
-                    {
-                        category?.id ?
-                            <div className="gap-2 flex flex-col">
-                                <Label htmlFor="category">{t('admin.products_edit.fields.category')}</Label>
-                                <Select
-                                    disabled={isEditMode}
-                                    value={category.id.toString()}
-                                    onValueChange={(value) => {
-                                        if (!value?.length) {
-                                            return;
-                                        }
-                                        setData('category_id', Number(value));
-                                    }}
-                                >
-                                    <SelectTrigger
-                                        id="category"
-                                        className={errors.category_id ? 'border-destructive' : ''}
-                                    >
-                                        <SelectValue placeholder={t('admin.products_edit.placeholders.category')}/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {brandCategories.map((category) => (
-                                            category?.id ?
-                                                <SelectItem key={category.id} value={category?.id.toString()}>
-                                                    {category.name}
-                                                </SelectItem> : null
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-
-
-                                {!!errors.category_id &&
-                                    <p className="text-xs text-destructive">{errors.category_id}</p>}
-                                {!isEditMode && (
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('admin.products_edit.category.locked')}
-                                    </p>
-                                )}
-
-                            </div> :
-                            <Alert variant="destructive">
-                                <AlertDescription>
-                                    {t('admin.products_edit.category.not_in_list')}
-                                </AlertDescription>
-                            </Alert>
-                    }
-                </Card>
-            </div>
-
-            {
-                !!formData?.id &&
-                <Card className="col-span-9 p-4 sm:p-6">
-                    <ProductImagesManager
-                        disabled={processing}
-                        images={readOnlyDataRef.current.images}
-                        productId={formData.id}
-                    />
-                </Card>
-            }
-            {
-                (!!formData?.variants?.length) && <ProductVariantList
-                    product={{
-                        id: formData.id,
-                        variants: formData.variants,
-                        images: readOnlyDataRef.current.images,
+    return (
+        <div
+            className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_340px]"
+        >
+            <div className="flex flex-col gap-4">
+                <ProductBasicFieldsCard
+                    title={product.title}
+                    description={product.description}
+                    errors={errors}
+                    onChange={(field, value) => {
+                        onChange({[field]: value})
                     }}
-                    onUpdate={v => {
-                        setData('variants', [...v])
-                    }}
-                    options={category?.options ?? []}
                 />
-            }
 
+                {
+                    !product?.id &&
+                    <CategoryVariantsGenerator
+                        categories={categories}
+                        onSetCategory={category => onChange({category})}
+                        onGenerate={(combinations) => {
+                            const newVariants: Variant[] = combinations.map(optionValues => ({
+                                uid: uuidv4(),
+                                title: optionValues.slice().sort((a, b) => a.position - b.position).map(v => v.value).join(' / '),
+                                price: 0,
+                                final_price: 0,
+                                enabled: true,
+                                values: optionValues.map(i => ({
+                                    uid: uuidv4(),
+                                    option_id: i.option_id,
+                                    option_value_id: i.id ?? undefined,
+                                    value: {
+                                        uid: uuidv4(),
+                                        id: i.id ?? undefined,
+                                        value: i.value,
+                                        position: i.position
+                                    }
+                                })),
+                            }));
+                            onChange({variants: newVariants})
+                        }}
+                    />
+                }
+
+                <VariantList
+                    variants={variants}
+                    images={images}
+                    options={product?.category?.options ?? []}
+                    onChange={(updatedVariants) => {
+                        const variantImages = updatedVariants
+                            .map(v => v.image)
+                            .filter((img): img is ProductImage => !!img);
+                        onChange({variants: updatedVariants, images: addUniqueImages(images, variantImages)});
+                    }}
+                />
+            </div>
+
+            <div className="lg:sticky lg:top-5 lg:self-start flex flex-col gap-4">
+                <ProductImagesCard
+                    product={product}
+                    isEdit={isEdit}
+                    onLibraryImagesAdd={(libraryImages) => {
+                        const newImages: ProductImage[] = libraryImages
+                            .filter(img => img.id != null)
+                            .map(img => ({
+                                uid: uuidv4(),
+                                image_id: img.id!,
+                                image: {
+                                    uid: uuidv4(),
+                                    id: img.id!,
+                                    name: img.name,
+                                    url: img.url,
+                                    alt: img.alt ?? null,
+                                },
+                            }));
+                        const merged = addUniqueImages(images, newImages);
+                        if (merged !== images) {
+                            onChange({images: merged});
+                        }
+                    }}
+                    onLibraryImageRemove={(uid) => {
+                        onChange({images: images.filter(i => i.uid !== uid)});
+                    }}
+                    onReorder={(reorderedImages) => {
+                        onChange({images: reorderedImages});
+                    }}
+                />
+
+                <ProductSummaryCard
+                    title={product.title}
+                    categoryName={product.category?.name ?? null}
+                    imagesCount={images.length}
+                    variants={variants}
+                />
+            </div>
         </div>
-
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-muted-foreground">
-                <span className="text-destructive">*</span> {t('admin.products_edit.required_fields')}
-            </p>
-            <Button
-                className="w-full sm:w-auto"
-                disabled={processing}
-                type="button"
-                variant="outline"
-                onClick={() => {
-                    router.visit(route('admin.products'));
-                }}
-            >
-                {t('admin.products_edit.actions.cancel')}
-            </Button>
-        </div>
-
-        <UnsavedChangesBar
-            dialogCancelLabel={t('admin.products_edit.unsaved.dialog.cancel')}
-            dialogDescription={t('admin.products_edit.unsaved.dialog.description')}
-            dialogDiscardLabel={t('admin.products_edit.unsaved.dialog.discard')}
-            dialogSaveLabel={t('admin.products_edit.unsaved.dialog.save')}
-            dialogTitle={t('admin.products_edit.unsaved.dialog.title')}
-            discardLabel={t('admin.products_edit.actions.discard')}
-            hasChanges={hasUnsavedChanges}
-            isSaving={processing}
-            message={t('admin.products_edit.unsaved.message')}
-            mobileMessage={t('admin.products_edit.unsaved.mobile_message')}
-            saveLabel={t('admin.products_edit.actions.save')}
-            onDiscard={handleDiscard}
-            onSave={submitForm}
-        />
-    </form>;
+    );
 }

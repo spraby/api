@@ -72,6 +72,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
                 Route::prefix('images')->group(function () {
                     Route::post('/attach', [App\Http\Controllers\Admin\ProductController::class, 'attachImages'])->name('products.images.attach');
                     Route::post('/upload', [App\Http\Controllers\Admin\ProductController::class, 'uploadImages'])->name('products.images.upload');
+                    Route::post('/api-attach', [App\Http\Controllers\Admin\ProductController::class, 'apiAttachImage'])->name('products.images.api.attach');
                     Route::delete('/{productImageId}', [App\Http\Controllers\Admin\ProductController::class, 'detachImage'])->name('products.images.detach');
                     Route::put('/reorder', [App\Http\Controllers\Admin\ProductController::class, 'reorderImages'])->name('products.images.reorder');
                 });
@@ -90,6 +91,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
                 Route::get('/edit', [App\Http\Controllers\Admin\BrandController::class, 'edit'])->name('brands.edit');
                 Route::put('/', [App\Http\Controllers\Admin\BrandController::class, 'update'])->name('brands.update');
                 Route::delete('/', [App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('brands.destroy');
+                Route::put('/shipping-methods', [App\Http\Controllers\Admin\BrandController::class, 'syncShippingMethods'])->name('brands.shipping-methods.sync');
             });
         });
 
@@ -107,6 +109,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
             Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');
             Route::get('/api', [App\Http\Controllers\Admin\MediaController::class, 'apiIndex'])->name('media.api.index');
             Route::post('/', [App\Http\Controllers\Admin\MediaController::class, 'store'])->name('media.store');
+            Route::post('/api', [App\Http\Controllers\Admin\MediaController::class, 'apiStore'])->name('media.api.store');
             Route::delete('/{image}', [App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
         });
 
@@ -157,6 +160,14 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/variants/{id}/image/api', [App\Http\Controllers\Admin\VariantController::class, 'apiSetImage'])->name('variants.api.image.set');
 
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
+
+        // Settings
+        Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings');
+        Route::post('/settings/addresses', [App\Http\Controllers\Admin\SettingsController::class, 'storeAddress'])->name('settings.addresses.store');
+        Route::put('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateAddress'])->name('settings.addresses.update');
+        Route::delete('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyAddress'])->name('settings.addresses.destroy');
+        Route::put('/settings/contacts', [App\Http\Controllers\Admin\SettingsController::class, 'updateContacts'])->name('settings.contacts.update');
+        Route::put('/settings/shipping-methods', [App\Http\Controllers\Admin\SettingsController::class, 'syncShippingMethods'])->name('settings.shipping-methods.sync');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
 

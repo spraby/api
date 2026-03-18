@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\Contracts\FileServiceInterface;
 use App\Services\FileService;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,5 +26,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        JsonResource::withoutWrapping();
     }
 }

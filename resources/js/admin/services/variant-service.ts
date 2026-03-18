@@ -1,6 +1,6 @@
 import { isEqual, sortBy } from 'lodash-es';
 
-import type { Option, OptionValue, Variant, VariantValue } from '@/types/models';
+import type { Option, OptionValue, VariantValue } from '@/types/models';
 
 /**
  * Type for variant value input (minimal required fields)
@@ -9,6 +9,14 @@ import type { Option, OptionValue, Variant, VariantValue } from '@/types/models'
 export interface VariantValueInput {
     option_id: number;
     option_value_id: number;
+}
+
+/**
+ * Minimal interface for variant-like objects accepted by VariantService.
+ * Both server Variant and client FormVariant satisfy this interface.
+ */
+export interface VariantLike {
+    values?: { option_id: number; option_value_id: number }[];
 }
 
 /**
@@ -44,7 +52,7 @@ class VariantServiceClass {
      */
     generateVariantValues(
         options: Option[],
-        existingVariants: Variant[] = []
+        existingVariants: VariantLike[] = []
     ): VariantValueInput[] | null {
         const filteredOptions = this.filterOptionsWithValues(options);
 
@@ -73,7 +81,7 @@ class VariantServiceClass {
      */
     generateVariant(
         options: Option[],
-        existingVariants: Variant[] = []
+        existingVariants: VariantLike[] = []
     ): GenerateVariantResult | null {
         const values = this.generateVariantValues(options, existingVariants);
 
@@ -96,7 +104,7 @@ class VariantServiceClass {
      */
     hasAvailableCombinations(
         options: Option[],
-        existingVariants: Variant[] = []
+        existingVariants: VariantLike[] = []
     ): boolean {
         const filteredOptions = this.filterOptionsWithValues(options);
 
@@ -157,7 +165,7 @@ class VariantServiceClass {
      */
     getCombinationStats(
         options: Option[],
-        existingVariants: Variant[] = []
+        existingVariants: VariantLike[] = []
     ): VariantCombinationStats {
         const total = this.getTotalCombinationsCount(options);
         const used = existingVariants.filter(v => v.values && v.values.length > 0).length;
@@ -221,7 +229,7 @@ class VariantServiceClass {
             }
         }
 
-        return parts.join(' / ');
+        return parts.join(' | ');
     }
 
     /**
@@ -267,7 +275,7 @@ class VariantServiceClass {
      * @param existingVariants - Array of existing variants
      * @returns true if combination exists, false otherwise
      */
-    combinationExists(values: VariantValueInput[], existingVariants: Variant[]): boolean {
+    combinationExists(values: VariantValueInput[], existingVariants: VariantLike[]): boolean {
         const existingCombinations = this.extractExistingCombinations(existingVariants);
 
         return !this.isCombinationUnique(values, existingCombinations);
@@ -280,7 +288,7 @@ class VariantServiceClass {
      * @param variants - Array of variants to search in
      * @returns Found variant or undefined
      */
-    findByValues(values: VariantValueInput[], variants: Variant[]): Variant | undefined {
+    findByValues<T extends VariantLike>(values: VariantValueInput[], variants: T[]): T | undefined {
         return variants.find(variant => this.compareValues(variant.values, values));
     }
 
@@ -291,7 +299,7 @@ class VariantServiceClass {
      * @param variants - Array of variants to check
      * @returns Array of duplicate groups (each group is array of variant indices)
      */
-    findDuplicateGroups(variants: Variant[]): number[][] {
+    findDuplicateGroups(variants: VariantLike[]): number[][] {
         const duplicateGroups: number[][] = [];
         const processedIndices = new Set<number>();
 
@@ -300,7 +308,7 @@ class VariantServiceClass {
                 continue;
             }
 
-            const currentValues = variants[i].values;
+            const currentValues = variants[i]?.values ?? [];
 
             // Skip variants without values
             if (!currentValues || currentValues.length === 0) {
@@ -314,7 +322,7 @@ class VariantServiceClass {
                     continue;
                 }
 
-                const compareValues = variants[j].values;
+                const compareValues = variants[j]?.values ?? [];
 
                 if (!compareValues || compareValues.length === 0) {
                     continue;
@@ -375,16 +383,19 @@ class VariantServiceClass {
         return options.filter(option => option.values && option.values.length > 0);
     }
 
-    private extractExistingCombinations(variants: Variant[]): VariantValue[][] {
+    private extractExistingCombinations(variants: VariantLike[]): VariantValueInput[][] {
         return variants
             .filter(variant => variant.values && variant.values.length > 0)
-            .map(variant => variant.values ?? [])
+            .map(variant => (variant.values ?? []).map(v => ({
+                option_id: v.option_id,
+                option_value_id: v.option_value_id,
+            })))
             .filter(values => values.length > 0);
     }
 
     private isCombinationUnique(
         combination: VariantValueInput[],
-        existingCombinations: VariantValue[][]
+        existingCombinations: VariantValueInput[][]
     ): boolean {
         return !existingCombinations.some(existing => this.compareValues(existing, combination));
     }
@@ -442,36 +453,3 @@ export const VariantService = new VariantServiceClass();
 // Export class for testing or extension
 export { VariantServiceClass };
 
-// ============================================================================
-// Legacy exports for backward compatibility
-// ============================================================================
-
-/**
- * @deprecated Use VariantService.generateVariantValues() instead
- */
-export const generateVariantValuesFromOptions = (
-    options: Option[],
-    existingVariants: Variant[] = []
-): VariantValueInput[] | null => {
-    return VariantService.generateVariantValues(options, existingVariants);
-};
-
-/**
- * @deprecated Use VariantService.compareValues() instead
- */
-export const compareVariantValues = (
-    values1: (VariantValue | VariantValueInput)[] | undefined,
-    values2: VariantValueInput[]
-): boolean => {
-    return VariantService.compareValues(values1, values2);
-};
-
-/**
- * @deprecated Use VariantService.hasAvailableCombinations() instead
- */
-export const hasAvailableVariantCombinations = (
-    options: Option[],
-    existingVariants: Variant[] = []
-): boolean => {
-    return VariantService.hasAvailableCombinations(options, existingVariants);
-};

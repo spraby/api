@@ -8,15 +8,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductListResource;
+use App\Http\Resources\ProductResource;
 use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Product;
+use App\Models\Variant;
 use App\Models\ProductImage;
 use App\Models\User;
-use App\Models\Variant;
 use App\Services\FileService;
+use App\Services\VariantService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -69,30 +74,27 @@ class ProductController extends Controller
         $brand = $user->getBrand();
 
         if (!$brand) {
-            return Inertia::render('ProductEdit', [
+            return Inertia::render('ProductCreate', [
                 'errors' => ['No brand associated with user']
             ]);
         }
 
         $brand->load('categories.options.values');
 
-        $product = [
+        $product = new Product([
             'brand_id' => $brand->id,
             'category_id' => null,
             'title' => '',
             'description' => '',
             'enabled' => false,
-            'brand' => $brand->toArray(),
-            'variants' => [[
-                'title' => '',
-                'price' => 0,
-                'final_price' => 0,
-                'enabled' => false,
-            ]],
-        ];
+        ]);
+
+        $product->setRelation('brand', $brand);
+        $product->setRelation('variants', collect());
+        $product->setRelation('images', collect());
 
         return Inertia::render('ProductCreate', [
-            'product' => $product,
+            'product' => ProductResource::make($product)->resolve(),
         ]);
     }
 
@@ -137,7 +139,7 @@ class ProductController extends Controller
         ]);
 
         return Inertia::render('ProductEdit', [
-            'product' => $product,
+            'product' => ProductResource::make($product)->resolve(),
         ]);
     }
 
@@ -167,69 +169,39 @@ class ProductController extends Controller
                 abort(403, 'Unauthorized');
             }
 
-            // Update product
-            $product->update([
-                'title' => $request->input('title'),
-                'description' => $request->input('description'),
-                'enabled' => $request->input('enabled'),
-                'category_id' => $request->input('category_id'),
-            ]);
+            DB::transaction(function () use ($request, $product, $brand) {
+                // Update product
+                $product->update([
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                    'enabled' => $request->input('enabled'),
+                    'category_id' => $request->input('category_id'),
+                ]);
 
-            // Reload the product with variants
-            $product->load('variants');
-
-            // Get existing variant IDs
-            $existingVariantIds = $product->variants->pluck('id')->toArray();
-            $submittedVariantIds = [];
-
-            // Update or create variants
-            foreach ($request->input('variants') as $variantData) {
-                if (isset($variantData['id']) && in_array($variantData['id'], $existingVariantIds)) {
-                    // Update existing variant
-                    $variant = $product->variants()->where('id', $variantData['id'])->first();
-
-                    if ($variant) {
-                        $variant->update([
-                            'title' => $variantData['title'] ?? null,
-                            'price' => $variantData['price'],
-                            'final_price' => $variantData['final_price'],
-                            'enabled' => $variantData['enabled'],
-                        ]);
-                        $submittedVariantIds[] = $variantData['id'];
-                    }
-                } else {
-
-                    // Create new variant
-                    $variant = Variant::create([
-                        'product_id' => $product->id,
-                        'title' => $variantData['title'] ?? null,
-                        'price' => $variantData['price'],
-                        'final_price' => $variantData['final_price'],
-                        'enabled' => $variantData['enabled'],
-                    ]);
-                    $submittedVariantIds[] = $variant->id;
+                // Sync product images if provided
+                $existingImageIds = $request->input('existing_image_ids');
+                if (is_array($existingImageIds)) {
+                    $this->syncProductImages($product, $existingImageIds);
                 }
 
-                // Sync variant values
-                if ($variant && isset($variantData['values']) && is_array($variantData['values'])) {
-                    // Delete existing values
-                    $variant->values()->delete();
+                // Sync variants
+                $variants = $request->input('variants');
 
-                    // Create new values
-                    foreach ($variantData['values'] as $valueData) {
-                        $variant->values()->create([
-                            'option_id' => $valueData['option_id'],
-                            'option_value_id' => $valueData['option_value_id'],
-                        ]);
+                // If image_index is used (same format as store), resolve to image_id
+                $productImages = $product->images()->orderBy('position')->get();
+                foreach ($variants as &$variant) {
+                    if (isset($variant['image_index']) && $variant['image_index'] !== null) {
+                        $pi = $productImages->get($variant['image_index']);
+                        if ($pi) {
+                            $variant['image_id'] = $pi->id;
+                        }
                     }
+                    unset($variant['image_index']);
                 }
-            }
+                unset($variant);
 
-            // Delete variants that were removed
-            $variantsToDelete = array_diff($existingVariantIds, $submittedVariantIds);
-            if (!empty($variantsToDelete)) {
-                Variant::whereIn('id', $variantsToDelete)->delete();
-            }
+                app(VariantService::class)->syncVariants($product, $variants);
+            });
 
             $product->refresh()->load('variants');
 
@@ -242,6 +214,29 @@ class ProductController extends Controller
     }
 
     /**
+     * Sync product images: keep only the given image IDs in order.
+     */
+    private function syncProductImages(Product $product, array $imageIds): void
+    {
+        // Remove images no longer in the list
+        $product->images()->whereNotIn('image_id', $imageIds)->delete();
+
+        // Ensure all image_ids are attached with correct position
+        $position = 0;
+        foreach ($imageIds as $imageId) {
+            $existing = $product->images()->where('image_id', $imageId)->first();
+            if ($existing) {
+                $existing->updateQuietly(['position' => ++$position]);
+            } else {
+                $product->images()->create([
+                    'image_id' => (int) $imageId,
+                    'position' => ++$position,
+                ]);
+            }
+        }
+    }
+
+    /**
      * @param StoreProductRequest $request
      * @return RedirectResponse
      */
@@ -250,10 +245,7 @@ class ProductController extends Controller
         $this->authorize('create', Product::class);
 
         try {
-            /**
-             * @var User $user
-             * @var Brand $brand
-             */
+            /** @var User $user */
             $user = auth()->user();
             $brand = $user->getBrand();
 
@@ -261,39 +253,118 @@ class ProductController extends Controller
                 return Redirect::back()->with('error', 'Brand not found');
             }
 
-            // Create product
-            $product = Product::create([
-                'title' => $request->input('title'),
-                'description' => $request->input('description'),
-                'enabled' => $request->input('enabled'),
-                'category_id' => $request->input('category_id'),
-                'brand_id' => $brand->id,
-            ]);
-
-            // Create variants
-            foreach ($request->input('variants') as $variantData) {
-                $variant = $product->variants()->create([
-                    'title' => $variantData['title'] ?? null,
-                    'price' => $variantData['price'],
-                    'final_price' => $variantData['final_price'],
-                    'enabled' => $variantData['enabled'],
+            $product = DB::transaction(function () use ($request, $brand) {
+                // 1. Create product
+                $product = Product::create([
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                    'enabled' => $request->input('enabled'),
+                    'category_id' => $request->input('category_id'),
+                    'brand_id' => $brand->id,
                 ]);
 
-                // Create variant values
-                if (isset($variantData['values']) && is_array($variantData['values'])) {
-                    foreach ($variantData['values'] as $valueData) {
-                        $variant->values()->create([
-                            'option_id' => $valueData['option_id'],
-                            'option_value_id' => $valueData['option_value_id'],
-                        ]);
-                    }
-                }
-            }
+                // 2. Process images if provided
+                $imageIndexToProductImageId = $this->processStoreImages($request, $product, $brand);
 
-            return redirect()->route('admin.products.edit', $product->id)->with('success', 'Product created successfully');
+                // 3. Map image_index → image_id on variants
+                $variants = $request->input('variants');
+                if (!empty($imageIndexToProductImageId)) {
+                    foreach ($variants as &$variant) {
+                        if (isset($variant['image_index']) && isset($imageIndexToProductImageId[$variant['image_index']])) {
+                            $variant['image_id'] = $imageIndexToProductImageId[$variant['image_index']];
+                        }
+                        unset($variant['image_index']);
+                    }
+                    unset($variant);
+                }
+
+                Log::info('[ProductController.store] Variants before create', [
+                    'variants' => collect($variants)->map(fn ($v) => [
+                        'title' => $v['title'] ?? null,
+                        'image_index' => $v['image_index'] ?? 'NOT SET',
+                        'image_id' => $v['image_id'] ?? 'NOT SET',
+                    ])->toArray(),
+                ]);
+
+                // 4. Create variants
+                app(VariantService::class)->createVariants($product, $variants);
+
+                return $product;
+            });
+
+            return redirect()->route('admin.products.edit', $product->id)
+                ->with('success', 'Product created successfully');
         } catch (\Exception $e) {
+            Log::error('[ProductController.store] Failed to create product', [
+                'error' => $e->getMessage(),
+            ]);
             return Redirect::back()->with('error', 'Failed to create product: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Process uploaded and existing images during product creation.
+     * Returns a mapping of image_order index → ProductImage.id.
+     */
+    private function processStoreImages(StoreProductRequest $request, Product $product, Brand $brand): array
+    {
+        $imageOrder = $request->input('image_order', []);
+        if (empty($imageOrder)) {
+            return [];
+        }
+
+        $uploadedFiles = $request->file('images', []);
+        $existingImageIds = $request->input('existing_image_ids', []);
+
+        $fileService = app(FileService::class);
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: "brands/{$brand->id}",
+            visibility: 'public'
+        );
+
+        $mapping = [];
+        $position = 0;
+
+        foreach ($imageOrder as $index => $orderEntry) {
+            [$type, $typeIndex] = explode(':', $orderEntry);
+            $typeIndex = (int) $typeIndex;
+
+            if ($type === 'upload' && isset($uploadedFiles[$typeIndex])) {
+                $file = $uploadedFiles[$typeIndex];
+                $path = $fileService->upload($file, $dto);
+
+                $image = Image::create([
+                    'name' => $file->getClientOriginalName(),
+                    'src' => $path,
+                    'brand_id' => $brand->id,
+                ]);
+
+                $productImage = $product->images()->create([
+                    'image_id' => $image->id,
+                    'position' => ++$position,
+                ]);
+
+                $mapping[$index] = $productImage->id;
+            } elseif ($type === 'existing' && isset($existingImageIds[$typeIndex])) {
+                $imageId = (int) $existingImageIds[$typeIndex];
+
+                $productImage = $product->images()->create([
+                    'image_id' => $imageId,
+                    'position' => ++$position,
+                ]);
+
+                $mapping[$index] = $productImage->id;
+            }
+        }
+
+        Log::info('[ProductController.store] Images processed', [
+            'product_id' => $product->id,
+            'total_images' => count($mapping),
+            'mapping' => $mapping,
+        ]);
+
+        return $mapping;
     }
 
     /**
@@ -399,6 +470,73 @@ class ProductController extends Controller
     // ========================================
     // INERTIA PRODUCT IMAGES METHODS
     // ========================================
+
+    /**
+     * API (JSON): Attach a single existing image to a product and return the created ProductImage.
+     * Used by variant image picker when user selects from media library.
+     */
+    public function apiAttachImage(Request $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', Product::class);
+
+        $request->validate([
+            'image_id' => 'required|integer|exists:images,id',
+        ]);
+
+        try {
+            /**
+             * @var User $user
+             * @var Brand $brand
+             */
+            $user = auth()->user();
+            $brand = $user->getBrand();
+
+            if (!$brand || $product->brand_id !== $brand->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $imageId = (int) $request->input('image_id');
+
+            // Return existing product_image if image already attached
+            $productImage = ProductImage::where('product_id', $product->id)
+                ->where('image_id', $imageId)
+                ->first();
+
+            if (!$productImage) {
+                $maxPosition = $product->images()->max('position') ?? 0;
+                $productImage = $product->images()->create([
+                    'image_id' => $imageId,
+                    'position' => $maxPosition + 1,
+                ]);
+            }
+
+            $productImage->load('image');
+
+            Log::info('[ProductController.apiAttachImage] image attached', [
+                'product_id'       => $product->id,
+                'image_id'         => $imageId,
+                'product_image_id' => $productImage->id,
+            ]);
+
+            return response()->json([
+                'id'    => $productImage->id,
+                'image' => [
+                    'id'  => $productImage->image->id,
+                    'url' => $productImage->image->url,
+                    'name' => $productImage->image->name,
+                    'alt' => $productImage->image->alt,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[ProductController.apiAttachImage] failed', [
+                'product_id' => $product->id,
+                'image_id'   => $request->input('image_id'),
+                'error'      => $e->getMessage(),
+            ]);
+
+            return response()->json(['message' => 'Failed to attach image: ' . $e->getMessage()], 422);
+        }
+    }
 
     /**
      * Inertia: Attach images to product

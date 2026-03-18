@@ -1,274 +1,481 @@
-// Base types
-export interface BaseModel {
-    id?: number;
-    created_at?: string;
-    updated_at?: string;
-}
+/**
+ * Domain Model Types
+ *
+ * Generated from Laravel Eloquent models (app/Models/)
+ * These represent the database entities and their relationships.
+ */
 
-// ============================================================================
-// User & Auth
-// ============================================================================
+// ============================================
+// ENUMS & UNION TYPES
+// ============================================
 
-export interface User extends BaseModel {
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-    email_verified_at?: string | null;
-    brands?: Brand[];
-    roles?: Role[];
-    // Computed accessors
-    name?: string; // accessor: returns first_name
-}
+export type UserRole = 'admin' | 'manager';
 
-export interface Role extends BaseModel {
-    name: string;
-    guard_name: string;
-    permissions?: Permission[];
-}
-
-export interface Permission extends BaseModel {
-    name: string;
-    guard_name: string;
-}
-
-// ============================================================================
-// Brand
-// ============================================================================
-
-export interface Brand extends BaseModel {
-    user_id: number | null;
-    name: string;
-    description?: string | null;
-    // Relations
-    user?: User | null;
-    categories?: Category[];
-    products?: Product[];
-    settings?: BrandSettings[];
-    orders?: Order[];
-    images?: Image[];
-}
-
-export type BrandSettingsType = 'refund' | 'addresses' | 'delivery' | 'phones' | 'emails' | 'socials';
-
-export interface BrandSettings extends BaseModel {
-    brand_id: number;
-    type: BrandSettingsType;
-    data: Record<string, unknown>;
-    brand?: Brand;
-}
-
-// ============================================================================
-// Product & Variants
-// ============================================================================
-
-export interface Product extends BaseModel {
-    brand_id: number;
-    category_id: number | null;
-    title: string;
-    description: string | null;
-    enabled: boolean;
-    price: string; // decimal:2 -> string
-    final_price: string; // decimal:2 -> string
-    // Relations
-    brand?: Brand;
-    category?: Category | null;
-    variants?: Variant[];
-    images?: ProductImage[];
-    orderItems?: OrderItem[];
-    // Computed accessors
-    externalUrl?: string; // computed: store URL + product ID
-    mainImage?: ProductImage | null; // computed: first image by position
-    discount?: number; // computed: percentage discount
-}
-
-export interface Variant extends BaseModel {
-    product_id: number;
-    image_id: number | null;
-    title: string | null;
-    price: string; // decimal:2 -> string
-    final_price: string; // decimal:2 -> string
-    enabled: boolean;
-    // Relations
-    product?: Product;
-    image?: ProductImage | null;
-    values?: VariantValue[];
-    orderItems?: OrderItem[];
-    // Computed accessors
-    discount?: number; // computed: percentage discount
-}
-
-export interface VariantValue extends BaseModel {
-    variant_id?: number;
-    option_id: number;
-    option_value_id: number;
-    variant?: Variant;
-    option?: Option;
-    value?: OptionValue;
-}
-
-// ============================================================================
-// Category & Options
-// ============================================================================
-
-export interface Category extends BaseModel {
-    handle: string;
-    name: string;
-    title: string;
-    header: string;
-    description: string | null;
-    // Relations
-    options?: Option[];
-    collections?: Collection[];
-    brands?: Brand[];
-    products?: Product[];
-}
-
-export interface Collection extends BaseModel {
-    handle: string;
-    name: string;
-    title: string;
-    header: string;
-    description?: string | null;
-    // Relations
-    categories?: Category[];
-}
-
-export interface Option extends BaseModel {
-    name: string;
-    title: string;
-    description: string | null;
-    // Relations
-    values?: OptionValue[];
-    categories?: Category[];
-    variantValues?: VariantValue[];
-}
-
-export interface OptionValue extends BaseModel {
-    option_id: number;
-    value: string;
-    // Relations
-    option?: Option;
-    variantValues?: VariantValue[];
-}
-
-// ============================================================================
-// Images
-// ============================================================================
-
-export interface Image extends BaseModel {
-    name: string;
-    src: string;
-    alt?: string | null;
-    meta?: string | null;
-    // Computed accessors
-    url: string; // S3 URL (always present)
-    // Relations
-    products?: Product[]; // via product_images pivot
-    brands?: Brand[];
-}
-
-export interface ProductImage extends BaseModel {
-    product_id: number;
-    image_id: number;
-    position: number;
-    // Relations
-    image?: Image;
-    variants?: Variant[];
-    orderItems?: OrderItem[];
-}
-
-// ============================================================================
-// Orders
-// ============================================================================
+export type ContactType = 'email' | 'phone' | 'whatsapp' | 'telegram' | 'instagram' | 'facebook';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled' | 'archived';
+
 export type DeliveryStatus = 'pending' | 'packing' | 'shipped' | 'transit' | 'delivered';
+
 export type FinancialStatus = 'unpaid' | 'paid' | 'partial_paid' | 'refunded';
 
-export interface Order extends BaseModel {
-    name: string;
-    customer_id: number;
-    brand_id: number;
-    note?: string | null;
-    status: OrderStatus;
-    delivery_status: DeliveryStatus;
-    financial_status: FinancialStatus;
-    // Relations
-    brand?: Brand;
-    customer?: Customer;
-    orderShippings?: OrderShipping[];
-    orderItems?: OrderItem[];
-    // Computed accessors
-    status_url?: string; // computed: store URL + order name
-}
+export type BrandRequestStatus = 'pending' | 'approved' | 'rejected';
 
-export interface OrderItem extends BaseModel {
-    order_id: number;
-    product_id: number | null;
-    variant_id: number | null;
-    image_id: number | null;
-    title: string;
-    variant_title: string;
-    description?: string | null;
-    quantity: number;
-    price: string; // decimal:2 -> string
-    final_price: string; // decimal:2 -> string
-    // Relations
-    order?: Order;
-    product?: Product | null;
-    variant?: Variant | null;
-    image?: ProductImage | null;
-}
-
-export interface OrderShipping extends BaseModel {
-    order_id: number;
-    name: string;
-    phone: string;
-    note: string;
-    // Relations
-    order?: Order;
-}
-
-// ============================================================================
-// Customer
-// ============================================================================
-
-export interface Customer extends BaseModel {
-    email: string;
-    name: string;
-    phone: string;
-    // Relations
-    orders?: Order[];
-}
-
-// ============================================================================
-// Audit
-// ============================================================================
-
-export type AuditEvent = 'created' | 'updated' | 'deleted';
-
-export interface Audit extends BaseModel {
-    event: AuditEvent;
-    message: string;
-    old_values: Record<string, unknown> | null;
-    new_values: Record<string, unknown> | null;
-    auditable_id: number;
-    auditable_type: string;
-    user_id: number | null;
-    // Relations
-    user?: User | null;
-}
-
-// ============================================================================
-// Pagination
-// ============================================================================
+// ============================================
+// UTILITY TYPES
+// ============================================
 
 export interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number;
-    to: number;
+  data: T[];
+  current_page: number;
+  first_page_url: string;
+  from: number | null;
+  last_page: number;
+  last_page_url: string;
+  links: PaginationLink[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
+
+export interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
+}
+
+// ============================================
+// USER
+// ============================================
+
+export interface User {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  brands?: Brand[];
+}
+
+// ============================================
+// BRAND
+// ============================================
+
+export interface Brand {
+  id: number;
+  user_id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  user?: User;
+  products?: Product[];
+  categories?: Category[];
+  orders?: Order[];
+  images?: Image[];
+  addresses?: Address[];
+  contacts?: Contact[];
+  shipping_methods?: ShippingMethod[];
+}
+
+// ============================================
+// BRAND REQUEST
+// ============================================
+
+export interface BrandRequest {
+  id: number;
+  email: string;
+  phone: string;
+  name: string;
+  brand_name: string;
+  status: BrandRequestStatus;
+  brand_id: number | null;
+  user_id: number | null;
+  rejection_reason: string | null;
+  reviewed_by: number | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  brand?: Brand;
+  user?: User;
+  reviewer?: User;
+}
+
+// ============================================
+// CATEGORY
+// ============================================
+
+export interface Category {
+  id: number;
+  handle: string;
+  name: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  options?: Option[];
+  collections?: Collection[];
+  brands?: Brand[];
+  products?: Product[];
+}
+
+// ============================================
+// COLLECTION
+// ============================================
+
+export interface Collection {
+  id: number;
+  handle: string;
+  name: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  categories?: Category[];
+}
+
+// ============================================
+// PRODUCT
+// ============================================
+
+export interface Product {
+  id: number;
+  brand_id: number;
+  category_id: number | null;
+  title: string;
+  description: string | null;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  // Accessors
+  external_url?: string;
+  main_image?: Image;
+  image_url?: string | null;
+  min_price?: string;
+  max_price?: string;
+  // Relations
+  brand?: Brand;
+  category?: Category;
+  options?: Option[];
+  variants?: Variant[];
+  images?: ProductImage[];
+  order_items?: OrderItem[];
+  statistics?: ProductStatistics[];
+}
+
+// ============================================
+// PRODUCT IMAGE (pivot)
+// ============================================
+
+export interface ProductImage {
+  id: number;
+  product_id: number;
+  image_id: number;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  // Accessor (loaded via image relation)
+  url?: string | null;
+  // Relations
+  product?: Product;
+  image?: Image;
+  variants?: Variant[];
+}
+
+// ============================================
+// IMAGE
+// ============================================
+
+export interface Image {
+  id: number;
+  name: string;
+  src: string;
+  alt: string | null;
+  meta: string | null;
+  created_at: string;
+  updated_at: string;
+  // Accessors
+  url: string;
+  // Relations
+  products?: Product[];
+  brands?: Brand[];
+  // Pivot data (when loaded through product)
+  pivot?: {
+    position: number;
+  };
+}
+
+// ============================================
+// VARIANT
+// ============================================
+
+export interface Variant {
+  id: number;
+  product_id: number;
+  image_id: number | null;
+  title: string;
+  price: string;
+  final_price: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  // Accessors
+  discount?: number;
+  image_url?: string | null;
+  // Relations
+  product?: Product;
+  image?: ProductImage;
+  variant_values?: VariantValue[];
+  values?: VariantValue[];
+  order_items?: OrderItem[];
+}
+
+// ============================================
+// OPTION
+// ============================================
+
+export interface Option {
+  id: number;
+  name: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  values?: OptionValue[];
+  categories?: Category[];
+  variant_values?: VariantValue[];
+}
+
+// ============================================
+// OPTION VALUE
+// ============================================
+
+export interface OptionValue {
+  id: number;
+  option_id: number;
+  value: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  option?: Option;
+  variant_values?: VariantValue[];
+}
+
+// ============================================
+// VARIANT VALUE
+// ============================================
+
+export interface VariantValue {
+  id: number;
+  variant_id: number;
+  option_id: number;
+  option_value_id: number;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  variant?: Variant;
+  option?: Option;
+  value?: OptionValue;
+}
+
+// ============================================
+// ORDER
+// ============================================
+
+export interface Order {
+  id: number;
+  name: string;
+  customer_id: number;
+  brand_id: number;
+  note: string | null;
+  status: OrderStatus;
+  delivery_status: DeliveryStatus;
+  financial_status: FinancialStatus;
+  created_at: string;
+  updated_at: string;
+  // Accessors
+  status_url?: string;
+  // Relations
+  customer?: Customer;
+  brand?: Brand;
+  order_shippings?: OrderShipping[];
+  order_items?: OrderItem[];
+  audits?: Audit[];
+}
+
+// ============================================
+// ORDER ITEM
+// ============================================
+
+export interface OrderItem {
+  id: number;
+  order_id: number;
+  product_id: number;
+  variant_id: number;
+  image_id: number | null;
+  title: string;
+  variant_title: string;
+  description: string | null;
+  quantity: number;
+  price: string;
+  final_price: string;
+  created_at: string;
+  updated_at: string;
+  // Accessors
+  image_url?: string | null;
+  // Relations
+  order?: Order;
+  product?: Product;
+  variant?: Variant;
+  image?: ProductImage;
+}
+
+// ============================================
+// ORDER SHIPPING
+// ============================================
+
+export interface OrderShipping {
+  id: number;
+  order_id: number;
+  name: string;
+  phone: string;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  order?: Order;
+}
+
+// ============================================
+// CUSTOMER
+// ============================================
+
+export interface Customer {
+  id: number;
+  email: string;
+  name: string;
+  phone: string;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  orders?: Order[];
+}
+
+// ============================================
+// ADDRESS (polymorphic)
+// ============================================
+
+export interface Address {
+  id: number;
+  name: string | null;
+  country: string;
+  province: string | null;
+  city: string;
+  zip_code: string | null;
+  address1: string | null;
+  address2: string | null;
+  addressable_type: string;
+  addressable_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================
+// CONTACT (polymorphic)
+// ============================================
+
+export interface Contact {
+  id: number;
+  type: ContactType;
+  value: string;
+  contactable_type: string;
+  contactable_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================
+// SHIPPING METHOD
+// ============================================
+
+export interface ShippingMethod {
+  id: number;
+  key: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  brands?: Brand[];
+}
+
+// ============================================
+// AUDIT
+// ============================================
+
+export interface Audit {
+  id: number;
+  event: string;
+  message: string | null;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  auditable_type: string;
+  auditable_id: number;
+  user_id: number | null;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  user?: User;
+}
+
+// ============================================
+// PRODUCT STATISTICS
+// ============================================
+
+export interface ProductStatistics {
+  id: number;
+  product_id: number;
+  client_id: string;
+  type: string;
+  geo: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+
+export interface Settings {
+  id: number;
+  key: string;
+  data: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================
+// PERMISSION
+// ============================================
+
+export interface Permission {
+  id: number;
+  name: string;
+  guard_name: string;
+  created_at: string;
+  updated_at: string;
 }

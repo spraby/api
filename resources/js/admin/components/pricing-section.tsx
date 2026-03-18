@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useLang } from '@/lib/lang';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {useLang} from '@/lib/lang';
 import {parseNum} from "@/lib/utils.ts";
 
 interface PricingValues {
@@ -14,10 +14,7 @@ interface PricingValues {
 interface PricingSectionProps {
     price: string;
     finalPrice: string;
-    discount: number;
     disabled?: boolean;
-    required?: boolean;
-    idPrefix?: string;
     onChange: (values: PricingValues) => void;
 }
 
@@ -27,19 +24,12 @@ interface PricingSectionProps {
 export function PricingSection({
                                    price,
                                    finalPrice,
-                                   discount,
                                    disabled = false,
-                                   required = false,
-                                   idPrefix = '',
                                    onChange,
                                }: PricingSectionProps) {
-    const { t } = useLang();
+    const {t} = useLang();
 
-    const [discountInput, setDiscountInput] = useState<number>(discount);
-
-    useEffect(() => {
-        setDiscountInput(discount);
-    }, [discount]);
+    const [discountInput, setDiscountInput] = useState<number>(0);
 
     useEffect(() => {
         const p = parseNum(price);
@@ -86,7 +76,7 @@ export function PricingSection({
      * @param newDiscount
      */
     const handleDiscountChange = (newDiscount: number) => {
-        const d = Math.max(0, Math.min(100, newDiscount)); // Ограничение 0-100
+        const d = Math.max(0, Math.min(100, newDiscount));
 
         setDiscountInput(d);
 
@@ -113,30 +103,28 @@ export function PricingSection({
     };
 
     return (
-        <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-                <Label className="flex items-center gap-1" htmlFor={`${idPrefix}price`}>
+        <div className="flex gap-3 flex-nowrap">
+            <div className="space-y-0">
+                <Label className="flex items-center gap-1 text-muted-foreground text-xs">
                     {t('admin.products_edit.fields.price')}
-                    {!!required && <span className="text-destructive">*</span>}
                 </Label>
                 <Input
-                    required={required}
+                    className={'max-w-[100px] md:max-w-[120px]'}
                     disabled={disabled}
-                    id={`${idPrefix}price`}
                     min="0"
                     placeholder={t('admin.products_edit.placeholders.price')}
-                    step="0.01"
+                    step="0.1"
                     type="number"
                     value={price}
                     onChange={(e) => handlePriceChange(e.target.value)}
                 />
             </div>
 
-            <div className="space-y-2">
-                <Label htmlFor={`${idPrefix}discount`}>%</Label>
+            <div className="space-y-0">
+                <Label className="flex items-center gap-1 text-muted-foreground text-xs">%</Label>
                 <Input
+                    className={'max-w-20'}
                     disabled={disabled}
-                    id={`${idPrefix}discount`}
                     min="0"
                     max="100"
                     placeholder="0"
@@ -147,18 +135,16 @@ export function PricingSection({
                 />
             </div>
 
-            <div className="space-y-2">
-                <Label className="flex items-center gap-1" htmlFor={`${idPrefix}final-price`}>
+            <div className="space-y-0">
+                <Label className="flex items-center gap-1 text-muted-foreground text-xs text-nowrap">
                     {t('admin.products_edit.fields.final_price')}
-                    {!!required && <span className="text-destructive">*</span>}
                 </Label>
                 <Input
-                    required={required}
+                    className={'max-w-[100px] md:max-w-[120px]'}
                     disabled={disabled}
-                    id={`${idPrefix}final-price`}
                     min="0"
                     placeholder={t('admin.products_edit.placeholders.final_price')}
-                    step="0.01"
+                    step="0.1"
                     type="number"
                     value={finalPrice}
                     onChange={(e) => handleFinalPriceChange(e.target.value)}
