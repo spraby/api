@@ -152,22 +152,8 @@ export function DashboardKpiGrid({
     () => (metrics.add_to_cart > 0 ? (metrics.orders / metrics.add_to_cart) * 100 : 0),
     [metrics.add_to_cart, metrics.orders]
   );
-  const categoryPreview = React.useMemo(() => ([
-    { label: t("admin.dashboard.kpi.category_preview_1"), value: 120 },
-    { label: t("admin.dashboard.kpi.category_preview_2"), value: 85 },
-    { label: t("admin.dashboard.kpi.category_preview_3"), value: 55 },
-    { label: t("admin.dashboard.kpi.category_other"), value: 32 },
-  ]), [t]);
   const hasCategoryData = categoryViews.length > 0;
-  const categoryItems = hasCategoryData ? categoryViews : categoryPreview;
-  const cartPreview = React.useMemo(() => ([
-    { label: t("admin.dashboard.kpi.category_preview_1"), value: 22 },
-    { label: t("admin.dashboard.kpi.category_preview_2"), value: 14 },
-    { label: t("admin.dashboard.kpi.category_preview_3"), value: 9 },
-    { label: t("admin.dashboard.kpi.category_other"), value: 5 },
-  ]), [t]);
   const hasCartCategoryData = categoryAddToCart.length > 0;
-  const cartCategoryItems = hasCartCategoryData ? categoryAddToCart : cartPreview;
   const viewToPaid = React.useMemo(
     () => (metrics.views > 0 ? (orderStatus.paid_count / metrics.views) * 100 : 0),
     [metrics.views, orderStatus.paid_count]
@@ -196,7 +182,7 @@ export function DashboardKpiGrid({
             ) : null}
           </div>
           <CategoryBreakdown
-            items={categoryItems}
+            items={categoryViews}
             t={t}
             numberFormatter={numberFormatter}
             isPreview={!hasCategoryData}
@@ -220,7 +206,7 @@ export function DashboardKpiGrid({
             ) : null}
           </div>
           <CategoryBreakdown
-            items={cartCategoryItems}
+            items={categoryAddToCart}
             t={t}
             numberFormatter={numberFormatter}
             isPreview={!hasCartCategoryData}
@@ -300,11 +286,9 @@ export function DashboardKpiGrid({
     orderStatus.paid_total,
     orderStatus.unpaid_count,
     orderStatus.unpaid_total,
-    categoryItems,
-    categoryPreview,
+    categoryViews,
     hasCategoryData,
-    cartCategoryItems,
-    cartPreview,
+    categoryAddToCart,
     hasCartCategoryData,
     t,
     viewToPaid,

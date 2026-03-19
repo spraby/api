@@ -26,6 +26,8 @@ type DashboardPageProps = {
         interest: InterestPoint[];
     };
     order_status: OrderStatusWidget;
+    category_views?: Array<{ label: string; value: number }>;
+    category_add_to_cart?: Array<{ label: string; value: number }>;
     top_products: TopProduct[];
     top_conversion: TopConversionPage;
     meta: {
@@ -41,6 +43,8 @@ const DASHBOARD_ONLY = [
     "table_mode",
     "metrics",
     "series",
+    "category_views",
+    "category_add_to_cart",
     "top_products",
     "top_conversion",
     "order_status",
@@ -49,7 +53,7 @@ const DASHBOARD_ONLY = [
 ] as const;
 
 export default function Dashboard() {
-    const { range, table_mode, metrics, series, order_status, top_products, top_conversion, meta, error } =
+    const { range, table_mode, metrics, series, category_views, category_add_to_cart, order_status, top_products, top_conversion, meta, error } =
         usePage<PageProps<DashboardPageProps>>().props;
     const { t, trans, locale } = useLang();
     const isMobile = useIsMobile();
@@ -129,6 +133,8 @@ export default function Dashboard() {
                 <DashboardKpiGrid
                     metrics={metrics}
                     orderStatus={order_status}
+                    categoryViews={category_views}
+                    categoryAddToCart={category_add_to_cart}
                     currencyFormatter={currencyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProductAnalyticsService
@@ -291,6 +292,55 @@ class ProductAnalyticsService
                 'direction' => $normalizedDirection,
             ],
         ];
+    }
+
+    public function getCategoryBreakdown(Carbon $start, Carbon $end, ?string $brandId): array
+    {
+        $cacheKey = sprintf(
+            'analytics:category_breakdown:%s:%s:%s',
+            $brandId ?? 'all',
+            $start->toDateString(),
+            $end->toDateString()
+        );
+
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($start, $end, $brandId) {
+            Log::debug('[Analytics] Category breakdown cache miss', [
+                'brand_id' => $brandId,
+                'range' => $start->toDateString().' → '.$end->toDateString(),
+            ]);
+
+            $rows = DB::table('product_statistics as ps')
+                ->join('products as p', 'p.id', '=', 'ps.product_id')
+                ->leftJoin('categories as c', 'c.id', '=', 'p.category_id')
+                ->whereBetween('ps.created_at', [$start, $end])
+                ->whereIn('ps.type', ['view', 'add_to_cart'])
+                ->when($brandId, fn ($query) => $query->where('p.brand_id', $brandId))
+                ->groupBy('c.name', 'ps.type')
+                ->selectRaw("COALESCE(c.name, 'Без категории') as category_name")
+                ->selectRaw('ps.type as event_type')
+                ->selectRaw('COUNT(*) as total')
+                ->get();
+
+            $views = [];
+            $addToCart = [];
+
+            foreach ($rows as $row) {
+                $item = ['label' => $row->category_name, 'value' => (int) $row->total];
+                if ($row->event_type === 'view') {
+                    $views[] = $item;
+                } else {
+                    $addToCart[] = $item;
+                }
+            }
+
+            usort($views, fn ($a, $b) => $b['value'] <=> $a['value']);
+            usort($addToCart, fn ($a, $b) => $b['value'] <=> $a['value']);
+
+            return [
+                'category_views' => $views,
+                'category_add_to_cart' => $addToCart,
+            ];
+        });
     }
 
     private function baseStatsQuery(Carbon $start, Carbon $end, ?string $brandId)

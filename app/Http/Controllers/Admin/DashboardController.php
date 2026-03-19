@@ -52,12 +52,15 @@ class DashboardController extends Controller
 
         $salesTotals = $this->salesAnalytics->getTotals($start, $end, $brandId);
         $interestTotals = $this->productAnalytics->getInterestTotals($start, $end, $brandId);
+        $categoryBreakdown = $this->productAnalytics->getCategoryBreakdown($start, $end, $brandId);
 
         return Inertia::render('Dashboard', [
             'range' => $range,
             'table_mode' => $tableMode,
             'metrics' => $this->salesAnalytics->buildMetrics($salesTotals, $interestTotals),
             'meta' => $meta,
+            'category_views' => $categoryBreakdown['category_views'],
+            'category_add_to_cart' => $categoryBreakdown['category_add_to_cart'],
             'series' => [
                 'sales' => $this->salesAnalytics->getDailySeries($dates, $start, $end, $brandId),
                 'interest' => $this->productAnalytics->getInterestDailySeries($dates, $start, $end, $brandId),
@@ -88,6 +91,8 @@ class DashboardController extends Controller
             'range' => $range,
             'table_mode' => $tableMode,
             'metrics' => $this->salesAnalytics->emptyMetrics(),
+            'category_views' => [],
+            'category_add_to_cart' => [],
             'series' => [
                 'sales' => $this->salesAnalytics->emptySeries($dates),
                 'interest' => $this->productAnalytics->emptyInterestSeries($dates),
