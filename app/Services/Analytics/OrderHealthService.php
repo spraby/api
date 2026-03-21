@@ -5,11 +5,11 @@ namespace App\Services\Analytics;
 use App\Enums\FinancialStatus;
 use App\Enums\OrderStatus;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class OrderHealthService
 {
+    use CachesAnalytics;
     private const PENDING_STALE_DAYS = 2;
     private const PROCESSING_STALE_DAYS = 5;
     private const UNPAID_STALE_DAYS = 3;
@@ -23,7 +23,7 @@ class OrderHealthService
             $end->toDateString()
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($start, $end, $brandId) {
+        return $this->cached($cacheKey, function () use ($start, $end, $brandId) {
             $statusCounts = $this->getStatusCounts($start, $end, $brandId);
             $statusTotal = array_sum($statusCounts);
             $summary = $this->getSummary($start, $end, $brandId);

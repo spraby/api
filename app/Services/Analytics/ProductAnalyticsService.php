@@ -6,13 +6,14 @@ use App\Enums\FinancialStatus;
 use App\Enums\OrderStatus;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProductAnalyticsService
 {
+    use CachesAnalytics;
+
     private const CONVERSION_SORT_KEYS = ['view_to_cart', 'view_to_order', 'cart_to_order'];
 
     public function getInterestTotals(Carbon $start, Carbon $end, ?string $brandId): object
@@ -24,7 +25,7 @@ class ProductAnalyticsService
             $end->toDateString()
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), fn () => $this->baseStatsQuery($start, $end, $brandId)->first());
+        return $this->cached($cacheKey, fn () => $this->baseStatsQuery($start, $end, $brandId)->first());
     }
 
     public function getInterestDailySeries(array $dates, Carbon $start, Carbon $end, ?string $brandId): array
@@ -36,7 +37,7 @@ class ProductAnalyticsService
             $end->toDateString()
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($dates, $start, $end, $brandId) {
+        return $this->cached($cacheKey, function () use ($dates, $start, $end, $brandId) {
         $daily = DB::table('product_statistics as ps')
             ->join('products as p', 'p.id', '=', 'ps.product_id')
             ->whereBetween('ps.created_at', [$start, $end])
@@ -82,7 +83,7 @@ class ProductAnalyticsService
             $end->toDateString()
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($start, $end, $brandId) {
+        return $this->cached($cacheKey, function () use ($start, $end, $brandId) {
         $firstImageSub = $this->firstImageSubquery();
 
         $topProducts = DB::table('order_items as oi')
@@ -167,7 +168,7 @@ class ProductAnalyticsService
             $perPage
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use (
+        return $this->cached($cacheKey, function () use (
             $brandId,
             $start,
             $end,
@@ -303,7 +304,7 @@ class ProductAnalyticsService
             $end->toDateString()
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($start, $end, $brandId) {
+        return $this->cached($cacheKey, function () use ($start, $end, $brandId) {
             Log::debug('[Analytics] Category breakdown cache miss', [
                 'brand_id' => $brandId,
                 'range' => $start->toDateString().' → '.$end->toDateString(),

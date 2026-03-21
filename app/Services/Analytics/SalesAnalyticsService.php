@@ -5,11 +5,11 @@ namespace App\Services\Analytics;
 use App\Enums\FinancialStatus;
 use App\Enums\OrderStatus;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class SalesAnalyticsService
 {
+    use CachesAnalytics;
 
     public static function buildDateRange(Carbon $start, Carbon $end): array
     {
@@ -32,7 +32,7 @@ class SalesAnalyticsService
             $end->toDateString()
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), fn () => DB::table('orders as o')
+        return $this->cached($cacheKey, fn () => DB::table('orders as o')
             ->join('order_items as oi', 'oi.order_id', '=', 'o.id')
             ->whereBetween('o.created_at', [$start, $end])
             ->whereNotIn('o.status', OrderStatus::excluded())
@@ -53,7 +53,7 @@ class SalesAnalyticsService
             $end->toDateString()
         );
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($dates, $start, $end, $brandId) {
+        return $this->cached($cacheKey, function () use ($dates, $start, $end, $brandId) {
         $daily = DB::table('orders as o')
             ->leftJoin('order_items as oi', 'oi.order_id', '=', 'o.id')
             ->whereBetween('o.created_at', [$start, $end])
