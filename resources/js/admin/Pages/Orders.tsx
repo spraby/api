@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { router, usePage } from '@inertiajs/react';
+import { type ColumnDef ,type  PaginationState } from "@tanstack/react-table"
 import {
   CheckCircle2Icon,
   CircleDollarSignIcon,
@@ -33,8 +34,6 @@ import type { Filter, ResourceListTranslations } from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
 
-import type { ColumnDef } from "@tanstack/react-table"
-import type { PaginationState } from "@tanstack/react-table"
 
 // ============================================
 // TYPES
@@ -60,18 +59,18 @@ interface Order {
   created_at: string;
 }
 
-type OrdersPagination = {
+interface OrdersPagination {
   page: number;
   per_page: number;
   total: number;
   last_page: number;
-};
+}
 
-type OrdersFilters = {
+interface OrdersFilters {
   search: string;
   status: string;
   financial_status: string;
-};
+}
 
 // ============================================
 // STATUS BADGE COMPONENTS
@@ -399,6 +398,7 @@ export default function Orders() {
         per_page: pagination?.per_page ?? 10,
         ...normalized,
       });
+
       return;
     }
 

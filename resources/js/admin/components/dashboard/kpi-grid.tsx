@@ -1,9 +1,10 @@
 import * as React from "react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 import type { DashboardMetrics } from "./types"
 
-type KpiGridProps = {
+interface KpiGridProps {
   metrics: DashboardMetrics;
   orderStatus: {
     paid_total: number;
@@ -11,30 +12,30 @@ type KpiGridProps = {
     paid_count: number;
     unpaid_count: number;
   };
-  categoryViews?: Array<{ label: string; value: number }>;
-  categoryAddToCart?: Array<{ label: string; value: number }>;
+  categoryViews?: { label: string; value: number }[];
+  categoryAddToCart?: { label: string; value: number }[];
   currencyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   t: (key: string) => string;
-};
+}
 
-type KpiChip = {
+interface KpiChip {
   label: string;
   value: string;
-};
+}
 
-type KpiDetail = {
+interface KpiDetail {
   label: string;
   value?: string;
-};
+}
 
-type KpiCardData = {
+interface KpiCardData {
   label: string;
   value: string;
   chips: KpiChip[];
   details: KpiDetail[];
   extra?: React.ReactNode;
-};
+}
 
 const CATEGORY_COLORS = ["#2563EB", "#F59E0B", "#10B981", "#8B5CF6"];
 const MAX_CATEGORY_ROWS = 3;
@@ -45,7 +46,7 @@ function CategoryBreakdown({
   numberFormatter,
   isPreview = false,
 }: {
-  items: Array<{ label: string; value: number }>;
+  items: { label: string; value: number }[];
   t: (key: string) => string;
   numberFormatter: Intl.NumberFormat;
   isPreview?: boolean;
@@ -60,6 +61,7 @@ function CategoryBreakdown({
     const withOther = otherValue > 0
       ? [...top, { label: t("admin.dashboard.kpi.category_other"), value: otherValue }]
       : top;
+
     return { rows: withOther, total };
   }, [items, t]);
 
@@ -79,6 +81,7 @@ function CategoryBreakdown({
         const color = isOther
           ? "#64748B"
           : CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+
         return (
           <div key={`${item.label}-${index}`} className="flex items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
@@ -175,11 +178,6 @@ export function DashboardKpiGrid({
         <>
           <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
             <span>{t("admin.dashboard.kpi.category_breakdown")}</span>
-            {!hasCategoryData ? (
-              <span className="rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
-                {t("admin.dashboard.kpi.category_breakdown_preview")}
-              </span>
-            ) : null}
           </div>
           <CategoryBreakdown
             items={categoryViews}
@@ -199,11 +197,6 @@ export function DashboardKpiGrid({
         <>
           <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
             <span>{t("admin.dashboard.kpi.category_breakdown")}</span>
-            {!hasCartCategoryData ? (
-              <span className="rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
-                {t("admin.dashboard.kpi.category_breakdown_preview")}
-              </span>
-            ) : null}
           </div>
           <CategoryBreakdown
             items={categoryAddToCart}
@@ -278,7 +271,6 @@ export function DashboardKpiGrid({
     metrics.conversion_view_to_atc,
     metrics.conversion_view_to_order,
     metrics.orders,
-    metrics.revenue,
     metrics.units,
     metrics.views,
     numberFormatter,

@@ -170,7 +170,7 @@ export function ImageUploader({
         void upload(e.target.files);
       }
 
-      e.target.value = '';
+      e.currentTarget.value = ''; // eslint-disable-line no-param-reassign
     },
     [upload],
   );

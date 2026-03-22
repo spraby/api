@@ -1,18 +1,18 @@
-export type SalesPoint = {
+export interface SalesPoint {
   date: string;
   revenue: number;
   orders: number;
   units: number;
-};
+}
 
-export type InterestPoint = {
+export interface InterestPoint {
   date: string;
   views: number;
   clicks: number;
   add_to_cart: number;
-};
+}
 
-export type DashboardMetrics = {
+export interface DashboardMetrics {
   revenue: number;
   orders: number;
   aov: number;
@@ -21,9 +21,9 @@ export type DashboardMetrics = {
   add_to_cart: number;
   conversion_view_to_atc: number;
   conversion_view_to_order: number;
-};
+}
 
-export type TopProduct = {
+export interface TopProduct {
   product_id: number;
   title: string;
   category: string | null;
@@ -34,9 +34,9 @@ export type TopProduct = {
   views: number;
   add_to_cart: number;
   conversion: number;
-};
+}
 
-export type InterestGap = {
+export interface InterestGap {
   product_id: number;
   title: string;
   category: string | null;
@@ -46,9 +46,9 @@ export type InterestGap = {
   orders: number;
   revenue?: number;
   conversion?: number;
-};
+}
 
-export type TopConversionPage = {
+export interface TopConversionPage {
   data: InterestGap[];
   pagination: {
     page: number;
@@ -58,4 +58,4 @@ export type TopConversionPage = {
     sort: "view_to_cart" | "view_to_order" | "cart_to_order";
     direction: "asc" | "desc";
   };
-};
+}

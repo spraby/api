@@ -1,11 +1,13 @@
 import {useMemo} from "react";
-import {Option, OptionValue, ProductImage, Variant} from "@/types/data";
-import {VariantLine} from "@/components/variant-line.tsx";
+
 import {AlertTriangleIcon, PlusIcon} from "lucide-react";
-import {Button} from "@/components/ui/button.tsx";
 import {v4 as uuidv4} from 'uuid';
+
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {VariantLine} from "@/components/variant-line.tsx";
 import {useLang} from "@/lib/lang";
+import {type Option, type OptionValue, type ProductImage, type Variant} from "@/types/data";
 
 interface CombinationItem {
     optionId: number;
@@ -14,6 +16,7 @@ interface CombinationItem {
 
 const createVariant = (combination: CombinationItem[], options: Option[]): Variant => {
     const optionOrder = new Map(options.map((o, i) => [o.id, i]));
+
     return {
         uid: uuidv4(),
         title: combination
@@ -59,7 +62,8 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
 
     const onAddVariant = () => {
         const combination = findFreeCombination(variants, options);
-        if (!combination) return;
+
+        if (!combination) {return;}
         onChange([...variants, createVariant(combination, options)]);
     }
 
@@ -74,18 +78,22 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
         const descriptions: string[] = [];
 
         const optionsWithValues = options.filter(o => o.id != null && o.values && o.values.length > 0);
-        if (!optionsWithValues.length) return {duplicateUids: uids, duplicateDescriptions: descriptions};
+
+        if (!optionsWithValues.length) {return {duplicateUids: uids, duplicateDescriptions: descriptions};}
 
         // O(n) — build key -> uids map
         const keyToGroup = new Map<string, { uids: string[]; label: string }>();
+
         for (const variant of variants) {
-            if (!variant.values?.length) continue;
+            if (!variant.values?.length) {continue;}
             const key = getVariantKey(variant, optionsWithValues);
             const group = keyToGroup.get(key);
+
             if (group) {
                 group.uids.push(variant.uid);
             } else {
                 const label = variant.title || variant.values?.map(v => v.value?.value).filter(Boolean).join(' / ') || key;
+
                 keyToGroup.set(key, {uids: [variant.uid], label});
             }
         }
@@ -114,14 +122,14 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
             </Alert>
         )}
 
-        <div className={'flex flex-col gap-2 md:grid md:grid-cols-[90px_1fr_auto_auto] md:gap-x-4 md:gap-y-2'}>
+        <div className="flex flex-col gap-2 md:grid md:grid-cols-[90px_1fr_auto_auto] md:gap-x-4 md:gap-y-2">
             {variants.map(variant =>
                 <VariantLine key={variant.uid} variant={variant} images={images} options={options} onChange={onChangeHandle} onDelete={() => onDeleteHandle(variant.uid)} isDuplicate={duplicateUids.has(variant.uid)}/>
             )}
         </div>
 
-        {hasFreeCombination && (
-            <div className={'flex justify-end'}>
+        {!!hasFreeCombination && (
+            <div className="flex justify-end">
                 <Button
                     type="button"
                     variant="outline"
@@ -132,8 +140,7 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
                     {t('admin.products_edit.actions.add_variant')}
                 </Button>
             </div>
-
-        )}
+          )}
     </>
 }
 
@@ -143,13 +150,15 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
  */
 function findFreeCombination(variants: Variant[], options: Option[]): CombinationItem[] | null {
     const optionsWithValues = options.filter(o => o.id != null && o.values && o.values.length > 0) as (Option & { id: number; values: OptionValue[] })[];
-    if (!optionsWithValues.length) return null;
+
+    if (!optionsWithValues.length) {return null;}
 
     // Собираем ключи использованных комбинаций
     const usedKeys = new Set(
         variants.map(v => {
             return optionsWithValues.map(o => {
                 const vv = v.values?.find(val => val.option_id === o.id);
+
                 return vv?.option_value_id ?? '';
             }).join(':');
         })
@@ -159,6 +168,7 @@ function findFreeCombination(variants: Variant[], options: Option[]): Combinatio
     const valueSets: OptionValue[][] = optionsWithValues.map(o => o.values);
     const indices: number[] = new Array(valueSets.length).fill(0);
 
+    /* eslint-disable @typescript-eslint/no-non-null-assertion -- indices are bounded by valueSets/optionsWithValues lengths */
     for (;;) {
         const key = indices.map((idx, i) => valueSets[i]![idx]!.id ?? '').join(':');
 
@@ -171,6 +181,7 @@ function findFreeCombination(variants: Variant[], options: Option[]): Combinatio
 
         // Инкремент индексов (как счётчик с переносом)
         let carry = true;
+
         for (let i = indices.length - 1; i >= 0 && carry; i--) {
             indices[i]!++;
             if (indices[i]! < valueSets[i]!.length) {
@@ -180,6 +191,7 @@ function findFreeCombination(variants: Variant[], options: Option[]): Combinatio
             }
         }
 
-        if (carry) return null;
+        if (carry) {return null;}
     }
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
 }

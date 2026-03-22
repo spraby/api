@@ -92,10 +92,11 @@ export function ImageSelector({
                     />
 
                     {
-                        image.loading &&
+                        !!image.loading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-background/40">
                             <Loader2 className="h-6 w-6 animate-spin text-primary"/>
                         </div>
+                      )
                     }
 
                     {

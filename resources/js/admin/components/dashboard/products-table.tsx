@@ -15,18 +15,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+
 import type { TopProduct, TopConversionPage, InterestGap } from "./types"
 
 type TopSortKey = "views" | "add_to_cart" | "orders" | "revenue";
 type GapSortKey = "view_to_cart" | "view_to_order" | "cart_to_order";
 
-type ColumnDef<Row, Key extends string> = {
+interface ColumnDef<Row, Key extends string> {
   key: Key;
   label: string;
   render: (row: Row) => React.ReactNode;
-};
+}
 
-type DashboardProductsTableProps = {
+interface DashboardProductsTableProps {
   range: number;
   tableMode: "top" | "gap";
   onTableModeChange: (value: "top" | "gap") => void;
@@ -36,7 +37,7 @@ type DashboardProductsTableProps = {
   currencyFormatter: Intl.NumberFormat;
   t: (key: string) => string;
   trans: (key: string, replacements?: Record<string, string | number>) => string;
-};
+}
 
 const TOP_PAGE_SIZE = 10;
 
@@ -96,11 +97,11 @@ function SortableHeader({
   onChange: (key: string) => void;
 }) {
   const isActive = sortKey === activeKey;
-  const Icon = !isActive
-    ? ArrowUpDownIcon
-    : direction === "asc"
-      ? ArrowUpIcon
-      : ArrowDownIcon;
+  const Icon = (() => {
+    if (!isActive) { return ArrowUpDownIcon; }
+
+    return direction === "asc" ? ArrowUpIcon : ArrowDownIcon;
+  })();
 
   return (
     <Button
@@ -133,6 +134,7 @@ const getConversionValue = (
   if (key === "cart_to_order") {
     return addToCart > 0 ? (orders / addToCart) * 100 : 0;
   }
+
   return 0;
 };
 
@@ -140,6 +142,7 @@ const formatPercent = (value: number | null) => {
   if (value === null || Number.isNaN(value)) {
     return "—";
   }
+
   return `${value.toFixed(1)}%`;
 };
 
@@ -171,9 +174,11 @@ export function DashboardProductsTable({
     return [...topProducts].sort((a, b) => {
       const aValue = Number((a as Record<string, unknown>)[topSortKey] ?? 0);
       const bValue = Number((b as Record<string, unknown>)[topSortKey] ?? 0);
+
       if (aValue === bValue) {
         return 0;
       }
+
       return topSortDirection === "asc" ? aValue - bValue : bValue - aValue;
     });
   }, [topProducts, topSortKey, topSortDirection]);
@@ -182,6 +187,7 @@ export function DashboardProductsTable({
   const topCurrentPage = Math.min(topPage, topTotalPages);
   const topPagedRows = React.useMemo(() => {
     const start = (topCurrentPage - 1) * TOP_PAGE_SIZE;
+
     return sortedTopRows.slice(start, start + TOP_PAGE_SIZE);
   }, [sortedTopRows, topCurrentPage]);
 
@@ -269,6 +275,7 @@ export function DashboardProductsTable({
           only: ["table_mode"],
         }
       );
+
       return;
     }
 
@@ -292,10 +299,11 @@ export function DashboardProductsTable({
   };
 
   const handleGapSortChange = (key: GapSortKey) => {
-    const currentDirection = gapPagination.direction;
-    const nextDirection = key === gapPagination.sort
-      ? (currentDirection === "asc" ? "desc" : "asc")
-      : "desc";
+    let nextDirection: "asc" | "desc" = "desc";
+
+    if (key === gapPagination.sort) {
+      nextDirection = gapPagination.direction === "asc" ? "desc" : "asc";
+    }
 
     setIsGapLoading(true);
     router.get(
@@ -439,51 +447,49 @@ export function DashboardProductsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isTableEmpty ? (
+            {!!isTableEmpty && (
               <TableRow>
                 <TableCell colSpan={columnCount} className="text-center text-muted-foreground">
                   {t("admin.dashboard.tables.empty")}
                 </TableCell>
               </TableRow>
-            ) : (
-              tableMode === "top"
-                ? topPagedRows.map((product) => (
-                    <TableRow key={product.product_id}>
-                      <TableCell>
-                        <ProductCell
-                          title={product.title}
-                          category={product.category}
-                          imageUrl={product.image_url}
-                          href={route("admin.products.edit", { product: product.product_id })}
-                          fallback={t("admin.dashboard.labels.no_category")}
-                        />
-                      </TableCell>
-                      {topColumns.map((column) => (
-                        <TableCell key={column.key} className="text-right">
-                          {column.render(product)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : displayGapRows.map((product) => (
-                    <TableRow key={product.product_id}>
-                      <TableCell>
-                        <ProductCell
-                          title={product.title}
-                          category={product.category}
-                          imageUrl={product.image_url}
-                          href={route("admin.products.edit", { product: product.product_id })}
-                          fallback={t("admin.dashboard.labels.no_category")}
-                        />
-                      </TableCell>
-                      {gapColumns.map((column) => (
-                        <TableCell key={column.key} className="text-right">
-                          {column.render(product)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
             )}
+            {!isTableEmpty && tableMode === "top" && topPagedRows.map((product) => (
+              <TableRow key={product.product_id}>
+                <TableCell>
+                  <ProductCell
+                    title={product.title}
+                    category={product.category}
+                    imageUrl={product.image_url}
+                    href={route("admin.products.edit", { product: product.product_id })}
+                    fallback={t("admin.dashboard.labels.no_category")}
+                  />
+                </TableCell>
+                {topColumns.map((column) => (
+                  <TableCell key={column.key} className="text-right">
+                    {column.render(product)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+            {!isTableEmpty && tableMode !== "top" && displayGapRows.map((product) => (
+              <TableRow key={product.product_id}>
+                <TableCell>
+                  <ProductCell
+                    title={product.title}
+                    category={product.category}
+                    imageUrl={product.image_url}
+                    href={route("admin.products.edit", { product: product.product_id })}
+                    fallback={t("admin.dashboard.labels.no_category")}
+                  />
+                </TableCell>
+                {gapColumns.map((column) => (
+                  <TableCell key={column.key} className="text-right">
+                    {column.render(product)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

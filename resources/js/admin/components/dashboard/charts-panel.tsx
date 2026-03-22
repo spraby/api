@@ -1,15 +1,16 @@
 import * as React from "react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ChartConfig } from "@/components/ui/chart"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 import { InterestChart, SalesChart } from "./charts"
+
 import type { InterestPoint, SalesPoint } from "./types"
 
 type TooltipFormatter = (value: number | string, name: string, item: unknown) => React.ReactNode
 
-type DashboardChartsProps = {
+interface DashboardChartsProps {
   sales: SalesPoint[];
   interest: InterestPoint[];
   heightClass: string;
@@ -31,7 +32,7 @@ type DashboardChartsProps = {
     clicks: string;
     addToCart: string;
   };
-};
+}
 
 function TooltipRow({
   label,
@@ -61,8 +62,10 @@ function TooltipRow({
 const getIndicatorColor = (item: unknown, fallback = "#94a3b8") => {
   if (item && typeof item === "object") {
     const typed = item as { color?: string; stroke?: string; fill?: string };
+
     return typed.color || typed.stroke || typed.fill || fallback;
   }
+
   return fallback;
 };
 

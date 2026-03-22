@@ -148,7 +148,6 @@ return [
             'unpaid_orders' => 'Неоплаченные заказы',
             'category_breakdown' => 'Категории',
             'category_breakdown_empty' => 'Просмотры по категориям появятся здесь',
-            'category_breakdown_preview' => 'Пример',
             'category_other' => 'Остальные',
             'category_preview_1' => 'Мёд и варенье',
             'category_preview_2' => 'Соленья',

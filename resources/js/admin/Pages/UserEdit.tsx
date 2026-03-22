@@ -1,5 +1,4 @@
-import type { FormEventHandler} from 'react';
-import { useEffect, useState } from 'react';
+import { type FormEventHandler, useEffect, useState } from 'react';
 
 import { Link, router } from '@inertiajs/react';
 import { ArrowLeftIcon, BuildingIcon, ExternalLinkIcon } from 'lucide-react';

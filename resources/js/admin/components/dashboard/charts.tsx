@@ -9,8 +9,7 @@ import {
   YAxis,
 } from "recharts"
 
-import type { ChartConfig } from "@/components/ui/chart"
-import {
+import { type ChartConfig ,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -18,21 +17,21 @@ import {
 
 type TooltipFormatter = (value: number | string, name: string, item: unknown) => React.ReactNode
 
-type BaseChartProps = {
+interface BaseChartProps {
   heightClass: string;
   isMobile: boolean;
   formatDate: (value: string) => string;
   formatCompact: (value: number) => string;
-};
+}
 
 type SalesChartProps = BaseChartProps & {
-  data: Array<{ date: string; revenue: number; orders: number }>;
+  data: { date: string; revenue: number; orders: number }[];
   config: ChartConfig;
   tooltipFormatter: TooltipFormatter;
 };
 
 type InterestChartProps = BaseChartProps & {
-  data: Array<{ date: string; views: number; clicks: number; add_to_cart: number }>;
+  data: { date: string; views: number; clicks: number; add_to_cart: number }[];
   config: ChartConfig;
   tooltipFormatter: TooltipFormatter;
 };

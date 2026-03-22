@@ -1,5 +1,4 @@
-import type { FormEventHandler } from "react";
-import { useMemo } from "react";
+import { type FormEventHandler , useMemo } from "react";
 
 import { useForm, router } from '@inertiajs/react';
 

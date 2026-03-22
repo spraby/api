@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 
-import type {Variant} from '@/types/data';
 import {useLang} from '@/lib/lang';
+import type {Variant} from '@/types/data';
 
 interface Props {
     title: string;

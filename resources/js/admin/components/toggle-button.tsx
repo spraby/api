@@ -7,7 +7,7 @@ import {cn} from "@/lib/utils.ts";
  * @param title
  * @constructor
  */
-export const ToggleButton = ({onClick, active, title}: { onClick: any, active: boolean, title: string }) => {
+export const ToggleButton = ({onClick, active, title}: { onClick: () => void, active: boolean, title: string }) => {
     return <button
         type="button"
         onClick={onClick}

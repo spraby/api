@@ -7,7 +7,7 @@ import {ImageSelector, type ImageSelectorItem} from '@/components/image-selector
 import {ImageUploader} from '@/components/image-uploader';
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
-import {Image} from "@/types/data.ts";
+import {type Image} from "@/types/data.ts";
 
 interface ApiPaginatedResponse {
     data: Image[];
@@ -53,7 +53,7 @@ export function ImagePicker({
         if (onChange) {
             onChange(selectedImages);
         }
-    }, [selectedImages]);
+    }, [selectedImages, onChange]);
 
     /**
      *
@@ -102,7 +102,7 @@ export function ImagePicker({
                         selectedImages={selectedImages}
                         setSelectedImages={setSelectedImages}
                         perPage={perPage}
-                        excludeIds={images.filter(i => i.id != null).map(i => i.id!)}
+                        excludeIds={images.filter((i): i is ImageSelectorItem & { id: number } => i.id != null).map(i => i.id)}
                     />
                 }
             </div>
@@ -178,6 +178,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
 
     const fetchPage = useCallback(async (page: number, signal?: AbortSignal) => {
         const url = new URL(resource, window.location.origin);
+
         url.searchParams.set('page', String(page));
         url.searchParams.set('per_page', String(perPage));
         if (excludeIds.length > 0) {
@@ -192,6 +193,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
 
         if (!res.ok) {
             toast.error(t('image_picker.load_failed'));
+
             return;
         }
 
@@ -208,7 +210,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
         setImages(prev => page === 1 ? items : [...prev, ...items]);
         setCurrentPage(json.meta.current_page);
         setLastPage(json.meta.last_page);
-    }, [resource, perPage, t]);
+    }, [resource, perPage, t, excludeIds]);
 
     const resetAndFetch = useCallback(() => {
         abortControllerRef.current?.abort();
@@ -216,6 +218,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
         loadingMoreRef.current = false;
 
         const controller = new AbortController();
+
         abortControllerRef.current = controller;
 
         setImages([]);
@@ -274,7 +277,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
         );
     }
 
-    return <div className={'flex flex-col gap-5'}>
+    return <div className="flex flex-col gap-5">
         <ImageSelector
             onChange={handleSelectionChange}
             values={selectedImages.map(i => i.uid)}

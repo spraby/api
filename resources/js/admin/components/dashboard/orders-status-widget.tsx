@@ -5,7 +5,7 @@ import { Link } from "@inertiajs/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export type OrderStatusWidget = {
+export interface OrderStatusWidget {
   health: number | null;
   paid_total: number;
   paid_count: number;
@@ -29,16 +29,16 @@ export type OrderStatusWidget = {
     count: number;
     days: number;
   }[];
-};
+}
 
-type OrdersStatusWidgetProps = {
+interface OrdersStatusWidgetProps {
   data: OrderStatusWidget;
   currencyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   t: (key: string) => string;
   trans: (key: string, replacements?: Record<string, string | number>) => string;
   ordersHref: string;
-};
+}
 
 export function OrdersStatusWidget({
   data,
@@ -94,13 +94,13 @@ export function OrdersStatusWidget({
   const paymentTotal = paymentSegments.reduce((sum, item) => sum + item.amount, 0);
   const healthValue = data.health;
   const healthDisplay = healthValue === null ? "—" : `${Math.round(healthValue)}%`;
-  const healthColor = healthValue === null
-    ? "#94A3B8"
-    : healthValue >= 80
-      ? "#10B981"
-      : healthValue >= 60
-        ? "#F59E0B"
-        : "#EF4444";
+  const healthColor = (() => {
+    if (healthValue === null) { return "#94A3B8"; }
+    if (healthValue >= 80) { return "#10B981"; }
+    if (healthValue >= 60) { return "#F59E0B"; }
+
+    return "#EF4444";
+  })();
   const healthDegrees = healthValue === null ? 0 : (healthValue / 100) * 360;
   const healthBackground = healthValue === null
     ? "conic-gradient(#e2e8f0 0deg, #e2e8f0 360deg)"

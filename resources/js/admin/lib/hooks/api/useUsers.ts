@@ -4,14 +4,13 @@
  * React Query hooks for fetching user data
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery ,type  UseQueryOptions,type  UseQueryResult } from '@tanstack/react-query';
 
 import { getUser, getUsers } from '@/lib/api/endpoints/users';
 import type { ApiError } from '@/lib/api/fetch-client';
 import { userKeys } from '@/lib/api/query-keys';
 import type { User, UserFilters } from '@/types/api';
 
-import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 
 
 // ============================================

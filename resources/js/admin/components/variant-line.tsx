@@ -1,15 +1,17 @@
-import {Option, ProductImage, Variant, VariantValue} from "@/types/data";
-import {AlertTriangleIcon, ImageOffIcon} from "lucide-react";
-import {TrashButton} from "@/components/trash-button.tsx";
-import {PricingSection} from "@/components/pricing-section.tsx";
 import {useCallback, useRef} from "react";
-import {useDialog} from "@/stores/dialog.ts";
+
+import {AlertTriangleIcon, ImageOffIcon} from "lucide-react";
+
 import {ImagePicker} from "@/components/image-picker.tsx";
 import type {ImageSelectorItem} from "@/components/image-selector.tsx";
-import {Button} from "@/components/ui/button.tsx";
 import {MediaThumbnail} from "@/components/media-thumbnail.tsx";
+import {PricingSection} from "@/components/pricing-section.tsx";
+import {TrashButton} from "@/components/trash-button.tsx";
+import {Button} from "@/components/ui/button.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {useLang} from "@/lib/lang";
+import {useDialog} from "@/stores/dialog.ts";
+import {type Option, type ProductImage, type Variant, type VariantValue} from "@/types/data";
 
 /**
  *
@@ -57,7 +59,7 @@ export const VariantLine = ({variant, images = [], options = [], onChange, onDel
                     ...(productImage ? {image: productImage} : {}),
                 } as Partial<Variant>);
             }}/>
-        <div className={'flex flex-wrap gap-1 justify-start items-center'}>
+        <div className="flex flex-wrap gap-1 justify-start items-center">
             {variant.values?.map(v => (
                 <VariantValueSelect
                     key={v.uid}
@@ -79,12 +81,12 @@ export const VariantLine = ({variant, images = [], options = [], onChange, onDel
         <div>
             <TrashButton onClick={onDelete}/>
         </div>
-        {isDuplicate && (
+        {!!isDuplicate && (
             <div className="md:col-span-4 flex items-center gap-2 text-destructive text-sm">
                 <AlertTriangleIcon className="h-4 w-4 shrink-0" />
                 <span>{t('admin.products_edit.duplicate_variants.line_message')}</span>
             </div>
-        )}
+          )}
     </div>
 }
 
@@ -107,6 +109,7 @@ const VariantImagePicker = ({image, images, onSelect}: {
 
     const onChoose = () => {
         const items = selectedImagesRef.current;
+
         onSelect(items?.length ? items[0] : undefined);
         closeDialog();
     };
@@ -132,7 +135,7 @@ const VariantImagePicker = ({image, images, onSelect}: {
                 />
             ),
             footer: (
-                <div className={'pt-5'}>
+                <div className="pt-5">
                     <Button onClick={onChoose}>{t('admin.products_edit.images.choose')}</Button>
                 </div>
             )
@@ -142,13 +145,13 @@ const VariantImagePicker = ({image, images, onSelect}: {
     return <button
         type="button"
         onClick={onClick}
-        className={'shrink-0 transition-colors hover:bg-muted/60 '}>
+        className="shrink-0 transition-colors hover:bg-muted/60 ">
         {
             image ?
-                <MediaThumbnail url={image} className={'w-16 h-16'}/> :
+                <MediaThumbnail url={image} className="w-16 h-16"/> :
                 <div
-                    className={'w-16 h-16 flex justify-center items-center rounded-lg border-2 border-dashed border-border hover:border-primary/40'}>
-                    <ImageOffIcon className={'w-4 h-4 text-muted-foreground'}/>
+                    className="w-16 h-16 flex justify-center items-center rounded-lg border-2 border-dashed border-border hover:border-primary/40">
+                    <ImageOffIcon className="w-4 h-4 text-muted-foreground"/>
                 </div>
         }
     </button>
@@ -167,7 +170,7 @@ const VariantValueSelect = ({variantValue, option, onChange}: {
     onChange: (updated: VariantValue) => void
 }) => {
     if (!option?.values?.length) {
-        return <span className={'flex rounded border border-border bg-muted px-2 py-1 text-[13px]'}>
+        return <span className="flex rounded border border-border bg-muted px-2 py-1 text-[13px]">
             {variantValue.value?.value}
         </span>
     }
@@ -176,11 +179,12 @@ const VariantValueSelect = ({variantValue, option, onChange}: {
         value={variantValue.option_value_id?.toString() ?? ''}
         onValueChange={(newValueId) => {
             const newOptionValue = option.values?.find(ov => ov.id?.toString() === newValueId);
-            if (!newOptionValue) return;
+
+            if (!newOptionValue) {return;}
             onChange({...variantValue, option_value_id: newOptionValue.id ?? undefined, value: newOptionValue});
         }}
     >
-        <SelectTrigger className={'h-auto w-auto gap-1 rounded border-border bg-muted px-2 py-1 text-[13px]'}>
+        <SelectTrigger className="h-auto w-auto gap-1 rounded border-border bg-muted px-2 py-1 text-[13px]">
             <SelectValue/>
         </SelectTrigger>
         <SelectContent>

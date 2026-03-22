@@ -137,6 +137,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
     // Tiptap emits onUpdate during init with '<p></p>' which we
     // normalize to '', matching the original empty prop.
     const lastValueRef = React.useRef(value);
+
     lastValueRef.current = value;
 
     const editor = useEditor({
@@ -164,6 +165,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       },
       onUpdate: ({ editor }) => {
         const next = editor.isEmpty ? '' : editor.getHTML();
+
         if (next === (lastValueRef.current || '')) {
           return;
         }

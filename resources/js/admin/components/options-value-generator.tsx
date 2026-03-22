@@ -1,11 +1,10 @@
-import {useEffect, useState} from "react";
-import {Option, OptionValue} from "@/types/data";
-import {Button} from "@/components/ui/button.tsx";
-import {ToggleButton} from "@/components/toggle-button.tsx";
+import {useCallback, useEffect, useState} from "react";
 
-type GenerateData = {
-    [key: number]: OptionValue[]
-}
+import {ToggleButton} from "@/components/toggle-button.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {type Option, type OptionValue} from "@/types/data";
+
+type GenerateData = Record<number, OptionValue[]>;
 
 /**
  *
@@ -28,20 +27,21 @@ export function OptionsValueGenerator({options = [], onGenerate}: {
      * @param generateData
      */
     const generateVariantsCombinations = (generateData: GenerateData) => Object.values(generateData).reduce<OptionValue[][]>((acc, group) => {
-        if (acc.length === 0) return group.map(item => [item]);
+        if (acc.length === 0) {return group.map(item => [item]);}
+
         return acc.flatMap(combo => group.map(item => [...combo, item]));
     }, []);
 
-    return <div className={'flex flex-col gap-5'}>
+    return <div className="flex flex-col gap-5">
         {
             !!options?.length &&
-            <div className={'p-5 bg-gray-50 rounded-xl'}>
+            <div className="p-5 bg-gray-50 rounded-xl">
                 <OptionsBuilder options={options} onChange={setGenerateData}/>
             </div>
         }
         {
             !!options?.length &&
-            <div className={'flex justify-start'}>
+            <div className="flex justify-start">
                 <Button
                     type="button"
                     disabled={!combinations?.length}
@@ -69,20 +69,22 @@ const OptionsBuilder = ({options, onChange}: {
 
     const [selectedData, setSelectedData] = useState<GenerateData>({});
 
-    useEffect(() => {
-        onChange(isCompleted(selectedData) ? selectedData : null)
-    }, [selectedData]);
-
-    const isCompleted = (data: GenerateData) => {
-        if (!options?.length) return false;
+    const isCompleted = useCallback((data: GenerateData) => {
+        if (!options?.length) {return false;}
         const completedOptionsNumber = options?.reduce((acc, o) => {
             return acc + ((o.id && data[o.id]?.length) ? 1 : 0);
         }, 0);
+
         return completedOptionsNumber === options?.length
-    }
+    }, [options]);
+
+    useEffect(() => {
+        onChange(isCompleted(selectedData) ? selectedData : null)
+    }, [selectedData, isCompleted, onChange]);
 
     const onSelect = (option: Option, selectedValues: OptionValue[]) => {
-        const id = option.id;
+        const {id} = option;
+
         if (id) {
             setSelectedData(prev => {
                 return {
@@ -93,7 +95,7 @@ const OptionsBuilder = ({options, onChange}: {
         }
     }
 
-    return <div className={'flex flex-col gap-5'}>
+    return <div className="flex flex-col gap-5">
         {
             options?.map(o => <OptionLine key={o.id} option={o} onSelect={v => onSelect(o, v)}/>)
         }
@@ -115,10 +117,10 @@ const OptionLine = ({option, onSelect}: { option: Option, onSelect: (values: Opt
 
     useEffect(() => {
         onSelect(selectedValues);
-    }, [selectedValues]);
+    }, [selectedValues, onSelect]);
 
-    return <div className={'flex flex-col gap-5'}>
-        <div className={'flex gap-2'}>
+    return <div className="flex flex-col gap-5">
+        <div className="flex gap-2">
             <span className="text-[13px] font-bold">{option.title}</span>
             {selectedValues.length > 0 && (
                 <span
@@ -136,10 +138,11 @@ const OptionLine = ({option, onSelect}: { option: Option, onSelect: (values: Opt
             </button>
         </div>
 
-        <div className={'flex gap-2'}>
+        <div className="flex gap-2">
             {
                 option.values?.slice().sort((a, b) => a.position - b.position)?.map(v => {
                     const active = selectedValues.some(s => s.id === v.id);
+
                     return <ToggleButton key={v.id} onClick={() => onClick(v)} active={active} title={v.value}/>
                 })
             }

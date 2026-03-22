@@ -142,7 +142,7 @@ interface Props {
 
 export function ProductImagesCard({
                                       product,
-                                      isEdit,
+                                      isEdit: _isEdit,
                                       onLibraryImagesAdd,
                                       onLibraryImageRemove,
                                       onReorder,

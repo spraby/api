@@ -1,5 +1,4 @@
-import type { FormEventHandler } from 'react';
-import { useState } from 'react';
+import { type FormEventHandler , useState } from 'react';
 
 import { useForm, router } from '@inertiajs/react';
 import { MapPinIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';

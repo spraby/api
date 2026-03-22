@@ -2,22 +2,21 @@ import * as React from "react"
 
 import { router, usePage } from '@inertiajs/react';
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { DashboardCharts } from "@/components/dashboard/charts-panel"
 import { DashboardKpiGrid } from "@/components/dashboard/kpi-grid"
-import { OrdersStatusWidget } from "@/components/dashboard/orders-status-widget"
-import type { OrderStatusWidget } from "@/components/dashboard/orders-status-widget"
+import { OrdersStatusWidget ,type  OrderStatusWidget } from "@/components/dashboard/orders-status-widget"
 import { DashboardProductsTable } from "@/components/dashboard/products-table"
 import type { DashboardMetrics, InterestPoint, SalesPoint, TopConversionPage, TopProduct } from "@/components/dashboard/types"
 import { useDashboardFormatters } from "@/components/dashboard/use-dashboard-formatters"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useLang } from "@/lib/lang"
 import type { PageProps } from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
 
-type DashboardPageProps = {
+interface DashboardPageProps {
     range: number;
     table_mode?: 'top' | 'gap';
     metrics: DashboardMetrics;
@@ -26,8 +25,8 @@ type DashboardPageProps = {
         interest: InterestPoint[];
     };
     order_status: OrderStatusWidget;
-    category_views?: Array<{ label: string; value: number }>;
-    category_add_to_cart?: Array<{ label: string; value: number }>;
+    category_views?: { label: string; value: number }[];
+    category_add_to_cart?: { label: string; value: number }[];
     top_products: TopProduct[];
     top_conversion: TopConversionPage;
     meta: {
@@ -36,7 +35,7 @@ type DashboardPageProps = {
         currency: string;
     };
     error?: string;
-};
+}
 
 const DASHBOARD_ONLY = [
     "range",
@@ -53,8 +52,19 @@ const DASHBOARD_ONLY = [
 ] as const;
 
 export default function Dashboard() {
-    const { range, table_mode, metrics, series, category_views, category_add_to_cart, order_status, top_products, top_conversion, meta, error } =
-        usePage<PageProps<DashboardPageProps>>().props;
+    const {
+        range,
+        table_mode: tableModeProp,
+        metrics,
+        series,
+        category_views: categoryViews,
+        category_add_to_cart: categoryAddToCart,
+        order_status: orderStatus,
+        top_products: topProducts,
+        top_conversion: topConversion,
+        meta,
+        error,
+    } = usePage<PageProps<DashboardPageProps>>().props;
     const { t, trans, locale } = useLang();
     const isMobile = useIsMobile();
 
@@ -73,11 +83,11 @@ export default function Dashboard() {
 
     const chartHeightClass = isMobile ? "h-[240px]" : "h-[320px]";
 
-    const [tableMode, setTableMode] = React.useState<"top" | "gap">(table_mode ?? "top");
+    const [tableMode, setTableMode] = React.useState<"top" | "gap">(tableModeProp ?? "top");
 
     React.useEffect(() => {
-        setTableMode(table_mode ?? "top");
-    }, [table_mode]);
+        setTableMode(tableModeProp ?? "top");
+    }, [tableModeProp]);
 
     const handleRangeChange = (value: string) => {
         if (!value || value === String(range)) {
@@ -88,9 +98,9 @@ export default function Dashboard() {
             route('admin.dashboard', {
                 range: value,
                 table: tableMode,
-                conv_sort: top_conversion.pagination.sort,
-                conv_dir: top_conversion.pagination.direction,
-                conv_page: tableMode === 'gap' ? 1 : top_conversion.pagination.page,
+                conv_sort: topConversion.pagination.sort,
+                conv_dir: topConversion.pagination.direction,
+                conv_page: tableMode === 'gap' ? 1 : topConversion.pagination.page,
             }),
             {},
             {
@@ -132,16 +142,16 @@ export default function Dashboard() {
 
                 <DashboardKpiGrid
                     metrics={metrics}
-                    orderStatus={order_status}
-                    categoryViews={category_views}
-                    categoryAddToCart={category_add_to_cart}
+                    orderStatus={orderStatus}
+                    categoryViews={categoryViews}
+                    categoryAddToCart={categoryAddToCart}
                     currencyFormatter={currencyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
                 />
 
                 <OrdersStatusWidget
-                    data={order_status}
+                    data={orderStatus}
                     currencyFormatter={currencyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
@@ -177,8 +187,8 @@ export default function Dashboard() {
                     range={range}
                     tableMode={tableMode}
                     onTableModeChange={setTableMode}
-                    topProducts={top_products}
-                    topConversion={top_conversion}
+                    topProducts={topProducts}
+                    topConversion={topConversion}
                     numberFormatter={numberFormatter}
                     currencyFormatter={currencyFormatter}
                     t={t}

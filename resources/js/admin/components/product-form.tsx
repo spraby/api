@@ -1,14 +1,17 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
+
+import {router} from '@inertiajs/react';
+import {isEqual} from 'lodash-es';
+import {v4 as uuidv4} from 'uuid';
+
+import {CategoryVariantsGenerator} from "@/components/category-variants-generator.tsx";
 import {ProductBasicFieldsCard} from '@/components/product-basic-fields-card';
 import {ProductImagesCard} from '@/components/product-images-card';
 import {ProductSummaryCard} from '@/components/product-summary-card';
-import type {Product, ProductImage, Variant} from '@/types/data';
-import {v4 as uuidv4} from 'uuid';
-import {CategoryVariantsGenerator} from "@/components/category-variants-generator.tsx";
 import {VariantList} from "@/components/variant-list.tsx";
-import {router} from '@inertiajs/react';
 import {useSaveBar} from '@/stores/save-bar';
-import {isEqual} from 'lodash-es';
+import type {Product, ProductImage, Variant} from '@/types/data';
+
 
 
 export function ProductForm({product: defaultProduct}: {
@@ -33,13 +36,14 @@ export function ProductForm({product: defaultProduct}: {
     const images = useMemo(() => product.images ?? [], [product.images]);
     const variants = useMemo(() => product.variants ?? [], [product.variants]);
 
-    const onChange = useCallback((value: any) => {
+    const onChange = useCallback((value: Partial<Product>) => {
         setProduct(v => ({...v, ...value}));
     }, []);
 
     const addUniqueImages = useCallback((existingImages: ProductImage[], newImages: ProductImage[]) => {
         const existingIds = new Set(existingImages.map(i => i.image_id));
         const unique = newImages.filter(img => !existingIds.has(img.image_id));
+
         return unique.length > 0 ? [...existingImages, ...unique] : existingImages;
     }, []);
 
@@ -48,9 +52,11 @@ export function ProductForm({product: defaultProduct}: {
 
         const variantPayloads = variants.map(v => {
             let imageIndex: number | null = null;
+
             if (v.image?.image_id) {
-                const idx = images.findIndex(pi => pi.image_id === v.image!.image_id);
-                if (idx >= 0) imageIndex = idx;
+                const idx = images.findIndex(pi => pi.image_id === v.image?.image_id);
+
+                if (idx >= 0) {imageIndex = idx;}
             }
 
             return {
@@ -60,14 +66,16 @@ export function ProductForm({product: defaultProduct}: {
                 final_price: Number(v.final_price) || 0,
                 enabled: v.enabled ?? true,
                 image_index: imageIndex,
-                values: (v.values ?? []).map(val => ({
-                    option_id: val.option_id!,
-                    option_value_id: val.option_value_id ?? val.value?.id,
-                })).filter(val => val.option_id && val.option_value_id),
+                values: (v.values ?? [])
+                    .filter(val => val.option_id && (val.option_value_id ?? val.value?.id))
+                    .map(val => ({
+                        option_id: val.option_id as number,
+                        option_value_id: val.option_value_id ?? val.value?.id,
+                    })),
             };
         });
 
-        const payload: Record<string, any> = {
+        const payload: Record<string, unknown> = {
             title: product.title,
             description: product.description,
             enabled: product.enabled,
@@ -89,7 +97,7 @@ export function ProductForm({product: defaultProduct}: {
         return payload;
     }, [product, images, variants, isEdit]);
 
-    const handleSubmit = useCallback((): Promise<boolean> => {
+    const handleSubmit = useCallback(async (): Promise<boolean> => {
         const payload = buildPayload();
 
         setSubmitting(true);
@@ -162,6 +170,7 @@ export function ProductForm({product: defaultProduct}: {
                                     }
                                 })),
                             }));
+
                             onChange({variants: newVariants})
                         }}
                     />
@@ -175,6 +184,7 @@ export function ProductForm({product: defaultProduct}: {
                         const variantImages = updatedVariants
                             .map(v => v.image)
                             .filter((img): img is ProductImage => !!img);
+
                         onChange({variants: updatedVariants, images: addUniqueImages(images, variantImages)});
                     }}
                 />
@@ -186,19 +196,20 @@ export function ProductForm({product: defaultProduct}: {
                     isEdit={isEdit}
                     onLibraryImagesAdd={(libraryImages) => {
                         const newImages: ProductImage[] = libraryImages
-                            .filter(img => img.id != null)
+                            .filter((img): img is typeof img & { id: number } => img.id != null)
                             .map(img => ({
                                 uid: uuidv4(),
-                                image_id: img.id!,
+                                image_id: img.id,
                                 image: {
                                     uid: uuidv4(),
-                                    id: img.id!,
+                                    id: img.id,
                                     name: img.name,
                                     url: img.url,
                                     alt: img.alt ?? null,
                                 },
                             }));
                         const merged = addUniqueImages(images, newImages);
+
                         if (merged !== images) {
                             onChange({images: merged});
                         }

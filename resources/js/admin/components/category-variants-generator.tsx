@@ -1,7 +1,8 @@
 import {useEffect, useRef, useState} from "react";
-import {Category, OptionValue} from "@/types/data";
+
 import {OptionsValueGenerator} from "@/components/options-value-generator.tsx";
 import {ToggleButton} from "@/components/toggle-button.tsx";
+import {type Category, type OptionValue} from "@/types/data";
 
 /**
  *
@@ -21,12 +22,13 @@ export function CategoryVariantsGenerator({categories = [], onGenerate, onSetCat
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
+
             return;
         }
         onSetCategory(category ?? null)
-    }, [category]);
+    }, [category, onSetCategory]);
 
-    return <div className={'flex flex-col gap-5'}>
+    return <div className="flex flex-col gap-5">
         <CategoriesLine categories={categories} onSelect={setCategory}/>
         <OptionsValueGenerator key={category?.id ?? 'none'} options={category?.options ?? []} onGenerate={onGenerate}/>
     </div>
@@ -51,7 +53,7 @@ const CategoriesLine = ({categories, onSelect}: {
         }
     }
 
-    return <div className={'flex gap-5'}>
+    return <div className="flex gap-5">
         {
             categories.map(category => {
                 const active = activeId === category.id;

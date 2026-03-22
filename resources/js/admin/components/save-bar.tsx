@@ -62,7 +62,7 @@ export function SaveBar({className}: {className?: string}) {
         if (!hasChanges) {return;}
         const handler = (e: BeforeUnloadEvent) => {
             e.preventDefault();
-            e.returnValue = '';
+            e.returnValue = ''; // eslint-disable-line no-param-reassign
         };
 
         window.addEventListener('beforeunload', handler);

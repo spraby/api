@@ -1,11 +1,11 @@
 import * as React from "react"
 
-type DashboardFormatters = {
+interface DashboardFormatters {
   currencyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   compactNumberFormatter: Intl.NumberFormat;
   formatDate: (value: string) => string;
-};
+}
 
 export function useDashboardFormatters(
   locale: string,
@@ -40,6 +40,7 @@ export function useDashboardFormatters(
   const formatDate = React.useCallback(
     (value: string) => {
       const safeValue = value.includes("T") ? value : `${value}T00:00:00`;
+
       return dateFormatter.format(new Date(safeValue));
     },
     [dateFormatter]

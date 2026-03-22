@@ -109,7 +109,7 @@ export function PricingSection({
                     {t('admin.products_edit.fields.price')}
                 </Label>
                 <Input
-                    className={'max-w-[100px] md:max-w-[120px]'}
+                    className="max-w-[100px] md:max-w-[120px]"
                     disabled={disabled}
                     min="0"
                     placeholder={t('admin.products_edit.placeholders.price')}
@@ -123,7 +123,7 @@ export function PricingSection({
             <div className="space-y-0">
                 <Label className="flex items-center gap-1 text-muted-foreground text-xs">%</Label>
                 <Input
-                    className={'max-w-20'}
+                    className="max-w-20"
                     disabled={disabled}
                     min="0"
                     max="100"
@@ -140,7 +140,7 @@ export function PricingSection({
                     {t('admin.products_edit.fields.final_price')}
                 </Label>
                 <Input
-                    className={'max-w-[100px] md:max-w-[120px]'}
+                    className="max-w-[100px] md:max-w-[120px]"
                     disabled={disabled}
                     min="0"
                     placeholder={t('admin.products_edit.placeholders.final_price')}

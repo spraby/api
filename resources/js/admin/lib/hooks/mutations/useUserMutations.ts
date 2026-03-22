@@ -7,7 +7,9 @@
 import {
   useMutation,
   useQueryClient,
-} from '@tanstack/react-query';
+type 
+  UseMutationOptions,type 
+  UseMutationResult} from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import {
@@ -25,9 +27,6 @@ import type {
   User,
 } from '@/types/api';
 
-import type {
-  UseMutationOptions,
-  UseMutationResult} from '@tanstack/react-query';
 
 
 // ============================================

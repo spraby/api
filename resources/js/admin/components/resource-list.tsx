@@ -9,7 +9,12 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+type 
+  ColumnFiltersState,type 
+  OnChangeFn,type 
+  PaginationState,type 
+  SortingState,type 
+  VisibilityState} from "@tanstack/react-table"
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -55,12 +60,6 @@ import type {
   SelectFilter,
 } from "@/types/resource-list"
 
-import type {
-  ColumnFiltersState,
-  OnChangeFn,
-  PaginationState,
-  SortingState,
-  VisibilityState} from "@tanstack/react-table";
 
 /**
  * Universal ResourceList Component
@@ -203,6 +202,7 @@ export function ResourceList<TData>({
     const isSame = nextFilters.length === columnFilters.length
       && nextFilters.every((nextFilter, index) => {
         const current = columnFilters[index];
+
         return current?.id === nextFilter.id && current?.value === nextFilter.value;
       });
 
@@ -223,6 +223,7 @@ export function ResourceList<TData>({
       if (filter.value !== undefined && filter.value !== null && String(filter.value).length > 0) {
         acc[filter.id] = String(filter.value);
       }
+
       return acc;
     }, {});
 
@@ -237,6 +238,7 @@ export function ResourceList<TData>({
     if (skipFiltersChangeRef.current) {
       skipFiltersChangeRef.current = false;
       filtersChangeRef.current = nextFilters;
+
       return;
     }
 

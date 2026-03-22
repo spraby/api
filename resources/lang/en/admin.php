@@ -148,7 +148,6 @@ return [
             'unpaid_orders' => 'Unpaid orders',
             'category_breakdown' => 'Categories',
             'category_breakdown_empty' => 'Category views will appear here',
-            'category_breakdown_preview' => 'Example',
             'category_other' => 'Other',
             'category_preview_1' => 'Honey & jam',
             'category_preview_2' => 'Pickles',

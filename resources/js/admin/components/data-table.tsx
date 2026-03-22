@@ -28,7 +28,12 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+type 
+  ColumnDef,type 
+  ColumnFiltersState,type 
+  Row,type 
+  SortingState,type 
+  VisibilityState} from "@tanstack/react-table"
 import {
   CheckCircle2Icon,
   ChevronDownIcon,
@@ -49,13 +54,12 @@ import { z } from "zod"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type {
-  ChartConfig} from "@/components/ui/chart";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
@@ -101,12 +105,6 @@ import {
 } from "@/components/ui/tabs"
 import { useIsMobile } from "@/hooks/use-mobile"
 
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  Row,
-  SortingState,
-  VisibilityState} from "@tanstack/react-table";
 
 export const schema = z.object({
   id: z.number(),
