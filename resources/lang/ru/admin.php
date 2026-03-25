@@ -1170,6 +1170,26 @@ return [
         ],
     ],
 
+    'settings_general' => [
+        'title' => 'Основные настройки',
+        'description' => 'Общая информация о вашем магазине',
+        'fields' => [
+            'about' => 'О бренде',
+            'refund_policy' => 'Условия возврата',
+        ],
+        'placeholders' => [
+            'about' => 'Расскажите о вашем бренде...',
+            'refund_policy' => 'Опишите условия возврата товаров...',
+        ],
+        'actions' => [
+            'save' => 'Сохранить',
+            'saving' => 'Сохранение...',
+        ],
+        'messages' => [
+            'updated' => 'Настройки обновлены',
+        ],
+    ],
+
     'settings_addresses' => [
         'title' => 'Адреса',
         'description' => 'Адреса вашего бизнеса',

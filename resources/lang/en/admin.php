@@ -1170,6 +1170,26 @@ return [
         ],
     ],
 
+    'settings_general' => [
+        'title' => 'General Settings',
+        'description' => 'General information about your store',
+        'fields' => [
+            'about' => 'About brand',
+            'refund_policy' => 'Refund policy',
+        ],
+        'placeholders' => [
+            'about' => 'Tell about your brand...',
+            'refund_policy' => 'Describe your refund policy...',
+        ],
+        'actions' => [
+            'save' => 'Save',
+            'saving' => 'Saving...',
+        ],
+        'messages' => [
+            'updated' => 'Settings updated',
+        ],
+    ],
+
     'settings_addresses' => [
         'title' => 'Addresses',
         'description' => 'Your business addresses',

@@ -1,17 +1,18 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('brand_settings', function (Blueprint $table) {
+        Schema::dropIfExists('brand_settings');
+    }
+
+    public function down(): void
+    {
+        Schema::create('brand_settings', function ($table) {
             $table->id()->primary();
             $table->enum('type', ['delivery', 'refund', 'phones', 'emails', 'socials', 'addresses']);
             $table->jsonb('data')->default(DB::raw("'{}'::jsonb"));
@@ -22,13 +23,5 @@ return new class extends Migration
             $table->unique(['type', 'brand_id']);
             $table->unique(['id', 'type', 'brand_id']);
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('brand_settings');
     }
 };

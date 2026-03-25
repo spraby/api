@@ -17,13 +17,13 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property string|null $user_id
  * @property string $name
  * @property string|null $description
- // * @property string|null $instagram
+ * @property string|null $about
+ * @property string|null $refund_policy
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read User|null $user
  * @property-read Collection<Product> $products
  * @property-read Collection<Category> $categories
- * @property-read Collection<BrandSettings> $settings
  * @property-read Collection<Order> $orders
  * @property-read Collection<Image> $images
  * @property-read Collection<Address> $addresses
@@ -42,7 +42,8 @@ class Brand extends Model
         'user_id',
         'name',
         'description',
-        // 'instagram',
+        'about',
+        'refund_policy',
     ];
 
     protected $casts = [
@@ -63,11 +64,6 @@ class Brand extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
-    }
-
-    public function settings(): HasMany
-    {
-        return $this->hasMany(BrandSettings::class);
     }
 
     public function orders(): HasMany

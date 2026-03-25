@@ -83,6 +83,8 @@ class SettingsController extends Controller
             'contacts' => $contacts,
             'shippingMethods' => $shippingMethods,
             'allShippingMethods' => $allShippingMethods,
+            'about' => $brand?->about ?? '',
+            'refundPolicy' => $brand?->refund_policy ?? '',
         ]);
     }
 
@@ -162,6 +164,26 @@ class SettingsController extends Controller
         ]);
 
         $brand->shippingMethods()->sync($validated['shipping_method_ids']);
+
+        return redirect()->back();
+    }
+
+    /**
+     * Update general brand info (about, refund policy).
+     */
+    public function updateGeneral(Request $request): RedirectResponse
+    {
+        $brand = $this->getRequiredBrand();
+        if ($brand instanceof RedirectResponse) {
+            return $brand;
+        }
+
+        $validated = $request->validate([
+            'about' => ['nullable', 'string'],
+            'refund_policy' => ['nullable', 'string'],
+        ]);
+
+        $brand->update($validated);
 
         return redirect()->back();
     }
