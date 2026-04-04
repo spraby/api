@@ -19,6 +19,7 @@ services:
           WWWUSER: ${WWWUSER}
           WWWGROUP: ${WWWGROUP}
     container_name: spraby-api
+    restart: unless-stopped
     volumes:
       - ./:/var/www/html
     depends_on:
@@ -27,6 +28,7 @@ services:
   nginx:
     image: nginx:stable
     container_name: spraby-api-nginx
+    restart: unless-stopped
     ports:
       - "8000:80"
     volumes:

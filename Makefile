@@ -7,6 +7,9 @@ up:
 build:
 	docker compose up -d --build
 
+deploy:
+	docker compose up -d --build app nginx
+
 down:
 	docker compose down
 
