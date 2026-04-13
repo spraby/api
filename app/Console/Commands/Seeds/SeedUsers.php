@@ -14,7 +14,7 @@ class SeedUsers extends Command
      *
      * @var string
      */
-    protected $signature = 'seed:users {--force}';
+    protected $signature = 'seed:users {--force} {--email=} {--password=} {--role=manager}';
 
     /**
      * The console command description.
@@ -33,6 +33,16 @@ class SeedUsers extends Command
     public function handle(): void
     {
         $force = (bool) $this->option('force');
+        $email = $this->option('email');
+
+        if ($email) {
+            $password = $this->option('password') ?? $this->secret('Password');
+            $role = $this->option('role');
+            $this->generateRolesAndPermissions();
+            $this->generateUser($email, $password, $role);
+            return;
+        }
+
         $this->generateAdminsAndManagers($force);
     }
 
@@ -68,13 +78,21 @@ class SeedUsers extends Command
         }
     }
 
-    private function generateAdmin(): void
+    private function generateUser(?string $email = null, ?string $password = null, string $role = 'admin'): void
     {
-        $user = User::admin()->first();
+        $userEmail = $email ?? self::ADMIN_EMAIL;
+        $user = User::where('email', $userEmail)->first();
 
         if (! $user) {
-            $user = User::factory()->create(['email' => self::ADMIN_EMAIL]);
-            $user->assignRole(User::ROLES['ADMIN']);
+            $data = ['email' => $userEmail];
+            if ($password) {
+                $data['password'] = bcrypt($password);
+            }
+            $user = User::factory()->create($data);
+            $user->assignRole($role);
+            $this->info("{$role} created: {$userEmail}");
+        } else {
+            $this->info("User already exists: {$userEmail}");
         }
     }
 
@@ -101,7 +119,7 @@ class SeedUsers extends Command
         }
 
         $this->generateRolesAndPermissions();
-        $this->generateAdmin();
+        $this->generateUser(self::ADMIN_EMAIL, null, User::ROLES['ADMIN']);
         $this->generateManagers();
     }
 }
