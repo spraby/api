@@ -52,7 +52,7 @@ export function OptionPicker({
   const { t } = useLang();
   const [search, setSearch] = useState("");
 
-  const { data: fetchedOptions } = useQuery({
+  const { data: fetchedOptions, isLoading } = useQuery({
     queryKey: optionKeys.lists(),
     queryFn: fetchOptions,
     enabled: !optionsProp,
@@ -68,8 +68,28 @@ export function OptionPicker({
   const resolvedSearchPlaceholder =
     searchPlaceholder ?? t("admin.option_picker.search_placeholder");
 
+  if (!optionsProp && isLoading) {
+    return (
+      <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
+        <div className="gap-2 flex flex-col">
+          <Label>{resolvedLabel}</Label>
+          <p className="text-xs text-muted-foreground">{resolvedHint}</p>
+        </div>
+        <p className="text-sm text-muted-foreground">{t("admin.option_picker.loading")}</p>
+      </Card>
+    );
+  }
+
   if (options.length === 0) {
-    return null;
+    return (
+      <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
+        <div className="gap-2 flex flex-col">
+          <Label>{resolvedLabel}</Label>
+          <p className="text-xs text-muted-foreground">{resolvedHint}</p>
+        </div>
+        <p className="text-sm text-muted-foreground">{t("admin.option_picker.empty")}</p>
+      </Card>
+    );
   }
 
   const filtered = options.filter(

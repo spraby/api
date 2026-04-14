@@ -1282,6 +1282,8 @@ return [
         'label' => 'Options',
         'hint' => 'Select options available for products in this category',
         'search_placeholder' => 'Search options...',
+        'loading' => 'Loading options...',
+        'empty' => 'No options available. Create options first in the Options section.',
     ],
 
     'settings_menu' => [
