@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCollectionRequest;
 use App\Http\Requests\UpdateCollectionRequest;
-use App\Models\Category;
 use App\Models\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -96,8 +95,6 @@ class CollectionController extends Controller
     {
         $this->authorize('view', Collection::class);
 
-        $categories = Category::orderBy('name')->get(['id', 'name']);
-
         return Inertia::render('CollectionEdit', [
             'collection' => [
                 'id' => $collection->id,
@@ -110,7 +107,6 @@ class CollectionController extends Controller
                 'created_at' => $collection->created_at->toISOString(),
                 'updated_at' => $collection->updated_at->toISOString(),
             ],
-            'categories' => $categories,
         ]);
     }
 

@@ -102,6 +102,7 @@ class BrandController extends Controller
                     'name' => $brand->user->first_name . ' ' . $brand->user->last_name,
                     'email' => $brand->user->email,
                 ] : null,
+                'category_ids' => $brand->categories()->pluck('categories.id')->toArray(),
                 'shipping_methods' => $brand->shippingMethods->map->toSelectArray(),
                 'created_at' => $brand->created_at->toISOString(),
                 'updated_at' => $brand->updated_at->toISOString(),
@@ -165,6 +166,23 @@ class BrandController extends Controller
         } catch (\Exception $e) {
             return Redirect::back()->with('error', 'Failed to delete brands: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Sync categories for the brand.
+     */
+    public function syncCategories(Request $request, Brand $brand): RedirectResponse
+    {
+        $this->authorize('update', Brand::class);
+
+        $validated = $request->validate([
+            'category_ids' => ['present', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
+        ]);
+
+        $brand->categories()->sync($validated['category_ids']);
+
+        return Redirect::back()->with('success', 'Categories updated successfully');
     }
 
     /**

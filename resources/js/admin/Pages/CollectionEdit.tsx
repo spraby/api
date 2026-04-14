@@ -19,17 +19,11 @@ interface CollectionData {
   updated_at: string;
 }
 
-interface CategoryOption {
-  id: number;
-  name: string;
-}
-
 interface CollectionEditProps {
   collection: CollectionData;
-  categories: CategoryOption[];
 }
 
-export default function CollectionEdit({ collection, categories }: CollectionEditProps) {
+export default function CollectionEdit({ collection }: CollectionEditProps) {
   const { t } = useLang();
 
   return (
@@ -59,7 +53,7 @@ export default function CollectionEdit({ collection, categories }: CollectionEdi
             </div>
           </div>
 
-          <CollectionForm collection={collection} categories={categories} />
+          <CollectionForm collection={collection} />
         </div>
       </div>
     </AdminLayout>

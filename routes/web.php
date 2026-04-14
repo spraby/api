@@ -91,6 +91,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
                 Route::get('/edit', [App\Http\Controllers\Admin\BrandController::class, 'edit'])->name('brands.edit');
                 Route::put('/', [App\Http\Controllers\Admin\BrandController::class, 'update'])->name('brands.update');
                 Route::delete('/', [App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('brands.destroy');
+                Route::put('/categories', [App\Http\Controllers\Admin\BrandController::class, 'syncCategories'])->name('brands.categories.sync');
                 Route::put('/shipping-methods', [App\Http\Controllers\Admin\BrandController::class, 'syncShippingMethods'])->name('brands.shipping-methods.sync');
             });
         });

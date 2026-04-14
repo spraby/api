@@ -4,6 +4,7 @@ import {router, usePage} from '@inertiajs/react';
 import {ArrowLeftIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
 
 import {BrandForm} from "@/components/brand-form.tsx";
+import {CategoryPicker} from "@/components/category-picker.tsx";
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Checkbox} from '@/components/ui/checkbox';
@@ -24,6 +25,7 @@ interface BrandData {
     name: string;
     email: string;
   } | null;
+  category_ids: number[];
   shipping_methods: ShippingMethod[];
   created_at: string;
   updated_at: string;
@@ -38,10 +40,30 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
     const {t} = useLang();
     const {auth} = usePage<PageProps>().props;
 
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(brand.category_ids);
+    const [isSavingCategories, setIsSavingCategories] = useState(false);
+
     const [selectedShippingMethods, setSelectedShippingMethods] = useState<number[]>(
         brand.shipping_methods.map(m => m.id)
     );
     const [isSaving, setIsSaving] = useState(false);
+
+    const hasCategoryChanges =
+        selectedCategoryIds.length !== brand.category_ids.length ||
+        selectedCategoryIds.some(id => !brand.category_ids.includes(id));
+
+    const handleSaveCategories = () => {
+        setIsSavingCategories(true);
+
+        router.put(
+            route('admin.brands.categories.sync', {brand: brand.id}),
+            {category_ids: selectedCategoryIds},
+            {
+                preserveScroll: true,
+                onFinish: () => setIsSavingCategories(false),
+            }
+        );
+    };
 
     // Check if current user can impersonate (admins only)
     const canImpersonate = auth?.user?.is_admin && brand.user;
@@ -135,6 +157,24 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
                     ) : null}
 
                     <BrandForm brand={brand}/>
+
+                    <div className="flex flex-col gap-4">
+                        <CategoryPicker
+                            selectedIds={selectedCategoryIds}
+                            onChange={setSelectedCategoryIds}
+                        />
+                        <div className="flex justify-end">
+                            <Button
+                                size="sm"
+                                onClick={handleSaveCategories}
+                                disabled={isSavingCategories || !hasCategoryChanges}
+                            >
+                                {isSavingCategories
+                                    ? t('admin.brands_edit.categories_saving')
+                                    : t('admin.brands_edit.categories_save')}
+                            </Button>
+                        </div>
+                    </div>
 
                     <Card>
                         <CardHeader className="pb-3">

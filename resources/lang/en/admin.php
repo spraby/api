@@ -872,6 +872,8 @@ return [
             'save' => 'Save Changes',
             'saving' => 'Saving...',
         ],
+        'categories_save' => 'Save',
+        'categories_saving' => 'Saving...',
         'shipping_methods' => 'Shipping Methods',
         'shipping_methods_description' => 'Select available shipping methods for this brand',
         'no_shipping_methods' => 'No shipping methods available',
@@ -954,7 +956,6 @@ return [
             'title' => 'Title',
             'header' => 'Header',
             'description' => 'Description',
-            'categories' => 'Categories',
         ],
         'placeholders' => [
             'name' => 'Enter collection name',
@@ -962,11 +963,9 @@ return [
             'title' => 'Enter collection title',
             'header' => 'Enter collection header',
             'description' => 'Enter collection description...',
-            'category_search' => 'Search categories...',
         ],
         'hints' => [
             'handle' => 'Leave empty to auto-generate from name',
-            'categories' => 'Select categories to include in this collection',
         ],
         'required_fields' => 'Required fields',
         'actions' => [
@@ -1272,5 +1271,11 @@ return [
         'impersonate' => 'Impersonate',
         'stop' => 'Stop Impersonating',
         'banner_text' => 'You are impersonating',
+    ],
+
+    'category_picker' => [
+        'label' => 'Categories',
+        'hint' => 'Select categories',
+        'search_placeholder' => 'Search categories...',
     ],
 ];
