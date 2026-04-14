@@ -14,15 +14,22 @@ interface CollectionData {
   title: string | null;
   header: string | null;
   description: string | null;
+  category_ids: number[];
   created_at: string;
   updated_at: string;
 }
 
-interface CollectionEditProps {
-  collection: CollectionData;
+interface CategoryOption {
+  id: number;
+  name: string;
 }
 
-export default function CollectionEdit({ collection }: CollectionEditProps) {
+interface CollectionEditProps {
+  collection: CollectionData;
+  categories: CategoryOption[];
+}
+
+export default function CollectionEdit({ collection, categories }: CollectionEditProps) {
   const { t } = useLang();
 
   return (
@@ -52,7 +59,7 @@ export default function CollectionEdit({ collection }: CollectionEditProps) {
             </div>
           </div>
 
-          <CollectionForm collection={collection} />
+          <CollectionForm collection={collection} categories={categories} />
         </div>
       </div>
     </AdminLayout>

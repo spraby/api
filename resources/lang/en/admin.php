@@ -954,6 +954,7 @@ return [
             'title' => 'Title',
             'header' => 'Header',
             'description' => 'Description',
+            'categories' => 'Categories',
         ],
         'placeholders' => [
             'name' => 'Enter collection name',
@@ -961,9 +962,11 @@ return [
             'title' => 'Enter collection title',
             'header' => 'Enter collection header',
             'description' => 'Enter collection description...',
+            'category_search' => 'Search categories...',
         ],
         'hints' => [
             'handle' => 'Leave empty to auto-generate from name',
+            'categories' => 'Select categories to include in this collection',
         ],
         'required_fields' => 'Required fields',
         'actions' => [

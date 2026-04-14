@@ -33,6 +33,8 @@ class UpdateCollectionRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'header' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
         ];
     }
 }

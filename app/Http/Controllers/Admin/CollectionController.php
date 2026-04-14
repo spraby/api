@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCollectionRequest;
 use App\Http\Requests\UpdateCollectionRequest;
+use App\Models\Category;
 use App\Models\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -95,6 +96,8 @@ class CollectionController extends Controller
     {
         $this->authorize('view', Collection::class);
 
+        $categories = Category::orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('CollectionEdit', [
             'collection' => [
                 'id' => $collection->id,
@@ -103,9 +106,11 @@ class CollectionController extends Controller
                 'title' => $collection->title,
                 'header' => $collection->header,
                 'description' => $collection->description,
+                'category_ids' => $collection->categories()->pluck('categories.id')->toArray(),
                 'created_at' => $collection->created_at->toISOString(),
                 'updated_at' => $collection->updated_at->toISOString(),
             ],
+            'categories' => $categories,
         ]);
     }
 
@@ -129,6 +134,8 @@ class CollectionController extends Controller
                 'header' => $request->input('header'),
                 'description' => $request->input('description'),
             ]);
+
+            $collection->categories()->sync($request->input('category_ids', []));
 
             return Redirect::route('admin.collections.edit', $collection->id)
                 ->with('success', 'Collection updated successfully');

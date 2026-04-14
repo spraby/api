@@ -1,13 +1,20 @@
-import { type FormEventHandler , useMemo } from "react";
+import { type FormEventHandler , useMemo, useState } from "react";
 
 import { useForm, router } from '@inertiajs/react';
 
+import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card } from "@/components/ui/card.tsx";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
+
+interface CategoryOption {
+  id: number;
+  name: string;
+}
 
 interface CollectionFormData {
   id?: number;
@@ -16,14 +23,17 @@ interface CollectionFormData {
   title: string | null;
   header: string | null;
   description: string | null;
+  category_ids?: number[];
 }
 
 interface CollectionFormProps {
   collection: CollectionFormData;
+  categories?: CategoryOption[];
 }
 
-export function CollectionForm({ collection: defaultCollection }: CollectionFormProps) {
+export function CollectionForm({ collection: defaultCollection, categories = [] }: CollectionFormProps) {
   const { t } = useLang();
+  const [categorySearch, setCategorySearch] = useState('');
 
   const { data: collection, setData, errors, put, post, processing } = useForm<CollectionFormData>(defaultCollection);
   const isEditMode = useMemo(() => !!collection?.id, [collection?.id]);
@@ -137,6 +147,72 @@ export function CollectionForm({ collection: defaultCollection }: CollectionForm
             {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
           </div>
         </Card>
+
+        {categories.length > 0 && (
+          <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
+            <div className="gap-2 flex flex-col">
+              <Label>{t('admin.collections_edit.fields.categories')}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t('admin.collections_edit.hints.categories')}
+              </p>
+            </div>
+
+            {(collection.category_ids?.length ?? 0) > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {categories
+                  .filter(c => collection.category_ids?.includes(c.id))
+                  .map(c => (
+                    <Badge
+                      key={c.id}
+                      variant="secondary"
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setData('category_ids', (collection.category_ids ?? []).filter(id => id !== c.id));
+                      }}
+                    >
+                      {c.name} &times;
+                    </Badge>
+                  ))}
+              </div>
+            )}
+
+            {categories.length > 5 && (
+              <Input
+                placeholder={t('admin.collections_edit.placeholders.category_search')}
+                value={categorySearch}
+                onChange={e => setCategorySearch(e.target.value)}
+              />
+            )}
+
+            <div className="max-h-[240px] overflow-y-auto flex flex-col gap-1">
+              {categories
+                .filter(c => !categorySearch || c.name.toLowerCase().includes(categorySearch.toLowerCase()))
+                .map(c => {
+                  const checked = collection.category_ids?.includes(c.id) ?? false;
+
+                  return (
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(val) => {
+                          const current = collection.category_ids ?? [];
+
+                          setData('category_ids', val
+                            ? [...current, c.id]
+                            : current.filter(id => id !== c.id)
+                          );
+                        }}
+                      />
+                      {c.name}
+                    </label>
+                  );
+                })}
+            </div>
+          </Card>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
