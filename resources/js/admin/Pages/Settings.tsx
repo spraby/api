@@ -1,13 +1,14 @@
 import {useState} from 'react';
 
 import {usePage} from '@inertiajs/react';
-import {Building2Icon, MapPinIcon, TruckIcon, PhoneIcon} from 'lucide-react';
+import {Building2Icon, MapPinIcon, MenuIcon, TruckIcon, PhoneIcon} from 'lucide-react';
 
 import AddressesSection from '@/components/settings/AddressesSection';
 import ContactsSection from '@/components/settings/ContactsSection';
 import DeliverySection from '@/components/settings/DeliverySection';
 import GeneralSection from '@/components/settings/GeneralSection';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import type {MenuNode, MenuOption} from '@/components/settings/menu/types';
+import MenuSection from '@/components/settings/MenuSection';
 import {Separator} from '@/components/ui/separator';
 import AdminLayout from '@/layouts/AdminLayout';
 import {useLang} from '@/lib/lang';
@@ -22,6 +23,10 @@ interface SettingsPageProps extends Record<string, unknown> {
     allShippingMethods: ShippingMethod[];
     about: string;
     refundPolicy: string;
+    menu?: MenuNode[];
+    menuCollections?: MenuOption[];
+    menuCategories?: MenuOption[];
+    menuMaxDepth?: number;
 }
 
 const tabs = [
@@ -88,23 +93,82 @@ function ManagerSettings({
     );
 }
 
-function AdminSettings() {
+const adminTabs = [
+    {id: 'menu', icon: MenuIcon, label_ru: 'Меню', label_en: 'Menu'},
+] as const;
+
+type AdminTabId = (typeof adminTabs)[number]['id'];
+
+function AdminSettings({
+    menu,
+    collections,
+    categories,
+    maxDepth,
+    locale,
+}: {
+    menu: MenuNode[];
+    collections: MenuOption[];
+    categories: MenuOption[];
+    maxDepth: number;
+    locale: string;
+}) {
+    const [activeTab, setActiveTab] = useState<AdminTabId>('menu');
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Admin Settings</CardTitle>
-                <CardDescription>Platform-wide settings will be here</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-muted-foreground">Coming soon...</p>
-            </CardContent>
-        </Card>
+        <div className="flex flex-1 gap-6">
+            <nav className="w-48 shrink-0 flex flex-col gap-1">
+                {adminTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const label = locale === 'ru' ? tab.label_ru : tab.label_en;
+
+                    return (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={cn(
+                                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-left',
+                                activeTab === tab.id
+                                    ? 'bg-muted text-foreground'
+                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                            )}
+                        >
+                            <Icon className="size-4 shrink-0"/>
+                            {label}
+                        </button>
+                    );
+                })}
+            </nav>
+
+            <div className="flex-1 min-w-0">
+                {activeTab === 'menu' && (
+                    <MenuSection
+                        menu={menu}
+                        collections={collections}
+                        categories={categories}
+                        maxDepth={maxDepth}
+                    />
+                )}
+            </div>
+        </div>
     );
 }
 
 export default function Settings() {
     const {t, locale} = useLang();
-    const {auth, addresses, contacts, shippingMethods, allShippingMethods, about, refundPolicy} = usePage<PageProps<SettingsPageProps>>().props;
+    const {
+        auth,
+        addresses,
+        contacts,
+        shippingMethods,
+        allShippingMethods,
+        about,
+        refundPolicy,
+        menu,
+        menuCollections,
+        menuCategories,
+        menuMaxDepth,
+    } = usePage<PageProps<SettingsPageProps>>().props;
 
     return (
         <AdminLayout title={t('admin.nav.settings')}>
@@ -113,7 +177,13 @@ export default function Settings() {
                 <Separator/>
 
                 {auth.user.is_admin ? (
-                    <AdminSettings/>
+                    <AdminSettings
+                        menu={menu ?? []}
+                        collections={menuCollections ?? []}
+                        categories={menuCategories ?? []}
+                        maxDepth={menuMaxDepth ?? 3}
+                        locale={locale}
+                    />
                 ) : (
                     <ManagerSettings addresses={addresses} contacts={contacts} shippingMethods={shippingMethods} allShippingMethods={allShippingMethods} about={about} refundPolicy={refundPolicy} locale={locale}/>
                 )}

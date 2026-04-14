@@ -1283,4 +1283,42 @@ return [
         'hint' => 'Select options available for products in this category',
         'search_placeholder' => 'Search options...',
     ],
+
+    'settings_menu' => [
+        'title' => 'Navigation menu',
+        'description' => 'Edit the storefront main menu. Drag items to reorder and change nesting.',
+        'empty' => 'The menu is empty. Add the first item.',
+        'tab' => 'Menu',
+        'fields' => [
+            'title' => 'Title',
+            'link_type' => 'Link type',
+            'url' => 'URL',
+            'collection' => 'Collection',
+            'category' => 'Category',
+        ],
+        'link_types' => [
+            'collection' => 'Collection',
+            'category' => 'Category',
+            'custom' => 'Custom link',
+        ],
+        'placeholders' => [
+            'title' => 'Menu item title',
+            'url' => 'https://… or /path',
+            'pick_collection' => 'Pick a collection',
+            'pick_category' => 'Pick a category',
+        ],
+        'actions' => [
+            'add_root' => 'Add item',
+            'add_child' => 'Add sub-item',
+            'delete' => 'Delete',
+            'save' => 'Save menu',
+            'saving' => 'Saving...',
+            'expand' => 'Expand',
+            'collapse' => 'Collapse',
+        ],
+        'messages' => [
+            'updated' => 'Menu updated',
+            'max_depth' => 'Maximum depth reached.',
+        ],
+    ],
 ];

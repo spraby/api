@@ -171,6 +171,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/settings/contacts', [App\Http\Controllers\Admin\SettingsController::class, 'updateContacts'])->name('settings.contacts.update');
         Route::put('/settings/shipping-methods', [App\Http\Controllers\Admin\SettingsController::class, 'syncShippingMethods'])->name('settings.shipping-methods.sync');
         Route::put('/settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general.update');
+        Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
 

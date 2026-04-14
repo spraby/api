@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAddressRequest;
 use App\Http\Requests\UpdateContactsRequest;
+use App\Http\Requests\UpdateMenuRequest;
 use App\Models\Address;
 use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Collection;
 use App\Models\Contact;
+use App\Models\Settings;
 use App\Models\ShippingMethod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -78,6 +82,32 @@ class SettingsController extends Controller
 
         $allShippingMethods = ShippingMethod::orderBy('name')->get()->map->toSelectArray();
 
+        $adminData = [];
+        if (auth()->user()->isAdmin()) {
+            $adminData = [
+                'menu' => Settings::menu()->first()?->data ?? [],
+                'menuMaxDepth' => UpdateMenuRequest::MAX_DEPTH,
+                'menuCollections' => Collection::query()
+                    ->orderBy('title')
+                    ->get(['id', 'title', 'handle'])
+                    ->map(fn ($c) => [
+                        'id' => (int) $c->id,
+                        'title' => $c->title,
+                        'url' => '/collections/'.$c->handle,
+                    ])
+                    ->all(),
+                'menuCategories' => Category::query()
+                    ->orderBy('title')
+                    ->get(['id', 'title', 'handle'])
+                    ->map(fn ($c) => [
+                        'id' => (int) $c->id,
+                        'title' => $c->title,
+                        'url' => '/categories/'.$c->handle,
+                    ])
+                    ->all(),
+            ];
+        }
+
         return Inertia::render('Settings', [
             'addresses' => $addresses,
             'contacts' => $contacts,
@@ -85,7 +115,87 @@ class SettingsController extends Controller
             'allShippingMethods' => $allShippingMethods,
             'about' => $brand?->about ?? '',
             'refundPolicy' => $brand?->refund_policy ?? '',
+            ...$adminData,
         ]);
+    }
+
+    /**
+     * Update the global navigation menu (admin only).
+     */
+    public function updateMenu(UpdateMenuRequest $request): RedirectResponse
+    {
+        $menu = $request->validated()['menu'];
+        $used = $this->collectUsedIds($menu);
+        $normalized = $this->normalizeMenuNodes($menu, $used);
+
+        $existing = Settings::menu()->first();
+        if ($existing) {
+            $existing->update(['data' => $normalized]);
+        } else {
+            Settings::createMenu($normalized);
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Collect all integer ids already present in the tree so new nodes don't collide.
+     */
+    private function collectUsedIds(array $nodes, array &$used = []): array
+    {
+        foreach ($nodes as $node) {
+            if (isset($node['id']) && is_int($node['id'])) {
+                $used[$node['id']] = true;
+            }
+            if (!empty($node['children']) && is_array($node['children'])) {
+                $this->collectUsedIds($node['children'], $used);
+            }
+        }
+
+        return $used;
+    }
+
+    /**
+     * Normalize nodes: keep numeric ids, assign new ids for nodes that lack them,
+     * strip unknown fields, trim strings.
+     */
+    private function normalizeMenuNodes(array $nodes, array &$used): array
+    {
+        $result = [];
+
+        foreach ($nodes as $node) {
+            $id = isset($node['id']) && is_int($node['id']) ? $node['id'] : $this->nextId($used);
+            $used[$id] = true;
+
+            $normalized = [
+                'id' => $id,
+                'title' => trim((string) ($node['title'] ?? '')),
+                'url' => trim((string) ($node['url'] ?? '')),
+            ];
+
+            if (isset($node['ref_type']) && in_array($node['ref_type'], ['collection', 'category', 'custom'], true)) {
+                $normalized['ref_type'] = $node['ref_type'];
+            }
+            if (isset($node['ref_id']) && (is_int($node['ref_id']) || (is_string($node['ref_id']) && ctype_digit($node['ref_id'])))) {
+                $normalized['ref_id'] = (int) $node['ref_id'];
+            }
+
+            if (!empty($node['children']) && is_array($node['children'])) {
+                $normalized['children'] = $this->normalizeMenuNodes($node['children'], $used);
+            }
+
+            $result[] = $normalized;
+        }
+
+        return $result;
+    }
+
+    private function nextId(array &$used): int
+    {
+        $next = empty($used) ? 1 : (max(array_keys($used)) + 1);
+        $used[$next] = true;
+
+        return $next;
     }
 
     /**
