@@ -124,6 +124,9 @@ class BrandController extends Controller
                 'description' => $request->input('description'),
             ]);
 
+            $brand->categories()->sync($request->input('category_ids', []));
+            $brand->shippingMethods()->sync($request->input('shipping_method_ids', []));
+
             return Redirect::route('admin.brands.edit', $brand->id)
                 ->with('success', 'Brand updated successfully');
         } catch (\Exception $e) {

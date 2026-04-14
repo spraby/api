@@ -22,6 +22,10 @@ class UpdateBrandRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'category_ids' => ['present', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
+            'shipping_method_ids' => ['present', 'array'],
+            'shipping_method_ids.*' => ['integer', 'exists:shipping_methods,id'],
         ];
     }
 }

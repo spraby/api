@@ -1,9 +1,9 @@
-import {useState} from 'react';
+import {type FormEventHandler} from 'react';
 
-import {router, usePage} from '@inertiajs/react';
+import {router, useForm, usePage} from '@inertiajs/react';
 import {ArrowLeftIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
 
-import {BrandForm} from "@/components/brand-form.tsx";
+import {BrandFormFields} from "@/components/brand-form.tsx";
 import {CategoryPicker} from "@/components/category-picker.tsx";
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
@@ -16,56 +16,44 @@ import type {PageProps} from '@/types/inertia';
 import AdminLayout from '../layouts/AdminLayout';
 
 interface BrandData {
-  id: number;
-  name: string;
-  description: string | null;
-  user_id: number | null;
-  user: {
     id: number;
     name: string;
-    email: string;
-  } | null;
-  category_ids: number[];
-  shipping_methods: ShippingMethod[];
-  created_at: string;
-  updated_at: string;
+    description: string | null;
+    user_id: number | null;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+    } | null;
+    category_ids: number[];
+    shipping_methods: ShippingMethod[];
+    created_at: string;
+    updated_at: string;
 }
 
 interface BrandEditProps {
-  brand: BrandData;
-  allShippingMethods: ShippingMethod[];
+    brand: BrandData;
+    allShippingMethods: ShippingMethod[];
+}
+
+interface BrandEditFormData {
+    name: string;
+    description: string | null;
+    category_ids: number[];
+    shipping_method_ids: number[];
 }
 
 export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
     const {t} = useLang();
     const {auth} = usePage<PageProps>().props;
 
-    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(brand.category_ids);
-    const [isSavingCategories, setIsSavingCategories] = useState(false);
+    const {data, setData, errors, put, processing} = useForm<BrandEditFormData>({
+        name: brand.name,
+        description: brand.description,
+        category_ids: brand.category_ids,
+        shipping_method_ids: brand.shipping_methods.map(m => m.id),
+    });
 
-    const [selectedShippingMethods, setSelectedShippingMethods] = useState<number[]>(
-        brand.shipping_methods.map(m => m.id)
-    );
-    const [isSaving, setIsSaving] = useState(false);
-
-    const hasCategoryChanges =
-        selectedCategoryIds.length !== brand.category_ids.length ||
-        selectedCategoryIds.some(id => !brand.category_ids.includes(id));
-
-    const handleSaveCategories = () => {
-        setIsSavingCategories(true);
-
-        router.put(
-            route('admin.brands.categories.sync', {brand: brand.id}),
-            {category_ids: selectedCategoryIds},
-            {
-                preserveScroll: true,
-                onFinish: () => setIsSavingCategories(false),
-            }
-        );
-    };
-
-    // Check if current user can impersonate (admins only)
     const canImpersonate = auth?.user?.is_admin && brand.user;
 
     const handleImpersonate = () => {
@@ -74,28 +62,19 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
         }
     };
 
-    const initialShippingMethodIds = brand.shipping_methods.map(m => m.id);
-    const hasShippingChanges =
-        selectedShippingMethods.length !== initialShippingMethodIds.length ||
-        selectedShippingMethods.some(id => !initialShippingMethodIds.includes(id));
-
     const handleShippingMethodToggle = (methodId: number, checked: boolean) => {
-        setSelectedShippingMethods(prev =>
-            checked ? [...prev, methodId] : prev.filter(id => id !== methodId)
+        setData('shipping_method_ids',
+            checked
+                ? [...data.shipping_method_ids, methodId]
+                : data.shipping_method_ids.filter(id => id !== methodId)
         );
     };
 
-    const handleSaveShippingMethods = () => {
-        setIsSaving(true);
-
-        router.put(
-            route('admin.brands.shipping-methods.sync', {brand: brand.id}),
-            {shipping_method_ids: selectedShippingMethods},
-            {
-                preserveScroll: true,
-                onFinish: () => setIsSaving(false),
-            }
-        );
+    const onSubmit: FormEventHandler = (e) => {
+        e.preventDefault();
+        put(route('admin.brands.update', brand.id), {
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -156,50 +135,42 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
                         </Card>
                     ) : null}
 
-                    <BrandForm brand={brand}/>
-
-                    <div className="flex flex-col gap-4">
-                        <CategoryPicker
-                            selectedIds={selectedCategoryIds}
-                            onChange={setSelectedCategoryIds}
+                    <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
+                        <BrandFormFields
+                            name={data.name}
+                            description={data.description}
+                            errors={errors}
+                            onChange={(field, value) => setData(field, value)}
                         />
-                        <div className="flex justify-end">
-                            <Button
-                                size="sm"
-                                onClick={handleSaveCategories}
-                                disabled={isSavingCategories || !hasCategoryChanges}
-                            >
-                                {isSavingCategories
-                                    ? t('admin.brands_edit.categories_saving')
-                                    : t('admin.brands_edit.categories_save')}
-                            </Button>
-                        </div>
-                    </div>
 
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <TruckIcon className="size-4"/>
-                                {t('admin.brands_edit.shipping_methods')}
-                            </CardTitle>
-                            <CardDescription>
-                                {t('admin.brands_edit.shipping_methods_description')}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {allShippingMethods.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
-                                    {t('admin.brands_edit.no_shipping_methods')}
-                                </p>
-                            ) : (
-                                <div className="flex flex-col gap-4">
+                        <CategoryPicker
+                            selectedIds={data.category_ids}
+                            onChange={(ids) => setData('category_ids', ids)}
+                        />
+
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <TruckIcon className="size-4"/>
+                                    {t('admin.brands_edit.shipping_methods')}
+                                </CardTitle>
+                                <CardDescription>
+                                    {t('admin.brands_edit.shipping_methods_description')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {allShippingMethods.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        {t('admin.brands_edit.no_shipping_methods')}
+                                    </p>
+                                ) : (
                                     <div className="space-y-3">
                                         {allShippingMethods.map((method) => (
                                             <div key={method.id} className="flex items-center space-x-3">
                                                 <Checkbox
                                                     id={`shipping-${method.id}`}
-                                                    checked={selectedShippingMethods.includes(method.id)}
-                                                    disabled={isSaving}
+                                                    checked={data.shipping_method_ids.includes(method.id)}
+                                                    disabled={processing}
                                                     onCheckedChange={(checked) =>
                                                         handleShippingMethodToggle(method.id, checked === true)
                                                     }
@@ -213,22 +184,34 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
                                             </div>
                                         ))}
                                     </div>
+                                )}
+                            </CardContent>
+                        </Card>
 
-                                    <div className="flex justify-end">
-                                        <Button
-                                            size="sm"
-                                            onClick={handleSaveShippingMethods}
-                                            disabled={isSaving || !hasShippingChanges}
-                                        >
-                                            {isSaving
-                                                ? t('admin.brands_edit.shipping_saving')
-                                                : t('admin.brands_edit.shipping_save')}
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                <span className="text-destructive">*</span> {t('admin.brands_edit.required_fields')}
+                            </p>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={processing}
+                                    className="w-full sm:w-auto"
+                                    onClick={() => {
+                                        router.visit(route('admin.brands'));
+                                    }}
+                                >
+                                    {t('admin.brands_edit.actions.cancel')}
+                                </Button>
+                                <Button type="submit" disabled={processing} className="w-full sm:w-auto">
+                                    {processing
+                                        ? t('admin.brands_edit.actions.saving')
+                                        : t('admin.brands_edit.actions.save')}
+                                </Button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </AdminLayout>
