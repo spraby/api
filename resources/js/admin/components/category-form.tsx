@@ -2,6 +2,7 @@ import { type FormEventHandler , useMemo } from "react";
 
 import { useForm, router } from '@inertiajs/react';
 
+import { OptionPicker } from "@/components/option-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card } from "@/components/ui/card.tsx";
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ interface CategoryFormData {
   title: string | null;
   header: string | null;
   description: string | null;
+  option_ids: number[];
 }
 
 interface CategoryFormProps {
@@ -25,7 +27,10 @@ interface CategoryFormProps {
 export function CategoryForm({ category: defaultCategory }: CategoryFormProps) {
   const { t } = useLang();
 
-  const { data: category, setData, errors, put, post, processing } = useForm<CategoryFormData>(defaultCategory);
+  const { data: category, setData, errors, put, post, processing } = useForm<CategoryFormData>({
+    ...defaultCategory,
+    option_ids: defaultCategory.option_ids ?? [],
+  });
   const isEditMode = useMemo(() => !!category?.id, [category?.id]);
 
   const submitButtonText = useMemo(() => {
@@ -57,6 +62,7 @@ export function CategoryForm({ category: defaultCategory }: CategoryFormProps) {
     <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
       <div className="grid grid-cols-1 gap-4 md:gap-5">
         <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
+
           <div className="gap-2 flex flex-col">
             <Label className="flex items-center gap-1" htmlFor="name">
               {t('admin.categories_edit.fields.name')}
@@ -138,6 +144,13 @@ export function CategoryForm({ category: defaultCategory }: CategoryFormProps) {
           </div>
         </Card>
       </div>
+
+      {isEditMode ? (
+        <OptionPicker
+          selectedIds={category.option_ids}
+          onChange={(ids) => setData('option_ids', ids)}
+        />
+      ) : null}
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <p className="text-sm text-muted-foreground">

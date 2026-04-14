@@ -1278,4 +1278,9 @@ return [
         'hint' => 'Select categories',
         'search_placeholder' => 'Search categories...',
     ],
+    'option_picker' => [
+        'label' => 'Options',
+        'hint' => 'Select options available for products in this category',
+        'search_placeholder' => 'Search options...',
+    ],
 ];

@@ -44,6 +44,19 @@ export const categoryKeys = {
 };
 
 // ============================================
+// OPTION QUERY KEYS
+// ============================================
+
+export const optionKeys = {
+  all: ['options'] as const,
+  lists: () => [...optionKeys.all, 'list'] as const,
+  list: (filters?: Record<string, unknown>) =>
+    [...optionKeys.lists(), filters] as const,
+  details: () => [...optionKeys.all, 'detail'] as const,
+  detail: (id: number) => [...optionKeys.details(), id] as const,
+};
+
+// ============================================
 // UTILITY FUNCTIONS
 // ============================================
 

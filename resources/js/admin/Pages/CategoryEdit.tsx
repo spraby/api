@@ -14,6 +14,7 @@ interface CategoryData {
   title: string | null;
   header: string | null;
   description: string | null;
+  option_ids: number[];
   created_at: string;
   updated_at: string;
 }

@@ -103,6 +103,7 @@ class CategoryController extends Controller
                 'title' => $category->title,
                 'header' => $category->header,
                 'description' => $category->description,
+                'option_ids' => $category->options()->pluck('options.id')->toArray(),
                 'created_at' => $category->created_at->toISOString(),
                 'updated_at' => $category->updated_at->toISOString(),
             ],
@@ -129,6 +130,8 @@ class CategoryController extends Controller
                 'header' => $request->input('header'),
                 'description' => $request->input('description'),
             ]);
+
+            $category->options()->sync($request->input('option_ids', []));
 
             return Redirect::route('admin.categories.edit', $category->id)
                 ->with('success', 'Category updated successfully');

@@ -33,6 +33,8 @@ class UpdateCategoryRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'header' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'option_ids' => ['present', 'array'],
+            'option_ids.*' => ['integer', 'exists:options,id'],
         ];
     }
 }

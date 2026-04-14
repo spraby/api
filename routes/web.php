@@ -161,6 +161,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/variants/{id}/image/api', [App\Http\Controllers\Admin\VariantController::class, 'apiSetImage'])->name('variants.api.image.set');
 
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
+        Route::get('/options/api', [App\Http\Controllers\Admin\OptionController::class, 'apiIndex'])->name('options.api.index');
 
         // Settings
         Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings');

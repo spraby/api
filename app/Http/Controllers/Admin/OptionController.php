@@ -7,6 +7,7 @@ use App\Http\Requests\StoreOptionRequest;
 use App\Http\Requests\UpdateOptionRequest;
 use App\Models\Option;
 use App\Models\OptionValue;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -15,6 +16,18 @@ use Inertia\Response;
 
 class OptionController extends Controller
 {
+    /**
+     * Return options list as JSON (for TanStack Query).
+     */
+    public function apiIndex(): JsonResponse
+    {
+        $this->authorize('viewAny', Option::class);
+
+        $options = Option::orderBy('name')->get(['id', 'name', 'title']);
+
+        return response()->json(['data' => $options]);
+    }
+
     /**
      * Show the options list page.
      */
