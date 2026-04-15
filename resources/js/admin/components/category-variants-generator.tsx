@@ -18,6 +18,8 @@ export function CategoryVariantsGenerator({categories = [], onGenerate, onSetCat
 }) {
     const [category, setCategory] = useState<Category>();
     const isFirstRender = useRef(true);
+    const onSetCategoryRef = useRef(onSetCategory);
+    onSetCategoryRef.current = onSetCategory;
 
     useEffect(() => {
         if (isFirstRender.current) {
@@ -25,8 +27,8 @@ export function CategoryVariantsGenerator({categories = [], onGenerate, onSetCat
 
             return;
         }
-        onSetCategory(category ?? null)
-    }, [category, onSetCategory]);
+        onSetCategoryRef.current(category ?? null)
+    }, [category]);
 
     return <div className="flex flex-col gap-5">
         <CategoriesLine categories={categories} onSelect={setCategory}/>
