@@ -95,6 +95,15 @@ export function OptionPicker({
   const filtered = options.filter(
     (o) => !search || o.name.toLowerCase().includes(search.toLowerCase()) || o.title.toLowerCase().includes(search.toLowerCase()),
   );
+  const getSecondaryTitle = (option: OptionItem): string | null => {
+    const title = option.title?.trim();
+
+    if (!title || title === option.name) {
+      return null;
+    }
+
+    return title;
+  };
 
   return (
     <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
@@ -111,12 +120,13 @@ export function OptionPicker({
               <Badge
                 key={o.id}
                 variant="secondary"
-                className="cursor-pointer"
+                className="cursor-pointer inline-flex items-center gap-1.5"
                 onClick={() => {
                   onChange(selectedIds.filter((id) => id !== o.id));
                 }}
               >
-                {o.title || o.name} &times;
+                <span>{o.name}</span>
+                <span aria-hidden="true">&times;</span>
               </Badge>
             ))}
         </div>
@@ -133,6 +143,7 @@ export function OptionPicker({
       <div className="max-h-[240px] overflow-y-auto flex flex-col gap-1">
         {filtered.map((o) => {
           const checked = selectedIds.includes(o.id);
+          const secondaryTitle = getSecondaryTitle(o);
 
           return (
             <label
@@ -149,7 +160,10 @@ export function OptionPicker({
                   );
                 }}
               />
-              {o.title || o.name}
+              <span>{o.name}</span>
+              {secondaryTitle ? (
+                <span className="text-xs text-muted-foreground">{secondaryTitle}</span>
+              ) : null}
             </label>
           );
         })}
