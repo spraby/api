@@ -89,18 +89,20 @@ class SettingsController extends Controller
                 'menuMaxDepth' => UpdateMenuRequest::MAX_DEPTH,
                 'menuCollections' => Collection::query()
                     ->orderBy('title')
-                    ->get(['id', 'title', 'handle'])
+                    ->get(['id', 'name', 'title', 'handle'])
                     ->map(fn ($c) => [
                         'id' => (int) $c->id,
+                        'name' => $c->name,
                         'title' => $c->title,
                         'url' => '/collections/'.$c->handle,
                     ])
                     ->all(),
                 'menuCategories' => Category::query()
                     ->orderBy('title')
-                    ->get(['id', 'title', 'handle'])
+                    ->get(['id', 'name', 'title', 'handle'])
                     ->map(fn ($c) => [
                         'id' => (int) $c->id,
+                        'name' => $c->name,
                         'title' => $c->title,
                         'url' => '/categories/'.$c->handle,
                     ])
