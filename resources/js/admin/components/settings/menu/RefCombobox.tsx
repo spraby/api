@@ -43,7 +43,11 @@ export default function RefCombobox({
         if (!q) {return options;}
 
         return options.filter(
-            (o) => o.title.toLowerCase().includes(q) || o.url.toLowerCase().includes(q),
+            (o) => {
+                const name = o.name?.toLowerCase() ?? '';
+
+                return name.includes(q) || o.title.toLowerCase().includes(q);
+            },
         );
     }, [options, query]);
 
@@ -102,7 +106,7 @@ export default function RefCombobox({
                     )}
                 >
                     <span className={cn('truncate text-left', !selected && 'text-muted-foreground')}>
-                        {selected?.title ?? placeholder}
+                        {(selected?.name ?? selected?.title) ?? placeholder}
                     </span>
                     <ChevronsUpDownIcon className="size-4 shrink-0 text-muted-foreground"/>
                 </button>
@@ -133,6 +137,8 @@ export default function RefCombobox({
                         filtered.map((option, index) => {
                             const isSelected = option.id === value;
                             const isActive = index === highlight;
+                            const displayName = option.name ?? option.title;
+                            const displayTitle = option.title;
 
                             return (
                                 <button
@@ -142,15 +148,17 @@ export default function RefCombobox({
                                     onMouseEnter={() => setHighlight(index)}
                                     onClick={() => handleSelect(option)}
                                     className={cn(
-                                        'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm outline-none',
+                                        'flex w-full items-start gap-2 px-3 py-2 text-left text-sm outline-none',
                                         isActive && 'bg-accent text-accent-foreground',
                                     )}
                                 >
                                     <CheckIcon
-                                        className={cn('size-4 shrink-0', isSelected ? 'opacity-100' : 'opacity-0')}
+                                        className={cn('mt-0.5 size-4 shrink-0', isSelected ? 'opacity-100' : 'opacity-0')}
                                     />
-                                    <span className="flex-1 truncate">{option.title}</span>
-                                    <span className="text-xs text-muted-foreground">{option.url}</span>
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block truncate font-medium">{displayName}</span>
+                                        <span className="block truncate text-xs text-muted-foreground">{displayTitle}</span>
+                                    </span>
                                 </button>
                             );
                         })

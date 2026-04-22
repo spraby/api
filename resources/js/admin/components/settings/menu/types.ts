@@ -11,6 +11,7 @@ export interface MenuNode {
 
 export interface MenuOption {
     id: number;
+    name?: string;
     title: string;
     url: string;
 }
