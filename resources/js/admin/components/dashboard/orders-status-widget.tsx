@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Link } from "@inertiajs/react"
 
+import {MoneyWithBynIcon} from "@/components/money-with-byn-icon"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -33,7 +34,7 @@ export interface OrderStatusWidget {
 
 interface OrdersStatusWidgetProps {
   data: OrderStatusWidget;
-  currencyFormatter: Intl.NumberFormat;
+  moneyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   t: (key: string) => string;
   trans: (key: string, replacements?: Record<string, string | number>) => string;
@@ -42,7 +43,7 @@ interface OrdersStatusWidgetProps {
 
 export function OrdersStatusWidget({
   data,
-  currencyFormatter,
+  moneyFormatter,
   numberFormatter,
   t,
   trans,
@@ -195,7 +196,7 @@ export function OrdersStatusWidget({
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: segment.color }} />
                     <span>{segment.label}</span>
                     <span className={`font-medium ${segment.valueClass}`}>
-                      {currencyFormatter.format(segment.amount)}
+                      <MoneyWithBynIcon value={segment.amount} formatter={moneyFormatter} iconClassName="h-3 w-3"/>
                     </span>
                     <span className="text-muted-foreground">
                       {trans(`admin.dashboard.orders_widget.${segment.key}_count`, {

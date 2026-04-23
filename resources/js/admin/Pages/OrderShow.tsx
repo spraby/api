@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import {MoneyWithBynIcon} from '@/components/money-with-byn-icon';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -104,6 +105,11 @@ interface OrderShowProps {
   order: Order;
   audits: AuditData[];
 }
+
+const orderShowMoneyFormatter = new Intl.NumberFormat('ru-RU', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 // ============================================
 // STATUS SELECT COMPONENTS
@@ -445,9 +451,15 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                                 </div>
                               </TableCell>
                               <TableCell>{item.quantity}</TableCell>
-                              <TableCell>${parseFloat(item.final_price).toFixed(2)}</TableCell>
+                              <TableCell>
+                                <MoneyWithBynIcon value={item.final_price} formatter={orderShowMoneyFormatter}/>
+                              </TableCell>
                               <TableCell className="text-right font-medium">
-                                ${(parseFloat(item.final_price) * item.quantity).toFixed(2)}
+                                <MoneyWithBynIcon
+                                  value={parseFloat(item.final_price) * item.quantity}
+                                  formatter={orderShowMoneyFormatter}
+                                  valueClassName="font-medium"
+                                />
                               </TableCell>
                             </TableRow>
                           ))}
@@ -461,7 +473,7 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                         <div className="w-full max-w-xs space-y-2">
                           <div className="flex justify-between text-lg font-semibold">
                             <span>{t('admin.order_show.totals.total')}</span>
-                            <span>${calculateTotal().toFixed(2)}</span>
+                            <MoneyWithBynIcon value={calculateTotal()} formatter={orderShowMoneyFormatter}/>
                           </div>
                         </div>
                       </div>

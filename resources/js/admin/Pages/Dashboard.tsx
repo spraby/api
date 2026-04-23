@@ -69,7 +69,7 @@ export default function Dashboard() {
     const isMobile = useIsMobile();
 
     const {
-        currencyFormatter,
+        moneyFormatter,
         numberFormatter,
         compactNumberFormatter,
         formatDate,
@@ -145,14 +145,14 @@ export default function Dashboard() {
                     orderStatus={orderStatus}
                     categoryViews={categoryViews}
                     categoryAddToCart={categoryAddToCart}
-                    currencyFormatter={currencyFormatter}
+                    moneyFormatter={moneyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
                 />
 
                 <OrdersStatusWidget
                     data={orderStatus}
-                    currencyFormatter={currencyFormatter}
+                    moneyFormatter={moneyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
                     trans={trans}
@@ -166,7 +166,7 @@ export default function Dashboard() {
                     isMobile={isMobile}
                     formatDate={formatDate}
                     formatCompact={(value) => compactNumberFormatter.format(value)}
-                    formatCurrency={(value) => currencyFormatter.format(value)}
+                    formatCurrency={(value) => moneyFormatter.format(value)}
                     formatNumber={(value) => numberFormatter.format(value)}
                     labels={{
                         toggleSales: t('admin.dashboard.charts.toggle_sales'),
@@ -190,7 +190,7 @@ export default function Dashboard() {
                     topProducts={topProducts}
                     topConversion={topConversion}
                     numberFormatter={numberFormatter}
-                    currencyFormatter={currencyFormatter}
+                    moneyFormatter={moneyFormatter}
                     t={t}
                     trans={trans}
                 />

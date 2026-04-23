@@ -4,6 +4,7 @@ import {router, usePage} from '@inertiajs/react';
 import {ExternalLinkIcon, ImageIcon, MoreVerticalIcon, PackageIcon, PlusIcon, Trash2Icon} from "lucide-react"
 import {toast} from "sonner"
 
+import {BynCurrencyIcon} from '@/components/byn-currency-icon';
 import {ResourceList} from '@/components/resource-list';
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
@@ -25,7 +26,6 @@ import {
 } from "@/components/ui/select"
 import {Switch} from "@/components/ui/switch"
 import {useLang} from '@/lib/lang';
-import {toMoneyFormat} from '@/lib/utils';
 import type {BulkAction, Filter, ResourceListTranslations} from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
@@ -57,6 +57,11 @@ interface Product {
     max_price: number | null;
     created_at: string;
 }
+
+const productPriceFormatter = new Intl.NumberFormat('ru-RU', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+});
 
 // ============================================
 // COLUMN DEFINITIONS
@@ -183,13 +188,19 @@ const createProductColumns = (
             }
 
             if (minPrice === maxPrice) {
-                return <span className="font-medium">{toMoneyFormat(minPrice)}</span>
+                return (
+                    <span className="inline-flex items-center gap-1 font-medium">
+                        <span>{productPriceFormatter.format(minPrice)}</span>
+                        <BynCurrencyIcon className="h-3.5 w-3.5"/>
+                    </span>
+                )
             }
 
             return (
-                <span className="font-medium">
-          {toMoneyFormat(minPrice)} — {toMoneyFormat(maxPrice)}
-        </span>
+                <span className="inline-flex items-center gap-1 font-medium">
+                    <span>{productPriceFormatter.format(minPrice)} — {productPriceFormatter.format(maxPrice)}</span>
+                    <BynCurrencyIcon className="h-3.5 w-3.5"/>
+                </span>
             )
         },
     },

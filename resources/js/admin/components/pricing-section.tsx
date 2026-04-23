@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 
+import {BynCurrencyIcon} from '@/components/byn-currency-icon';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {useLang} from '@/lib/lang';
@@ -103,7 +104,7 @@ export function PricingSection({
     };
 
     return (
-        <div className="flex gap-3 flex-nowrap">
+        <div className="flex items-end gap-3 flex-nowrap">
             <div className="space-y-0">
                 <Label className="flex items-center gap-1 text-muted-foreground text-xs">
                     {t('admin.products_edit.fields.price')}
@@ -149,6 +150,10 @@ export function PricingSection({
                     value={finalPrice}
                     onChange={(e) => handleFinalPriceChange(e.target.value)}
                 />
+            </div>
+
+            <div className="inline-flex h-9 shrink-0 items-center text-muted-foreground">
+                <BynCurrencyIcon className="h-4 w-4"/>
             </div>
         </div>
     );

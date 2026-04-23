@@ -12,6 +12,7 @@ import {
   XCircleIcon,
 } from "lucide-react"
 
+import {MoneyWithBynIcon} from '@/components/money-with-byn-icon';
 import { ResourceList } from '@/components/resource-list';
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -71,6 +72,11 @@ interface OrdersFilters {
   status: string;
   financial_status: string;
 }
+
+const orderMoneyFormatter = new Intl.NumberFormat('ru-RU', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 // ============================================
 // STATUS BADGE COMPONENTS
@@ -215,9 +221,11 @@ const createOrderColumns = (
       const order = row.original
 
       return (
-        <span className="font-medium">
-          ${order.total.toFixed(2)}
-        </span>
+        <MoneyWithBynIcon
+          value={order.total}
+          formatter={orderMoneyFormatter}
+          valueClassName="font-medium"
+        />
       )
     },
   },

@@ -2,6 +2,7 @@ import * as React from "react"
 
 interface DashboardFormatters {
   currencyFormatter: Intl.NumberFormat;
+  moneyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   compactNumberFormatter: Intl.NumberFormat;
   formatDate: (value: string) => string;
@@ -27,6 +28,14 @@ export function useDashboardFormatters(
     [uiLocale]
   );
 
+  const moneyFormatter = React.useMemo(
+    () => new Intl.NumberFormat(uiLocale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    [uiLocale]
+  );
+
   const compactNumberFormatter = React.useMemo(
     () => new Intl.NumberFormat(uiLocale, { notation: "compact", maximumFractionDigits: 1 }),
     [uiLocale]
@@ -48,6 +57,7 @@ export function useDashboardFormatters(
 
   return {
     currencyFormatter,
+    moneyFormatter,
     numberFormatter,
     compactNumberFormatter,
     formatDate,

@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 
+import {BynCurrencyIcon} from '@/components/byn-currency-icon';
 import {useLang} from '@/lib/lang';
 import type {Variant} from '@/types/data';
 
@@ -39,9 +40,9 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
 
     if (minPrice !== null && maxPrice !== null) {
         if (minPrice === maxPrice) {
-            priceRange = `${fmt(minPrice)} ₽`;
+            priceRange = fmt(minPrice);
         } else {
-            priceRange = `${fmt(minPrice)} — ${fmt(maxPrice)} ₽`;
+            priceRange = `${fmt(minPrice)} — ${fmt(maxPrice)}`;
         }
     }
 
@@ -84,7 +85,10 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
                 label={t('admin.products_edit.summary_price')}
                 value={
                     priceRange ? (
-                        <span className="font-mono font-bold">{priceRange}</span>
+                        <span className="inline-flex items-center gap-1 font-mono font-bold">
+                            <span>{priceRange}</span>
+                            <BynCurrencyIcon className="h-[14px] w-[14px]"/>
+                        </span>
                     ) : (
                         '—'
                     )

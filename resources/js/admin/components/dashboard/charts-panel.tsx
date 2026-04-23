@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import {BynCurrencyIcon} from "@/components/byn-currency-icon"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ChartConfig } from "@/components/ui/chart"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -40,7 +41,7 @@ function TooltipRow({
   color,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   color: string;
 }) {
   return (
@@ -112,7 +113,12 @@ export function DashboardCharts({
     const numeric = Number(value);
     const label = name === "revenue" ? labels.revenue : labels.orders;
     const display = name === "revenue"
-      ? formatCurrency(numeric)
+      ? (
+        <span className="inline-flex items-center gap-1">
+          <span>{formatCurrency(numeric)}</span>
+          <BynCurrencyIcon className="h-3 w-3"/>
+        </span>
+      )
       : formatNumber(numeric);
     const color = getIndicatorColor(item);
 
