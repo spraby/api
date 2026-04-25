@@ -69,11 +69,10 @@ export default function Dashboard() {
     const isMobile = useIsMobile();
 
     const {
-        moneyFormatter,
         numberFormatter,
         compactNumberFormatter,
         formatDate,
-    } = useDashboardFormatters(locale, meta?.currency);
+    } = useDashboardFormatters(locale);
 
     const periodLabel = trans('admin.dashboard.period', {
         days: range,
@@ -164,7 +163,6 @@ export default function Dashboard() {
                     isMobile={isMobile}
                     formatDate={formatDate}
                     formatCompact={(value) => compactNumberFormatter.format(value)}
-                    formatCurrency={(value) => moneyFormatter.format(value)}
                     formatNumber={(value) => numberFormatter.format(value)}
                     labels={{
                         toggleSales: t('admin.dashboard.charts.toggle_sales'),
