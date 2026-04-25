@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import {MoneyWithBynIcon} from "@/components/money-with-byn-icon"
+import {Money} from "@/components/money"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 import type { DashboardMetrics } from "./types"
@@ -15,7 +15,6 @@ interface KpiGridProps {
   };
   categoryViews?: { label: string; value: number }[];
   categoryAddToCart?: { label: string; value: number }[];
-  moneyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   t: (key: string) => string;
 }
@@ -148,7 +147,6 @@ export function DashboardKpiGrid({
   orderStatus,
   categoryViews = [],
   categoryAddToCart = [],
-  moneyFormatter,
   numberFormatter,
   t,
 }: KpiGridProps) {
@@ -228,7 +226,7 @@ export function DashboardKpiGrid({
       details: [
         {
           label: t("admin.dashboard.kpi.aov"),
-          value: <MoneyWithBynIcon value={metrics.aov} formatter={moneyFormatter} iconClassName="h-3 w-3" />,
+          value: <Money value={metrics.aov} />,
         },
         {
           label: t("admin.dashboard.kpi.units"),
@@ -238,7 +236,7 @@ export function DashboardKpiGrid({
     },
     {
       label: t("admin.dashboard.kpi.revenue"),
-      value: <MoneyWithBynIcon value={orderStatus.paid_total} formatter={moneyFormatter} iconClassName="h-4 w-4" />,
+      value: <Money value={orderStatus.paid_total} />,
       chips: [
         {
           label: t("admin.dashboard.kpi.conversion_view_to_paid"),
@@ -252,7 +250,7 @@ export function DashboardKpiGrid({
       details: [
         {
           label: t("admin.dashboard.orders_widget.unpaid_total"),
-          value: <MoneyWithBynIcon value={orderStatus.unpaid_total} formatter={moneyFormatter} iconClassName="h-3 w-3" />,
+          value: <Money value={orderStatus.unpaid_total} />,
         },
         {
           label: t("admin.dashboard.kpi.paid_orders"),
@@ -266,7 +264,6 @@ export function DashboardKpiGrid({
     },
   ], [
     cartToOrder,
-    moneyFormatter,
     metrics.add_to_cart,
     metrics.aov,
     metrics.conversion_view_to_atc,

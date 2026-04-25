@@ -145,14 +145,12 @@ export default function Dashboard() {
                     orderStatus={orderStatus}
                     categoryViews={categoryViews}
                     categoryAddToCart={categoryAddToCart}
-                    moneyFormatter={moneyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
                 />
 
                 <OrdersStatusWidget
                     data={orderStatus}
-                    moneyFormatter={moneyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
                     trans={trans}
@@ -190,7 +188,6 @@ export default function Dashboard() {
                     topProducts={topProducts}
                     topConversion={topConversion}
                     numberFormatter={numberFormatter}
-                    moneyFormatter={moneyFormatter}
                     t={t}
                     trans={trans}
                 />

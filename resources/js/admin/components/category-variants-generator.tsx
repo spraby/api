@@ -19,6 +19,7 @@ export function CategoryVariantsGenerator({categories = [], onGenerate, onSetCat
     const [category, setCategory] = useState<Category>();
     const isFirstRender = useRef(true);
     const onSetCategoryRef = useRef(onSetCategory);
+
     onSetCategoryRef.current = onSetCategory;
 
     useEffect(() => {

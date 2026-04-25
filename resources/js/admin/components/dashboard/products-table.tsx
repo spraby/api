@@ -11,7 +11,7 @@ import {
   ArrowUpIcon,
 } from "lucide-react"
 
-import {MoneyWithBynIcon} from "@/components/money-with-byn-icon"
+import {Money} from "@/components/money"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -35,7 +35,6 @@ interface DashboardProductsTableProps {
   topProducts: TopProduct[];
   topConversion: TopConversionPage;
   numberFormatter: Intl.NumberFormat;
-  moneyFormatter: Intl.NumberFormat;
   t: (key: string) => string;
   trans: (key: string, replacements?: Record<string, string | number>) => string;
 }
@@ -154,7 +153,6 @@ export function DashboardProductsTable({
   topProducts,
   topConversion,
   numberFormatter,
-  moneyFormatter,
   t,
   trans,
 }: DashboardProductsTableProps) {
@@ -225,9 +223,9 @@ export function DashboardProductsTable({
     {
       key: "revenue",
       label: t("admin.dashboard.tables.headers.revenue"),
-      render: (row) => <MoneyWithBynIcon value={row.revenue ?? 0} formatter={moneyFormatter} />,
+      render: (row) => <Money value={row.revenue ?? 0} />,
     },
-  ]), [moneyFormatter, numberFormatter, t]);
+  ]), [numberFormatter, t]);
 
   const gapColumns = React.useMemo<ColumnDef<InterestGap, GapSortKey>[]>(() => ([
     {

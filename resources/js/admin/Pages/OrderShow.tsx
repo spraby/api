@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import {MoneyWithBynIcon} from '@/components/money-with-byn-icon';
+import {Money} from '@/components/money';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -105,11 +105,6 @@ interface OrderShowProps {
   order: Order;
   audits: AuditData[];
 }
-
-const orderShowMoneyFormatter = new Intl.NumberFormat('ru-RU', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
 
 // ============================================
 // STATUS SELECT COMPONENTS
@@ -452,14 +447,10 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                               </TableCell>
                               <TableCell>{item.quantity}</TableCell>
                               <TableCell>
-                                <MoneyWithBynIcon value={item.final_price} formatter={orderShowMoneyFormatter}/>
+                                <Money value={item.final_price}/>
                               </TableCell>
                               <TableCell className="text-right font-medium">
-                                <MoneyWithBynIcon
-                                  value={parseFloat(item.final_price) * item.quantity}
-                                  formatter={orderShowMoneyFormatter}
-                                  valueClassName="font-medium"
-                                />
+                                <Money value={parseFloat(item.final_price) * item.quantity}/>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -473,7 +464,7 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                         <div className="w-full max-w-xs space-y-2">
                           <div className="flex justify-between text-lg font-semibold">
                             <span>{t('admin.order_show.totals.total')}</span>
-                            <MoneyWithBynIcon value={calculateTotal()} formatter={orderShowMoneyFormatter}/>
+                            <Money value={calculateTotal()}/>
                           </div>
                         </div>
                       </div>
