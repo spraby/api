@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import {Money} from '@/components/money';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -445,9 +446,11 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                                 </div>
                               </TableCell>
                               <TableCell>{item.quantity}</TableCell>
-                              <TableCell>${parseFloat(item.final_price).toFixed(2)}</TableCell>
+                              <TableCell>
+                                <Money value={item.final_price}/>
+                              </TableCell>
                               <TableCell className="text-right font-medium">
-                                ${(parseFloat(item.final_price) * item.quantity).toFixed(2)}
+                                <Money value={parseFloat(item.final_price) * item.quantity}/>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -461,7 +464,7 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                         <div className="w-full max-w-xs space-y-2">
                           <div className="flex justify-between text-lg font-semibold">
                             <span>{t('admin.order_show.totals.total')}</span>
-                            <span>${calculateTotal().toFixed(2)}</span>
+                            <Money value={calculateTotal()}/>
                           </div>
                         </div>
                       </div>

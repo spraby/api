@@ -1,26 +1,13 @@
 import * as React from "react"
 
 interface DashboardFormatters {
-  currencyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   compactNumberFormatter: Intl.NumberFormat;
   formatDate: (value: string) => string;
 }
 
-export function useDashboardFormatters(
-  locale: string,
-  currency: string | null | undefined,
-): DashboardFormatters {
+export function useDashboardFormatters(locale: string): DashboardFormatters {
   const uiLocale = locale === "ru" ? "ru-RU" : "en-US";
-
-  const currencyFormatter = React.useMemo(
-    () => new Intl.NumberFormat(uiLocale, {
-      style: "currency",
-      currency: currency ?? "BYN",
-      maximumFractionDigits: 2,
-    }),
-    [currency, uiLocale]
-  );
 
   const numberFormatter = React.useMemo(
     () => new Intl.NumberFormat(uiLocale),
@@ -47,7 +34,6 @@ export function useDashboardFormatters(
   );
 
   return {
-    currencyFormatter,
     numberFormatter,
     compactNumberFormatter,
     formatDate,

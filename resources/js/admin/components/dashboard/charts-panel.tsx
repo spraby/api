@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import {Money} from "@/components/money"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ChartConfig } from "@/components/ui/chart"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -17,7 +18,6 @@ interface DashboardChartsProps {
   isMobile: boolean;
   formatDate: (value: string) => string;
   formatCompact: (value: number) => string;
-  formatCurrency: (value: number) => string;
   formatNumber: (value: number) => string;
   labels: {
     toggleSales: string;
@@ -40,7 +40,7 @@ function TooltipRow({
   color,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   color: string;
 }) {
   return (
@@ -76,7 +76,6 @@ export function DashboardCharts({
   isMobile,
   formatDate,
   formatCompact,
-  formatCurrency,
   formatNumber,
   labels,
 }: DashboardChartsProps) {
@@ -111,9 +110,7 @@ export function DashboardCharts({
   const formatSalesTooltip: TooltipFormatter = (value, name, item) => {
     const numeric = Number(value);
     const label = name === "revenue" ? labels.revenue : labels.orders;
-    const display = name === "revenue"
-      ? formatCurrency(numeric)
-      : formatNumber(numeric);
+    const display = name === "revenue" ? <Money value={numeric}/> : formatNumber(numeric);
     const color = getIndicatorColor(item);
 
     return <TooltipRow label={label} value={display} color={color} />;

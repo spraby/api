@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import {Money} from "@/components/money"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 import type { DashboardMetrics } from "./types"
@@ -14,24 +15,23 @@ interface KpiGridProps {
   };
   categoryViews?: { label: string; value: number }[];
   categoryAddToCart?: { label: string; value: number }[];
-  currencyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   t: (key: string) => string;
 }
 
 interface KpiChip {
   label: string;
-  value: string;
+  value: React.ReactNode;
 }
 
 interface KpiDetail {
   label: string;
-  value?: string;
+  value?: React.ReactNode;
 }
 
 interface KpiCardData {
   label: string;
-  value: string;
+  value: React.ReactNode;
   chips: KpiChip[];
   details: KpiDetail[];
   extra?: React.ReactNode;
@@ -147,7 +147,6 @@ export function DashboardKpiGrid({
   orderStatus,
   categoryViews = [],
   categoryAddToCart = [],
-  currencyFormatter,
   numberFormatter,
   t,
 }: KpiGridProps) {
@@ -227,7 +226,7 @@ export function DashboardKpiGrid({
       details: [
         {
           label: t("admin.dashboard.kpi.aov"),
-          value: currencyFormatter.format(metrics.aov),
+          value: <Money value={metrics.aov} />,
         },
         {
           label: t("admin.dashboard.kpi.units"),
@@ -237,7 +236,7 @@ export function DashboardKpiGrid({
     },
     {
       label: t("admin.dashboard.kpi.revenue"),
-      value: currencyFormatter.format(orderStatus.paid_total),
+      value: <Money value={orderStatus.paid_total} />,
       chips: [
         {
           label: t("admin.dashboard.kpi.conversion_view_to_paid"),
@@ -251,7 +250,7 @@ export function DashboardKpiGrid({
       details: [
         {
           label: t("admin.dashboard.orders_widget.unpaid_total"),
-          value: currencyFormatter.format(orderStatus.unpaid_total),
+          value: <Money value={orderStatus.unpaid_total} />,
         },
         {
           label: t("admin.dashboard.kpi.paid_orders"),
@@ -265,7 +264,6 @@ export function DashboardKpiGrid({
     },
   ], [
     cartToOrder,
-    currencyFormatter,
     metrics.add_to_cart,
     metrics.aov,
     metrics.conversion_view_to_atc,

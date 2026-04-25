@@ -12,6 +12,7 @@ import {
   XCircleIcon,
 } from "lucide-react"
 
+import {Money} from '@/components/money';
 import { ResourceList } from '@/components/resource-list';
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -215,9 +216,7 @@ const createOrderColumns = (
       const order = row.original
 
       return (
-        <span className="font-medium">
-          ${order.total.toFixed(2)}
-        </span>
+        <Money value={order.total} className="font-medium"/>
       )
     },
   },

@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 
+import {CurrencyIcon, formatMoney, Money} from '@/components/money';
 import {useLang} from '@/lib/lang';
 import type {Variant} from '@/types/data';
 
@@ -24,10 +25,6 @@ function SummaryRow({label, value}: SummaryRowProps) {
     );
 }
 
-function fmt(n: number): string {
-    return new Intl.NumberFormat('ru-RU').format(n);
-}
-
 export function ProductSummaryCard({title, categoryName, imagesCount, variants}: Props) {
     const {t} = useLang();
     const activeCount = variants.filter(v => v.enabled).length;
@@ -35,19 +32,22 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
     const minPrice = prices.length > 0 ? Math.min(...prices) : null;
     const maxPrice = prices.length > 0 ? Math.max(...prices) : null;
 
-    let priceRange: string | null = null;
-
-    if (minPrice !== null && maxPrice !== null) {
-        if (minPrice === maxPrice) {
-            priceRange = `${fmt(minPrice)} ₽`;
-        } else {
-            priceRange = `${fmt(minPrice)} — ${fmt(maxPrice)} ₽`;
-        }
-    }
-
     const discountedCount = variants.filter(
         v => Number(v.price) > Number(v.final_price) && Number(v.final_price) > 0,
     ).length;
+
+    let priceValue: ReactNode = '—';
+
+    if (minPrice !== null && maxPrice !== null) {
+        priceValue = minPrice === maxPrice ? (
+            <Money value={minPrice} className="font-mono font-bold"/>
+        ) : (
+            <span className="inline-flex items-center gap-1 font-mono font-bold">
+                {formatMoney(minPrice)} — {formatMoney(maxPrice)}
+                <CurrencyIcon/>
+            </span>
+        );
+    }
 
     return (
         <div className="rounded-xl border bg-muted/30 p-4">
@@ -82,13 +82,7 @@ export function ProductSummaryCard({title, categoryName, imagesCount, variants}:
             />
             <SummaryRow
                 label={t('admin.products_edit.summary_price')}
-                value={
-                    priceRange ? (
-                        <span className="font-mono font-bold">{priceRange}</span>
-                    ) : (
-                        '—'
-                    )
-                }
+                value={priceValue}
             />
 
             {discountedCount > 0 && (

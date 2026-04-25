@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Link } from "@inertiajs/react"
 
+import {Money} from "@/components/money"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -33,7 +34,6 @@ export interface OrderStatusWidget {
 
 interface OrdersStatusWidgetProps {
   data: OrderStatusWidget;
-  currencyFormatter: Intl.NumberFormat;
   numberFormatter: Intl.NumberFormat;
   t: (key: string) => string;
   trans: (key: string, replacements?: Record<string, string | number>) => string;
@@ -42,7 +42,6 @@ interface OrdersStatusWidgetProps {
 
 export function OrdersStatusWidget({
   data,
-  currencyFormatter,
   numberFormatter,
   t,
   trans,
@@ -195,7 +194,7 @@ export function OrdersStatusWidget({
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: segment.color }} />
                     <span>{segment.label}</span>
                     <span className={`font-medium ${segment.valueClass}`}>
-                      {currencyFormatter.format(segment.amount)}
+                      <Money value={segment.amount}/>
                     </span>
                     <span className="text-muted-foreground">
                       {trans(`admin.dashboard.orders_widget.${segment.key}_count`, {

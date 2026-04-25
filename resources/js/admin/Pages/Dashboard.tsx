@@ -69,11 +69,10 @@ export default function Dashboard() {
     const isMobile = useIsMobile();
 
     const {
-        currencyFormatter,
         numberFormatter,
         compactNumberFormatter,
         formatDate,
-    } = useDashboardFormatters(locale, meta?.currency);
+    } = useDashboardFormatters(locale);
 
     const periodLabel = trans('admin.dashboard.period', {
         days: range,
@@ -145,14 +144,12 @@ export default function Dashboard() {
                     orderStatus={orderStatus}
                     categoryViews={categoryViews}
                     categoryAddToCart={categoryAddToCart}
-                    currencyFormatter={currencyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
                 />
 
                 <OrdersStatusWidget
                     data={orderStatus}
-                    currencyFormatter={currencyFormatter}
                     numberFormatter={numberFormatter}
                     t={t}
                     trans={trans}
@@ -166,7 +163,6 @@ export default function Dashboard() {
                     isMobile={isMobile}
                     formatDate={formatDate}
                     formatCompact={(value) => compactNumberFormatter.format(value)}
-                    formatCurrency={(value) => currencyFormatter.format(value)}
                     formatNumber={(value) => numberFormatter.format(value)}
                     labels={{
                         toggleSales: t('admin.dashboard.charts.toggle_sales'),
@@ -190,7 +186,6 @@ export default function Dashboard() {
                     topProducts={topProducts}
                     topConversion={topConversion}
                     numberFormatter={numberFormatter}
-                    currencyFormatter={currencyFormatter}
                     t={t}
                     trans={trans}
                 />
