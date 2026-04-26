@@ -10,7 +10,7 @@ import {ProductImagesCard} from '@/components/product-images-card';
 import {ProductSummaryCard} from '@/components/product-summary-card';
 import {VariantList} from "@/components/variant-list.tsx";
 import {useSaveBar} from '@/stores/save-bar';
-import type {Product, ProductImage, Variant} from '@/types/data';
+import type {Product, ProductImage} from '@/types/data';
 
 
 
@@ -150,28 +150,10 @@ export function ProductForm({product: defaultProduct}: {
                     !product?.id &&
                     <CategoryVariantsGenerator
                         categories={categories}
-                        onSetCategory={category => onChange({category})}
-                        onGenerate={(combinations) => {
-                            const newVariants: Variant[] = combinations.map(optionValues => ({
-                                uid: uuidv4(),
-                                title: optionValues.slice().sort((a, b) => a.position - b.position).map(v => v.value).join(' / '),
-                                price: 0,
-                                final_price: 0,
-                                enabled: true,
-                                values: optionValues.map(i => ({
-                                    uid: uuidv4(),
-                                    option_id: i.option_id,
-                                    option_value_id: i.id ?? undefined,
-                                    value: {
-                                        uid: uuidv4(),
-                                        id: i.id ?? undefined,
-                                        value: i.value,
-                                        position: i.position
-                                    }
-                                })),
-                            }));
-
-                            onChange({variants: newVariants})
+                        selectedCategoryId={product.category?.id ?? null}
+                        hasVariants={variants.length > 1}
+                        onSelect={(category, variant) => {
+                            onChange({category, variants: [variant]});
                         }}
                     />
                 }

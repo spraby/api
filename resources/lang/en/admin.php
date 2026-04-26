@@ -484,6 +484,11 @@ return [
         'category' => [
             'none' => 'No category',
         ],
+        'change_category_confirm' => [
+            'title' => 'Change category?',
+            'description' => 'Existing variants will be removed and replaced with a default variant for the new category.',
+            'confirm' => 'Change category',
+        ],
         'required_fields' => 'Required fields',
         'actions' => [
             'back' => 'Back to Products',
