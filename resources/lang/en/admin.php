@@ -484,6 +484,11 @@ return [
         'category' => [
             'none' => 'No category',
         ],
+        'category_picker' => [
+            'label' => 'Category',
+            'hint' => 'Select a category. The category is set only when the product is created and cannot be changed afterwards.',
+            'search_placeholder' => 'Search categories...',
+        ],
         'change_category_confirm' => [
             'title' => 'Change category?',
             'description' => 'Existing variants will be removed and replaced with a default variant for the new category.',

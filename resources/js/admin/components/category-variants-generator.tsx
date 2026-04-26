@@ -1,8 +1,8 @@
-import {useState} from "react";
+import {useMemo, useState} from "react";
 
 import {v4 as uuidv4} from 'uuid';
 
-import {ToggleButton} from "@/components/toggle-button.tsx";
+import {CategoryPicker} from "@/components/category-picker.tsx";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -60,34 +60,45 @@ export function CategoryVariantsGenerator({categories = [], selectedCategoryId, 
     const {t} = useLang();
     const [pendingCategory, setPendingCategory] = useState<Category | null>(null);
 
+    const categoryOptions = useMemo(
+        () => categories
+            .filter((c): c is Category & {id: number} => c.id != null)
+            .map(c => ({id: c.id, name: c.name})),
+        [categories]
+    );
+
     const apply = (category: Category) => {
         onSelect(category, buildDefaultVariant(category));
     };
 
-    const handleClick = (category: Category) => {
-        if (!category.id || selectedCategoryId === category.id) {return;}
+    const handleChange = (ids: number[]) => {
+        const newId = ids[0];
+
+        if (newId == null || newId === selectedCategoryId) {return;}
+        const cat = categories.find(c => c.id === newId);
+
+        if (!cat) {return;}
 
         if (hasVariants) {
-            setPendingCategory(category);
+            setPendingCategory(cat);
 
             return;
         }
 
-        apply(category);
+        apply(cat);
     };
 
     return (
         <>
-            <div className="flex gap-5 flex-wrap">
-                {categories.map(category => (
-                    <ToggleButton
-                        key={category.id}
-                        active={selectedCategoryId === category.id}
-                        title={category.name}
-                        onClick={() => handleClick(category)}
-                    />
-                ))}
-            </div>
+            <CategoryPicker
+                multiple={false}
+                categories={categoryOptions}
+                selectedIds={selectedCategoryId != null ? [selectedCategoryId] : []}
+                onChange={handleChange}
+                label={t('admin.products_create.category_picker.label')}
+                hint={t('admin.products_create.category_picker.hint')}
+                searchPlaceholder={t('admin.products_create.category_picker.search_placeholder')}
+            />
 
             <AlertDialog open={!!pendingCategory} onOpenChange={open => !open && setPendingCategory(null)}>
                 <AlertDialogContent>

@@ -38,6 +38,7 @@ interface CategoryPickerProps {
   label?: string;
   hint?: string;
   searchPlaceholder?: string;
+  multiple?: boolean;
 }
 
 export function CategoryPicker({
@@ -47,6 +48,7 @@ export function CategoryPicker({
   label,
   hint,
   searchPlaceholder,
+  multiple = true,
 }: CategoryPickerProps) {
   const { t } = useLang();
   const [search, setSearch] = useState("");
@@ -121,6 +123,11 @@ export function CategoryPicker({
               <Checkbox
                 checked={checked}
                 onCheckedChange={(val) => {
+                  if (!multiple) {
+                    onChange(val ? [c.id] : []);
+
+                    return;
+                  }
                   onChange(
                     val
                       ? [...selectedIds, c.id]
