@@ -14,6 +14,8 @@ return [
         'settings' => 'Settings',
         'documents' => 'Documents',
         'brand_requests' => 'Brand Requests',
+        'my_categories' => 'My Categories',
+        'category_requests' => 'Category Requests',
     ],
 
     'user' => [
@@ -1332,5 +1334,79 @@ return [
             'updated' => 'Menu updated',
             'max_depth' => 'Maximum depth reached.',
         ],
+    ],
+
+    'my_categories' => [
+        'title' => 'My Categories',
+        'description' => 'Categories attached to your brand and pending requests.',
+        'sections' => [
+            'attached' => 'Attached categories',
+            'add' => 'Request categories',
+            'history' => 'My requests',
+        ],
+        'empty_attached' => 'No categories attached to your brand yet.',
+        'empty_available' => 'No categories available to request.',
+        'empty_history' => 'No requests yet.',
+        'form' => [
+            'select_categories' => 'Select categories',
+            'comment_label' => 'Comment',
+            'comment_placeholder' => 'Why do you need these categories?',
+            'submit' => 'Send request',
+        ],
+    ],
+
+    'category_requests' => [
+        'title' => 'Category Requests',
+        'description' => 'Review and approve category attachment requests from managers.',
+        'columns' => [
+            'id' => 'ID',
+            'brand' => 'Brand',
+            'manager' => 'Manager',
+            'categories' => 'Categories',
+            'status' => 'Status',
+            'created' => 'Created',
+        ],
+        'statuses' => [
+            'pending' => 'Pending',
+            'approved' => 'Approved',
+            'partial' => 'Partial',
+            'rejected' => 'Rejected',
+        ],
+        'actions' => [
+            'view' => 'View',
+            'approve' => 'Approve selected',
+            'reject' => 'Reject selected',
+            'request' => 'Send request',
+            'open_menu' => 'Open menu',
+        ],
+        'messages' => [
+            'created' => 'Request sent successfully.',
+            'approved' => 'Items approved.',
+            'rejected' => 'Items rejected.',
+        ],
+        'errors' => [
+            'no_brand' => 'No brand associated with this user.',
+            'already_attached' => 'Some categories are already attached to your brand.',
+            'already_requested' => 'Some categories are already in a pending request.',
+        ],
+        'reject_modal' => [
+            'title' => 'Reject categories',
+            'reason_label' => 'Reason (optional)',
+            'reason_placeholder' => 'Why are these categories being rejected?',
+            'submit' => 'Reject',
+            'cancel' => 'Cancel',
+        ],
+        'show' => [
+            'title' => 'Category Request',
+            'comment' => 'Comment',
+            'reviewed_at' => 'Reviewed at',
+            'item_status' => 'Status',
+            'rejection_reason' => 'Rejection reason',
+        ],
+        'filters' => [
+            'all_statuses' => 'All statuses',
+            'search_placeholder' => 'Search by brand...',
+        ],
+        'empty' => 'No category requests found.',
     ],
 ];

@@ -100,6 +100,20 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::get('/orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
 
+        // Manager: «Мои категории»
+        Route::prefix('my-categories')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\MyCategoriesController::class, 'index'])->name('my-categories');
+            Route::post('/requests', [App\Http\Controllers\Admin\MyCategoriesController::class, 'store'])->name('my-categories.requests.store');
+        });
+
+        // Admin: «Запросы категорий»
+        Route::prefix('category-requests')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\CategoryRequestController::class, 'index'])->name('category-requests');
+            Route::get('/{categoryRequest}', [App\Http\Controllers\Admin\CategoryRequestController::class, 'show'])->name('category-requests.show');
+            Route::post('/{categoryRequest}/approve', [App\Http\Controllers\Admin\CategoryRequestController::class, 'approve'])->name('category-requests.approve');
+            Route::post('/{categoryRequest}/reject', [App\Http\Controllers\Admin\CategoryRequestController::class, 'reject'])->name('category-requests.reject');
+        });
+
         // Brand Requests
         Route::get('/brand-requests', [App\Http\Controllers\Admin\BrandRequestController::class, 'index'])->name('brand-requests');
         Route::get('/brand-requests/{brandRequest}', [App\Http\Controllers\Admin\BrandRequestController::class, 'show'])->name('brand-requests.show');

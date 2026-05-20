@@ -23,6 +23,8 @@ export const Permission = {
   WRITE_BRAND_REQUESTS: 'write_brand_requests',
   READ_ORDERS: 'read_orders',
   WRITE_ORDERS: 'write_orders',
+  READ_CATEGORY_REQUESTS: 'read_category_requests',
+  WRITE_CATEGORY_REQUESTS: 'write_category_requests',
 } as const
 
 export type PermissionName = (typeof Permission)[keyof typeof Permission]

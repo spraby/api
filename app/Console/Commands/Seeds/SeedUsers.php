@@ -14,7 +14,7 @@ class SeedUsers extends Command
      *
      * @var string
      */
-    protected $signature = 'seed:users {--force} {--email=} {--password=} {--role=manager}';
+    protected $signature = 'seed:users {--force} {--permissions-only} {--email=} {--password=} {--role=manager}';
 
     /**
      * The console command description.
@@ -34,6 +34,13 @@ class SeedUsers extends Command
     {
         $force = (bool) $this->option('force');
         $email = $this->option('email');
+        $permissionsOnly = (bool) $this->option('permissions-only');
+
+        if ($permissionsOnly) {
+            $this->generateRolesAndPermissions();
+            $this->info('Roles and permissions synced.');
+            return;
+        }
 
         if ($email) {
             $password = $this->option('password') ?? $this->secret('Password');

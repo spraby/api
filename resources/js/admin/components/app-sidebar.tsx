@@ -12,11 +12,13 @@ import {
     InboxIcon,
     LayoutDashboardIcon,
     ListTreeIcon,
+    MailQuestionIcon,
     PackageIcon,
     SettingsIcon,
     ShoppingCartIcon,
     SlidersHorizontalIcon,
     StoreIcon,
+    TagIcon,
     UserIcon,
 } from "lucide-react"
 
@@ -169,6 +171,18 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
             title: t('admin.nav.brand_requests'),
             url: "/admin/brand-requests",
             icon: InboxIcon,
+        }] : []),
+        // My Categories — менеджер
+        ...(can(user, Permission.READ_CATEGORY_REQUESTS) && !can(user, Permission.WRITE_CATEGORIES) ? [{
+            title: t('admin.nav.my_categories'),
+            url: "/admin/my-categories",
+            icon: TagIcon,
+        }] : []),
+        // Category Requests — админ
+        ...(can(user, Permission.READ_CATEGORY_REQUESTS) && can(user, Permission.WRITE_CATEGORIES) ? [{
+            title: t('admin.nav.category_requests'),
+            url: "/admin/category-requests",
+            icon: MailQuestionIcon,
         }] : []),
     ]
 
