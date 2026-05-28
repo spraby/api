@@ -25,6 +25,8 @@ export const Permission = {
   WRITE_ORDERS: 'write_orders',
   READ_CATEGORY_REQUESTS: 'read_category_requests',
   WRITE_CATEGORY_REQUESTS: 'write_category_requests',
+  READ_EMAILS: 'read_emails',
+  WRITE_EMAILS: 'write_emails',
 } as const
 
 export type PermissionName = (typeof Permission)[keyof typeof Permission]

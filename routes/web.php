@@ -114,6 +114,17 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
             Route::post('/{categoryRequest}/reject', [App\Http\Controllers\Admin\CategoryRequestController::class, 'reject'])->name('category-requests.reject');
         });
 
+        // Emails
+        Route::prefix('emails')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\EmailMessageController::class, 'index'])->name('emails');
+            Route::get('/{email}', [App\Http\Controllers\Admin\EmailMessageController::class, 'show'])->name('emails.show');
+            Route::delete('/{email}', [App\Http\Controllers\Admin\EmailMessageController::class, 'destroy'])->name('emails.destroy');
+            Route::post('/{email}/retry', [App\Http\Controllers\Admin\EmailMessageController::class, 'retry'])->name('emails.retry');
+            Route::post('/{email}/cancel', [App\Http\Controllers\Admin\EmailMessageController::class, 'cancel'])->name('emails.cancel');
+            Route::post('/{email}/resend', [App\Http\Controllers\Admin\EmailMessageController::class, 'resend'])->name('emails.resend');
+            Route::post('/{email}/send-copy', [App\Http\Controllers\Admin\EmailMessageController::class, 'sendCopy'])->name('emails.send-copy');
+        });
+
         // Brand Requests
         Route::get('/brand-requests', [App\Http\Controllers\Admin\BrandRequestController::class, 'index'])->name('brand-requests');
         Route::get('/brand-requests/{brandRequest}', [App\Http\Controllers\Admin\BrandRequestController::class, 'show'])->name('brand-requests.show');

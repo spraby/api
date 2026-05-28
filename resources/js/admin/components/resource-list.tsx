@@ -102,6 +102,7 @@ export function ResourceList<TData>({
   loading = false,
   renderEmpty,
   onRowSelectionChange,
+  onRowClick,
   bulkActionsSlot,
   paginationState,
   onPaginationStateChange,
@@ -526,7 +527,23 @@ export function ResourceList<TData>({
                   return rows.map((row) => (
                     <TableRow
                       key={row.id}
+                      className={onRowClick ? "cursor-pointer" : undefined}
                       data-state={row.getIsSelected() && "selected"}
+                      onClick={
+                        onRowClick
+                          ? (event) => {
+                              if (
+                                (event.target as HTMLElement).closest(
+                                  'button, a, input, [role="checkbox"], [data-no-row-click]',
+                                )
+                              ) {
+                                return
+                              }
+
+                              onRowClick(row.original)
+                            }
+                          : undefined
+                      }
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>

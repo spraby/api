@@ -11,6 +11,7 @@ import {
     ImageIcon,
     InboxIcon,
     LayoutDashboardIcon,
+    MailIcon,
     ListTreeIcon,
     MailQuestionIcon,
     PackageIcon,
@@ -183,6 +184,12 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
             title: t('admin.nav.category_requests'),
             url: "/admin/category-requests",
             icon: MailQuestionIcon,
+        }] : []),
+        // Emails — админ
+        ...(can(user, Permission.READ_EMAILS) ? [{
+            title: t('admin.nav.emails'),
+            url: "/admin/emails",
+            icon: MailIcon,
         }] : []),
     ]
 

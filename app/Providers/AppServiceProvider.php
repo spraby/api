@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\BrandRequest;
+use App\Models\CategoryRequest;
+use App\Models\Order;
+use App\Observers\BrandRequestObserver;
+use App\Observers\CategoryRequestObserver;
+use App\Observers\OrderObserver;
 use App\Services\Contracts\FileServiceInterface;
 use App\Services\FileService;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -27,5 +33,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
         JsonResource::withoutWrapping();
+
+        BrandRequest::observe(BrandRequestObserver::class);
+        CategoryRequest::observe(CategoryRequestObserver::class);
+        Order::observe(OrderObserver::class);
     }
 }

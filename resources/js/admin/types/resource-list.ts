@@ -200,6 +200,9 @@ export interface ResourceListProps<TData> {
   /** Callback when row selection changes */
   onRowSelectionChange?: (selectedRows: TData[]) => void
 
+  /** Callback when a row is clicked. When set, rows become clickable. */
+  onRowClick?: (row: TData) => void
+
   /** Custom slot to render before bulk actions (e.g., for role selector) */
   bulkActionsSlot?: (selectedRows: TData[]) => React.ReactNode
 
