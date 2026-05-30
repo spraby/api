@@ -1459,8 +1459,8 @@ return [
         'empty_history' => 'No requests yet.',
         'form' => [
             'select_categories' => 'Select categories',
-            'comment_label' => 'Comment',
-            'comment_placeholder' => 'Why do you need these categories?',
+            'selected_categories' => 'Selected for request',
+            'remove_category' => 'Remove category from request',
             'submit' => 'Send request',
         ],
     ],
@@ -1508,7 +1508,6 @@ return [
         ],
         'show' => [
             'title' => 'Category Request',
-            'comment' => 'Comment',
             'reviewed_at' => 'Reviewed at',
             'item_status' => 'Status',
             'rejection_reason' => 'Rejection reason',

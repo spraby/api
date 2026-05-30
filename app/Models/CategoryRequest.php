@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $brand_id
  * @property int|null $user_id
  * @property string $status
- * @property string $comment
+ * @property string|null $comment
  * @property int|null $reviewed_by
  * @property Carbon|null $reviewed_at
  * @property Carbon $created_at

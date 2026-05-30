@@ -1,12 +1,13 @@
 import * as React from 'react';
 
 import { router } from '@inertiajs/react';
+import { XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
 
 interface AvailableCategory {
@@ -21,8 +22,11 @@ interface Props {
 export function CategoryRequestForm({ categories }: Props) {
   const { t } = useLang();
   const [selected, setSelected] = React.useState<Set<number>>(new Set());
-  const [comment, setComment] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
+  const selectedCategories = React.useMemo(
+    () => categories.filter((category) => selected.has(category.id)),
+    [categories, selected],
+  );
 
   const toggle = (id: number) => {
     setSelected((prev) => {
@@ -41,7 +45,7 @@ export function CategoryRequestForm({ categories }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (selected.size === 0 || comment.trim().length < 3) {
+    if (selected.size === 0) {
       return;
     }
 
@@ -50,7 +54,6 @@ export function CategoryRequestForm({ categories }: Props) {
       '/admin/my-categories/requests',
       {
         category_ids: Array.from(selected),
-        comment,
       },
       {
         preserveScroll: true,
@@ -63,7 +66,6 @@ export function CategoryRequestForm({ categories }: Props) {
         },
         onSuccess: () => {
           setSelected(new Set());
-          setComment('');
         },
         onFinish: () => { setSubmitting(false); },
       },
@@ -98,23 +100,30 @@ export function CategoryRequestForm({ categories }: Props) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="comment">{t('admin.my_categories.form.comment_label')}</Label>
-        <Textarea
-          id="comment"
-          minLength={3}
-          maxLength={1000}
-          placeholder={t('admin.my_categories.form.comment_placeholder')}
-          required
-          rows={4}
-          value={comment}
-          onChange={(e) => { setComment(e.target.value); }}
-        />
-      </div>
+      {selectedCategories.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <Label>{t('admin.my_categories.form.selected_categories')}</Label>
+          <div className="flex flex-wrap gap-2">
+            {selectedCategories.map((category) => (
+              <Badge key={category.id} className="gap-1 pr-1" variant="secondary">
+                {category.name}
+                <button
+                  aria-label={t('admin.my_categories.form.remove_category')}
+                  className="rounded-sm p-0.5 hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  type="button"
+                  onClick={() => { toggle(category.id); }}
+                >
+                  <XIcon className="size-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div>
         <Button
-          disabled={submitting || selected.size === 0 || comment.trim().length < 3}
+          disabled={submitting || selected.size === 0}
           type="submit"
         >
           {t('admin.my_categories.form.submit')}

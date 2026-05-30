@@ -96,7 +96,6 @@ class MyCategoriesController extends Controller
                 'brand_id' => $brand->id,
                 'user_id' => $user->id,
                 'status' => CategoryRequest::STATUS_PENDING,
-                'comment' => $request->input('comment'),
             ]);
 
             $categoryRequest->items()->createMany(

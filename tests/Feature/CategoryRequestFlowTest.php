@@ -46,13 +46,12 @@ class CategoryRequestFlowTest extends TestCase
         ]);
     }
 
-    public function test_manager_creates_request_with_multiple_categories(): void
+    public function test_manager_creates_request_with_multiple_categories_without_comment(): void
     {
         $categories = Category::factory()->count(3)->create();
 
         $response = $this->actingAs($this->manager)->post('/admin/my-categories/requests', [
             'category_ids' => $categories->pluck('id')->all(),
-            'comment' => 'Need these for new product line',
         ]);
 
         $response->assertRedirect();
@@ -64,6 +63,7 @@ class CategoryRequestFlowTest extends TestCase
         $this->assertEquals($this->brand->id, $request->brand_id);
         $this->assertEquals($this->manager->id, $request->user_id);
         $this->assertEquals(CategoryRequest::STATUS_PENDING, $request->status);
+        $this->assertNull($request->comment);
     }
 
     public function test_admin_partial_approve_sets_status_partial(): void
