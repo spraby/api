@@ -24,7 +24,6 @@ interface RequestItem {
 interface CategoryRequestRow {
   id: number;
   status: 'pending' | 'approved' | 'partial' | 'rejected';
-  comment: string | null;
   created_at: string;
   reviewed_at: string | null;
   items: RequestItem[];
@@ -169,9 +168,6 @@ export default function MyCategories() {
                             </Badge>
                           ))}
                         </div>
-                        {r.comment ? (
-                          <p className="text-sm text-muted-foreground">{r.comment}</p>
-                        ) : null}
                       </div>
                     ))}
                   </div>

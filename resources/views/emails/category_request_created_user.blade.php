@@ -17,11 +17,5 @@
             <h2 style="margin:0 0 12px;color:#1f2937;font-size:18px;font-weight:600;">Запрошенные категории</h2>
             @include('emails.partials.chips', ['items' => $categories])
         @endif
-
-        @if(!empty($comment))
-            <div style="margin-top:24px;">
-                @include('emails.partials.note', ['label' => 'Ваш комментарий', 'text' => $comment])
-            </div>
-        @endif
     </div>
 @endsection

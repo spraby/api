@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $brand_id
  * @property int|null $user_id
  * @property string $status
- * @property string|null $comment
  * @property int|null $reviewed_by
  * @property Carbon|null $reviewed_at
  * @property Carbon $created_at
@@ -45,7 +44,6 @@ class CategoryRequest extends Model
         'brand_id',
         'user_id',
         'status',
-        'comment',
         'reviewed_by',
         'reviewed_at',
     ];

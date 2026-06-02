@@ -46,7 +46,7 @@ class CategoryRequestFlowTest extends TestCase
         ]);
     }
 
-    public function test_manager_creates_request_with_multiple_categories_without_comment(): void
+    public function test_manager_creates_request_with_multiple_categories(): void
     {
         $categories = Category::factory()->count(3)->create();
 
@@ -63,7 +63,6 @@ class CategoryRequestFlowTest extends TestCase
         $this->assertEquals($this->brand->id, $request->brand_id);
         $this->assertEquals($this->manager->id, $request->user_id);
         $this->assertEquals(CategoryRequest::STATUS_PENDING, $request->status);
-        $this->assertNull($request->comment);
     }
 
     public function test_admin_partial_approve_sets_status_partial(): void
@@ -74,7 +73,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'test',
         ]);
 
         foreach ($categories as $category) {
@@ -116,7 +114,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'test',
         ]);
 
         foreach ($categories as $category) {
@@ -147,7 +144,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'test',
         ]);
 
         foreach ($categories as $category) {
@@ -177,7 +173,6 @@ class CategoryRequestFlowTest extends TestCase
 
         $response = $this->actingAs($this->manager)->post('/admin/my-categories/requests', [
             'category_ids' => [$category->id],
-            'comment' => 'duplicate request',
         ]);
 
         $response->assertSessionHasErrors('category_ids');
@@ -192,7 +187,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'first',
         ]);
         $existing->items()->create([
             'category_id' => $category->id,
@@ -201,7 +195,6 @@ class CategoryRequestFlowTest extends TestCase
 
         $response = $this->actingAs($this->manager)->post('/admin/my-categories/requests', [
             'category_ids' => [$category->id],
-            'comment' => 'second',
         ]);
 
         $response->assertSessionHasErrors('category_ids');

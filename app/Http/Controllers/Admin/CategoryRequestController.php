@@ -121,7 +121,6 @@ class CategoryRequestController extends Controller
             'brand_id' => $r->brand_id,
             'user_id' => $r->user_id,
             'status' => $r->status,
-            'comment' => $r->comment,
             'reviewed_at' => $r->reviewed_at?->toISOString(),
             'created_at' => $r->created_at->toISOString(),
             'updated_at' => $r->updated_at->toISOString(),

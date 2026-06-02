@@ -60,7 +60,6 @@ class MyCategoriesController extends Controller
             ->map(fn (CategoryRequest $r) => [
                 'id' => $r->id,
                 'status' => $r->status,
-                'comment' => $r->comment,
                 'created_at' => $r->created_at->toISOString(),
                 'reviewed_at' => $r->reviewed_at?->toISOString(),
                 'items' => $r->items->map(fn (CategoryRequestItem $i) => [
