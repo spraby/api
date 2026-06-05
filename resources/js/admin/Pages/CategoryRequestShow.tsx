@@ -45,7 +45,6 @@ interface CategoryRequest {
   brand_id: number;
   user_id: number | null;
   status: RequestStatus;
-  comment: string;
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
@@ -56,20 +55,22 @@ interface CategoryRequest {
 }
 
 function StatusBadge({ status, t }: { status: RequestStatus | ItemStatus; t: (k: string) => string }) {
-  const isPartial = status === 'partial';
-  const cls =
-    status === 'pending'
-      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-      : status === 'approved'
-        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-        : isPartial
-          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-
-  const Icon = status === 'pending' ? ClockIcon : status === 'rejected' ? XCircleIcon : CheckCircle2Icon;
+  const classMap: Record<RequestStatus | ItemStatus, string> = {
+    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    partial: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  };
+  const iconMap = {
+    pending: ClockIcon,
+    approved: CheckCircle2Icon,
+    partial: CheckCircle2Icon,
+    rejected: XCircleIcon,
+  };
+  const Icon = iconMap[status];
 
   return (
-    <Badge className={cls} variant="outline">
+    <Badge className={classMap[status]} variant="outline">
       <Icon className="mr-1 size-3" />
       {t(`admin.category_requests.statuses.${status}`)}
     </Badge>
@@ -86,6 +87,11 @@ export default function CategoryRequestShow() {
   const [submitting, setSubmitting] = useState<'approve' | 'reject' | null>(null);
 
   const pendingItems = categoryRequest.items.filter((i) => i.status === 'pending');
+  let pendingSelectionState: boolean | 'indeterminate' = false;
+
+  if (selected.size > 0) {
+    pendingSelectionState = selected.size === pendingItems.length ? true : 'indeterminate';
+  }
 
   const toggle = (id: number) => {
     setSelected((prev) => {
@@ -188,16 +194,7 @@ export default function CategoryRequestShow() {
             ) : null}
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.category_requests.show.comment')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap text-sm">{categoryRequest.comment}</p>
-              </CardContent>
-            </Card>
-
+          <div className="grid gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>{t('admin.category_requests.columns.brand')}</CardTitle>
@@ -253,13 +250,7 @@ export default function CategoryRequestShow() {
                       <th className="w-12 p-3">
                         {pendingItems.length > 0 ? (
                           <Checkbox
-                            checked={
-                              selected.size > 0 && selected.size === pendingItems.length
-                                ? true
-                                : selected.size > 0
-                                  ? 'indeterminate'
-                                  : false
-                            }
+                            checked={pendingSelectionState}
                             onCheckedChange={toggleAll}
                           />
                         ) : null}

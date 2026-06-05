@@ -21,7 +21,6 @@ class StoreCategoryRequestRequest extends FormRequest
         return [
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
-            'comment' => ['required', 'string', 'min:3', 'max:1000'],
         ];
     }
 

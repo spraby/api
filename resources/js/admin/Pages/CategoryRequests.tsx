@@ -46,7 +46,6 @@ interface CategoryRequestRow {
   brand_id: number
   user_id: number | null
   status: RequestStatus
-  comment: string
   reviewed_at: string | null
   created_at: string
   brand: { id: number; name: string } | null

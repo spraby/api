@@ -94,7 +94,6 @@ class CategoryRequestObserver
             'brand_name' => $request->brand?->name,
             'user_name' => $request->user?->first_name,
             'user_email' => $request->user?->email,
-            'comment' => $request->comment,
             'created_at' => $request->created_at?->format('d.m.Y H:i'),
         ];
     }

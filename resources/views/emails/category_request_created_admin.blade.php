@@ -27,12 +27,6 @@
             @include('emails.partials.chips', ['items' => $categories])
         @endif
 
-        @if(!empty($comment))
-            <div style="margin-top:20px;">
-                @include('emails.partials.note', ['label' => 'Комментарий менеджера', 'text' => $comment])
-            </div>
-        @endif
-
         @isset($admin_url)
             @include('emails.partials.button', ['url' => $admin_url, 'label' => 'Открыть в админке'])
         @endisset

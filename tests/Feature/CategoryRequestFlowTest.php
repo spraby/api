@@ -52,7 +52,6 @@ class CategoryRequestFlowTest extends TestCase
 
         $response = $this->actingAs($this->manager)->post('/admin/my-categories/requests', [
             'category_ids' => $categories->pluck('id')->all(),
-            'comment' => 'Need these for new product line',
         ]);
 
         $response->assertRedirect();
@@ -74,7 +73,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'test',
         ]);
 
         foreach ($categories as $category) {
@@ -116,7 +114,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'test',
         ]);
 
         foreach ($categories as $category) {
@@ -147,7 +144,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'test',
         ]);
 
         foreach ($categories as $category) {
@@ -177,7 +173,6 @@ class CategoryRequestFlowTest extends TestCase
 
         $response = $this->actingAs($this->manager)->post('/admin/my-categories/requests', [
             'category_ids' => [$category->id],
-            'comment' => 'duplicate request',
         ]);
 
         $response->assertSessionHasErrors('category_ids');
@@ -192,7 +187,6 @@ class CategoryRequestFlowTest extends TestCase
             'brand_id' => $this->brand->id,
             'user_id' => $this->manager->id,
             'status' => CategoryRequest::STATUS_PENDING,
-            'comment' => 'first',
         ]);
         $existing->items()->create([
             'category_id' => $category->id,
@@ -201,7 +195,6 @@ class CategoryRequestFlowTest extends TestCase
 
         $response = $this->actingAs($this->manager)->post('/admin/my-categories/requests', [
             'category_ids' => [$category->id],
-            'comment' => 'second',
         ]);
 
         $response->assertSessionHasErrors('category_ids');

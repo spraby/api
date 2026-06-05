@@ -3,7 +3,7 @@ import { CheckCircle2Icon, ClockIcon, XCircleIcon } from 'lucide-react';
 
 import { CategoryRequestForm } from '@/components/category-request-form';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLang } from '@/lib/lang';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
@@ -24,7 +24,6 @@ interface RequestItem {
 interface CategoryRequestRow {
   id: number;
   status: 'pending' | 'approved' | 'partial' | 'rejected';
-  comment: string;
   created_at: string;
   reviewed_at: string | null;
   items: RequestItem[];
@@ -45,8 +44,14 @@ function statusBadge(status: CategoryRequestRow['status'], label: string) {
     partial: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
     rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
   };
+  const iconMap = {
+    pending: ClockIcon,
+    approved: CheckCircle2Icon,
+    partial: CheckCircle2Icon,
+    rejected: XCircleIcon,
+  };
 
-  const Icon = status === 'pending' ? ClockIcon : status === 'rejected' ? XCircleIcon : CheckCircle2Icon;
+  const Icon = iconMap[status];
 
   return (
     <Badge className={map[status]} variant="outline">
@@ -54,6 +59,18 @@ function statusBadge(status: CategoryRequestRow['status'], label: string) {
       {label}
     </Badge>
   );
+}
+
+function requestItemBadgeClass(status: RequestItem['status']): string {
+  if (status === 'approved') {
+    return 'bg-green-100 text-green-800';
+  }
+
+  if (status === 'rejected') {
+    return 'bg-red-100 text-red-800';
+  }
+
+  return 'bg-yellow-100 text-yellow-800';
 }
 
 export default function MyCategories() {
@@ -87,10 +104,7 @@ export default function MyCategories() {
         {!error ? (
           <>
             <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.my_categories.sections.attached')}</CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {attached.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     {t('admin.my_categories.empty_attached')}
@@ -98,7 +112,12 @@ export default function MyCategories() {
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {attached.map((c) => (
-                      <Badge key={c.id} variant="secondary">
+                      <Badge
+                        key={c.id}
+                        className="border-green-200 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-300"
+                        variant="outline"
+                      >
+                        <CheckCircle2Icon className="mr-1 size-3" />
                         {c.name}
                       </Badge>
                     ))}
@@ -110,7 +129,6 @@ export default function MyCategories() {
             <Card>
               <CardHeader>
                 <CardTitle>{t('admin.my_categories.sections.add')}</CardTitle>
-                <CardDescription>{t('admin.my_categories.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <CategoryRequestForm categories={available} />
@@ -143,22 +161,13 @@ export default function MyCategories() {
                           {r.items.map((i) => (
                             <Badge
                               key={i.id}
-                              className={
-                                i.status === 'approved'
-                                  ? 'bg-green-100 text-green-800'
-                                  : i.status === 'rejected'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                              }
+                              className={requestItemBadgeClass(i.status)}
                               variant="outline"
                             >
                               {i.category?.name ?? '—'}
                             </Badge>
                           ))}
                         </div>
-                        {r.comment ? (
-                          <p className="text-sm text-muted-foreground">{r.comment}</p>
-                        ) : null}
                       </div>
                     ))}
                   </div>
