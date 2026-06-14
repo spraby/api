@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $reviewed_by
  * @property Carbon|null $approved_at
  * @property Carbon|null $rejected_at
+ * @property Carbon|null $notified_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Brand|null $brand
@@ -62,11 +63,13 @@ class BrandRequest extends Model
         'reviewed_by',
         'approved_at',
         'rejected_at',
+        'notified_at',
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'notified_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

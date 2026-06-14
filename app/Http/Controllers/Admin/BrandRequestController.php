@@ -6,16 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\BrandRequest;
 use App\Models\User;
+use App\Services\BrandRequestNotifier;
+use App\Services\PasswordSetupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class BrandRequestController extends Controller
 {
+    public function __construct(
+        protected BrandRequestNotifier $notifier,
+        protected PasswordSetupService $passwordSetup,
+    ) {}
+
     /**
      * Show the brand requests list page.
      */
@@ -123,8 +128,9 @@ class BrandRequestController extends Controller
             return redirect()->back()->with('error', 'This request has already been processed.');
         }
 
-        DB::transaction(function () use ($brandRequest) {
-            // Find or create user with manager role
+        $setPasswordUrl = DB::transaction(function () use ($brandRequest) {
+            // Find or create the manager user. New users are created WITHOUT a
+            // password — they set it via the one-time link emailed below.
             $user = User::where('email', $brandRequest->email)->first();
 
             if (! $user) {
@@ -132,7 +138,7 @@ class BrandRequestController extends Controller
                     'email' => $brandRequest->email,
                     'phone' => $brandRequest->phone,
                     'first_name' => $brandRequest->name,
-                    'password' => Hash::make(Str::random(16)),
+                    'password' => null,
                 ]);
             }
 
@@ -141,8 +147,9 @@ class BrandRequestController extends Controller
                 $user->assignRole(User::ROLES['MANAGER']);
             }
 
-            // Create brand
-            $brand = Brand::create([
+            // Reuse the user's existing brand if any, to avoid duplicates when
+            // approving for a pre-existing account.
+            $brand = $user->brands()->first() ?? Brand::create([
                 'user_id' => $user->id,
                 'name' => $brandRequest->brand_name ?? $brandRequest->email,
             ]);
@@ -155,7 +162,17 @@ class BrandRequestController extends Controller
                 'reviewed_by' => auth()->id(),
                 'approved_at' => now(),
             ]);
+
+            // Only issue a password-setup link for users without a usable
+            // password — never overwrite an existing user's password, nor
+            // silently escalate an account that already manages itself.
+            return $user->password === null
+                ? $this->passwordSetup->generateUrl($user)
+                : null;
         });
+
+        // Queue emails after the transaction commits.
+        $this->notifier->notifyApproved($brandRequest->refresh(), $setPasswordUrl);
 
         return redirect()->back()->with('success', 'Brand request approved successfully.');
     }
@@ -181,6 +198,8 @@ class BrandRequestController extends Controller
             'reviewed_by' => auth()->id(),
             'rejected_at' => now(),
         ]);
+
+        $this->notifier->notifyRejected($brandRequest->refresh());
 
         return redirect()->back()->with('success', 'Brand request rejected.');
     }

@@ -19,6 +19,13 @@ Route::get('/set-locale/{locale}', function ($locale) {
 
 // React Admin routes with Inertia
 Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function () {
+    // Password setup via one-time emailed link (no auth: the user has no
+    // password yet, and may not be logged in).
+    Route::get('/set-password/{token}', [App\Http\Controllers\Auth\PasswordSetupController::class, 'show'])
+        ->name('password.setup.show');
+    Route::post('/set-password/{token}', [App\Http\Controllers\Auth\PasswordSetupController::class, 'store'])
+        ->name('password.setup.store');
+
     Route::middleware('guest')->group(function () {
         Route::get('/login', function () {
             return Inertia::render('Auth/Login');

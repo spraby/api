@@ -12,3 +12,8 @@ Schedule::command('emails:process')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::command('brand-requests:notify')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
