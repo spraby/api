@@ -25,7 +25,7 @@ class UpdateUserRequest extends FormRequest
         $userId = $this->route('id');
 
         return [
-            'first_name' => ['required', 'string', 'max:1'],
+            'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -47,9 +47,9 @@ class UpdateUserRequest extends FormRequest
         return [
             'first_name.required' => 'The first name field is required.',
             'first_name.string' => 'The first name must be a valid string.',
-            'first_name.max' => 'The first name may not be greater than 255 characters.',
+            'first_name.max' => 'The first name may not be greater than :max characters.',
             'last_name.string' => 'The last name must be a valid string.',
-            'last_name.max' => 'The last name may not be greater than 255 characters.',
+            'last_name.max' => 'The last name may not be greater than :max characters.',
             'email.required' => 'The email field is required.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email is already taken.',

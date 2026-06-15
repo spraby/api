@@ -102,16 +102,7 @@ class UserController extends Controller
                 'email' => $validated['email'],
             ]);
 
-            // Update role if provided
-            if (isset($validated['role'])) {
-                if ($validated['role'] === '') {
-                    $user->syncRoles([]);
-                } else {
-                    $user->syncRoles([$validated['role']]);
-                }
-            } else {
-                $user->syncRoles([]);
-            }
+            $this->syncRoleIfProvided($user, $validated);
 
             // Reload to get updated data
             $user->load('roles');
@@ -130,6 +121,24 @@ class UserController extends Controller
                 'errors' => ['general' => [$e->getMessage()]],
             ], 422);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function syncRoleIfProvided(User $user, array $validated): void
+    {
+        if (! array_key_exists('role', $validated)) {
+            return;
+        }
+
+        if ($validated['role'] === null || $validated['role'] === '') {
+            $user->syncRoles([]);
+
+            return;
+        }
+
+        $user->syncRoles([$validated['role']]);
     }
 
     /**
