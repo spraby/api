@@ -5,6 +5,8 @@
  * These represent the database entities and their relationships.
  */
 
+import type {ShippingFieldValue} from './api';
+
 // ============================================
 // ENUMS & UNION TYPES
 // ============================================
@@ -354,6 +356,9 @@ export interface OrderShipping {
   name: string;
   phone: string;
   note: string | null;
+  shipping_method_id: number | null;
+  shipping_method_name: string | null;
+  customer_settings: ShippingFieldValue[];
   created_at: string;
   updated_at: string;
   // Relations
@@ -414,9 +419,9 @@ export interface Contact {
 
 export interface ShippingMethod {
   id: number;
-  key: string;
-  name: string;
-  description: string | null;
+  shipping_method_constructor_id: number;
+  merchant_settings: ShippingFieldValue[];
+  customer_settings: ShippingFieldValue[];
   created_at: string;
   updated_at: string;
   // Relations

@@ -13,8 +13,11 @@ use App\Models\Collection;
 use App\Models\Contact;
 use App\Models\Settings;
 use App\Models\ShippingMethod;
+use App\Models\ShippingMethodConstructor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -76,15 +79,58 @@ class SettingsController extends Controller
             }
         }
 
-        $shippingMethods = $brand
-            ? $brand->shippingMethods()->orderBy('name')->get()->map->toSelectArray()
-            : [];
+        $isAdmin = auth()->user()->isAdmin();
 
-        $allShippingMethods = ShippingMethod::orderBy('name')->get()->map->toSelectArray();
+        // Данные вкладки «Доставка» менеджера — админу они не рендерятся
+        $shippingConstructors = [];
+        $brandShippingMethods = [];
+        if (! $isAdmin) {
+            $shippingConstructors = ShippingMethodConstructor::query()
+                ->where('active', true)
+                ->orderBy('position')
+                ->get()
+                ->map(fn (ShippingMethodConstructor $constructor) => [
+                    'id' => $constructor->id,
+                    'name' => $constructor->name,
+                    'description' => $constructor->description,
+                    'merchant_fields' => $constructor->merchant_settings['fields'] ?? [],
+                ])
+                ->values()
+                ->all();
+
+            $brandShippingMethods = $brand
+                ? $brand->shippingMethods()
+                    ->get()
+                    ->map(fn (ShippingMethod $method) => [
+                        'id' => $method->id,
+                        'constructor_id' => $method->shipping_method_constructor_id,
+                        'merchant_settings' => $method->merchant_settings,
+                    ])
+                    ->values()
+                    ->all()
+                : [];
+        }
 
         $adminData = [];
-        if (auth()->user()->isAdmin()) {
+        if ($isAdmin) {
             $adminData = [
+                'allShippingConstructors' => ShippingMethodConstructor::query()
+                    ->orderBy('position')
+                    ->orderBy('id')
+                    ->get()
+                    ->map(fn (ShippingMethodConstructor $constructor) => [
+                        'id' => $constructor->id,
+                        'name' => $constructor->name,
+                        'description' => $constructor->description,
+                        'active' => $constructor->active,
+                        'position' => $constructor->position,
+                        'merchant_fields' => array_column($constructor->merchant_settings['fields'] ?? [], 'key'),
+                        'customer_fields' => array_column($constructor->customer_settings['fields'] ?? [], 'key'),
+                    ])
+                    ->values()
+                    ->all(),
+                'merchantFieldsCatalog' => ShippingMethodConstructor::catalogList(ShippingMethodConstructor::MERCHANT_FIELDS),
+                'customerFieldsCatalog' => ShippingMethodConstructor::catalogList(ShippingMethodConstructor::CUSTOMER_FIELDS),
                 'menu' => Settings::menu()->first()?->data ?? [],
                 'menuMaxDepth' => UpdateMenuRequest::MAX_DEPTH,
                 'menuCollections' => Collection::query()
@@ -113,8 +159,8 @@ class SettingsController extends Controller
         return Inertia::render('Settings', [
             'addresses' => $addresses,
             'contacts' => $contacts,
-            'shippingMethods' => $shippingMethods,
-            'allShippingMethods' => $allShippingMethods,
+            'shippingConstructors' => $shippingConstructors,
+            'brandShippingMethods' => $brandShippingMethods,
             'about' => $brand?->about ?? '',
             'refundPolicy' => $brand?->refund_policy ?? '',
             ...$adminData,
@@ -262,6 +308,11 @@ class SettingsController extends Controller
 
     /**
      * Sync shipping methods for the brand.
+     *
+     * Payload: methods: [{constructor_id, enabled, values: {key: value}}, ...].
+     * Включение создаёт запись shipping_methods (снапшот полей конструктора + значения),
+     * выключение — удаляет её. Для существующих записей выполняется re-snapshot:
+     * json пересобирается по текущим полям конструктора с переносом значений по key.
      */
     public function syncShippingMethods(Request $request): RedirectResponse
     {
@@ -271,13 +322,145 @@ class SettingsController extends Controller
         }
 
         $validated = $request->validate([
-            'shipping_method_ids' => ['present', 'array'],
-            'shipping_method_ids.*' => ['integer', 'exists:shipping_methods,id'],
+            'methods' => ['present', 'array'],
+            'methods.*.constructor_id' => ['required', 'integer', 'exists:shipping_method_constructors,id'],
+            'methods.*.enabled' => ['required', 'boolean'],
+            'methods.*.values' => ['present', 'array'],
         ]);
 
-        $brand->shippingMethods()->sync($validated['shipping_method_ids']);
+        $constructors = ShippingMethodConstructor::query()
+            ->whereIn('id', array_column($validated['methods'], 'constructor_id'))
+            ->get()
+            ->keyBy('id');
+
+        DB::transaction(function () use ($brand, $validated, $constructors) {
+            // На (brand, constructor) нет уникального индекса — связь через пивот.
+            // Блокировка строки бренда сериализует конкурентные сохранения вкладки,
+            // иначе двойной submit создаст дубль способа доставки.
+            Brand::query()->whereKey($brand->id)->lockForUpdate()->first();
+
+            $existingMethods = $brand->shippingMethods()
+                ->get()
+                ->keyBy('shipping_method_constructor_id');
+
+            foreach ($validated['methods'] as $item) {
+                $constructor = $constructors->get($item['constructor_id']);
+
+                // Записи по неактивным конструкторам не трогаем.
+                if (! $constructor || ! $constructor->active) {
+                    continue;
+                }
+
+                $existing = $existingMethods->get($constructor->id);
+
+                if (! $item['enabled']) {
+                    // Пивот brand_shipping_method чистится каскадом по FK
+                    $existing?->delete();
+
+                    continue;
+                }
+
+                $values = $this->normalizeMerchantValues($constructor, $item['values']);
+
+                if ($existing) {
+                    // Ключи, не пришедшие в payload, переносим из текущей записи.
+                    foreach ($existing->merchant_settings ?? [] as $field) {
+                        if (isset($field['key']) && ! array_key_exists($field['key'], $values)) {
+                            $values[$field['key']] = $field['value'] ?? null;
+                        }
+                    }
+                }
+
+                $attributes = [
+                    'shipping_method_constructor_id' => $constructor->id,
+                    'merchant_settings' => ShippingMethodConstructor::settingsWithValues(
+                        $constructor->merchant_settings['fields'] ?? [],
+                        $values,
+                    ),
+                    'customer_settings' => ShippingMethodConstructor::settingsWithValues(
+                        $constructor->customer_settings['fields'] ?? [],
+                        [],
+                    ),
+                ];
+
+                if ($existing) {
+                    $existing->update($attributes);
+                } else {
+                    $method = ShippingMethod::create($attributes);
+                    $brand->shippingMethods()->attach($method->id);
+                }
+            }
+        });
 
         return redirect()->back();
+    }
+
+    private const MERCHANT_VALUE_MAX_LENGTH = 1000;
+
+    private const MERCHANT_SELECT_MAX_ITEMS = 100;
+
+    /**
+     * Привести значения полей продавца к типам каталога:
+     * select — массив непустых строк, number — числовая строка, остальное — строка.
+     * Значения снапшотятся в JSONB как есть, поэтому размер и тип проверяем здесь.
+     */
+    private function normalizeMerchantValues(ShippingMethodConstructor $constructor, array $raw): array
+    {
+        $values = [];
+
+        foreach ($constructor->merchant_settings['fields'] ?? [] as $field) {
+            if (! array_key_exists($field['key'], $raw)) {
+                continue;
+            }
+
+            $value = $raw[$field['key']];
+            $type = $field['type'] ?? 'string';
+
+            if ($type === 'select') {
+                $items = array_filter(is_array($value) ? $value : [], 'is_scalar');
+                $items = array_values(array_filter(
+                    array_map(fn ($item) => trim((string) $item), $items),
+                    fn (string $item) => $item !== '',
+                ));
+
+                if (count($items) > self::MERCHANT_SELECT_MAX_ITEMS) {
+                    $this->failMerchantValue($field, __('admin.settings_delivery.errors.too_many_items'));
+                }
+
+                foreach ($items as $item) {
+                    $this->assertMerchantValueLength($field, $item);
+                }
+
+                $values[$field['key']] = $items;
+
+                continue;
+            }
+
+            $string = is_scalar($value) ? trim((string) $value) : '';
+            $this->assertMerchantValueLength($field, $string);
+
+            if ($type === 'number' && $string !== '' && ! is_numeric($string)) {
+                $this->failMerchantValue($field, __('admin.settings_delivery.errors.not_a_number'));
+            }
+
+            $values[$field['key']] = $string;
+        }
+
+        return $values;
+    }
+
+    private function assertMerchantValueLength(array $field, string $value): void
+    {
+        if (mb_strlen($value) > self::MERCHANT_VALUE_MAX_LENGTH) {
+            $this->failMerchantValue($field, __('admin.settings_delivery.errors.too_long'));
+        }
+    }
+
+    private function failMerchantValue(array $field, string $message): never
+    {
+        throw ValidationException::withMessages([
+            'methods' => sprintf('%s: %s', $field['name'] ?? $field['key'], $message),
+        ]);
     }
 
     /**

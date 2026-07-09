@@ -199,11 +199,26 @@ class OrderController extends Controller
                 ];
             }),
             'order_shippings' => $order->orderShippings->map(function ($shipping) {
+                // customer_settings пишутся витриной со слов клиента — форму
+                // гарантируем здесь, чтобы кривой JSON не ронял страницу заказа.
+                $customerSettings = collect(is_array($shipping->customer_settings) ? $shipping->customer_settings : [])
+                    ->filter(fn ($field) => is_array($field) && is_scalar($field['key'] ?? null) && is_scalar($field['name'] ?? null))
+                    ->map(fn (array $field) => [
+                        'key' => (string) $field['key'],
+                        'name' => (string) $field['name'],
+                        'value' => is_array($field['value'] ?? null)
+                            ? array_values(array_map('strval', array_filter($field['value'], 'is_scalar')))
+                            : (is_scalar($field['value'] ?? null) ? (string) $field['value'] : ''),
+                    ])
+                    ->values();
+
                 return [
                     'id' => $shipping->id,
                     'name' => $shipping->name,
                     'phone' => $shipping->phone,
                     'note' => $shipping->note,
+                    'shipping_method_name' => $shipping->shipping_method_name,
+                    'customer_settings' => $customerSettings,
                 ];
             }),
         ];

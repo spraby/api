@@ -16,7 +16,7 @@ class BrandFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::query()->where('role', 'manager')->inRandomOrder()->first()?->id,
+            'user_id' => User::query()->manager()->inRandomOrder()->first()?->id,
             'name' => $this->faker->company(),
             'description' => $this->faker->optional()->sentence(),
         ];

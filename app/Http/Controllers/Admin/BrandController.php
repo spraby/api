@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateBrandRequest;
 use App\Models\Brand;
 use App\Models\ShippingMethod;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -87,9 +88,7 @@ class BrandController extends Controller
     {
         $this->authorize('view', Brand::class);
 
-        $brand->load(['user', 'shippingMethods']);
-
-        $allShippingMethods = ShippingMethod::orderBy('name')->get()->map->toSelectArray();
+        $brand->load(['user', 'shippingMethods.methodConstructor']);
 
         return Inertia::render('BrandEdit', [
             'brand' => [
@@ -103,11 +102,16 @@ class BrandController extends Controller
                     'email' => $brand->user->email,
                 ] : null,
                 'category_ids' => $brand->categories()->pluck('categories.id')->toArray(),
-                'shipping_methods' => $brand->shippingMethods->map->toSelectArray(),
+                // Read-only: способы доставки настраивает менеджер в «Настройки → Доставка»
+                'shipping_methods' => $brand->shippingMethods
+                    ->map(fn (ShippingMethod $method) => [
+                        'id' => $method->id,
+                        'name' => $method->methodConstructor?->name ?? '—',
+                    ])
+                    ->values(),
                 'created_at' => $brand->created_at->toISOString(),
                 'updated_at' => $brand->updated_at->toISOString(),
             ],
-            'allShippingMethods' => $allShippingMethods,
         ]);
     }
 
@@ -125,7 +129,6 @@ class BrandController extends Controller
             ]);
 
             $brand->categories()->sync($request->input('category_ids', []));
-            $brand->shippingMethods()->sync($request->input('shipping_method_ids', []));
 
             return Redirect::route('admin.brands.edit', $brand->id)
                 ->with('success', 'Brand updated successfully');
@@ -163,7 +166,11 @@ class BrandController extends Controller
         ]);
 
         try {
-            Brand::whereIn('id', $request->input('brand_ids'))->delete();
+            // Поштучно, а не query-delete: иначе не сработает deleting-hook,
+            // зачищающий shipping_methods бренда.
+            DB::transaction(function () use ($request) {
+                Brand::whereIn('id', $request->input('brand_ids'))->get()->each->delete();
+            });
 
             return Redirect::route('admin.brands')->with('success', 'Brands deleted successfully');
         } catch (\Exception $e) {
@@ -188,20 +195,4 @@ class BrandController extends Controller
         return Redirect::back()->with('success', 'Categories updated successfully');
     }
 
-    /**
-     * Sync shipping methods for the brand.
-     */
-    public function syncShippingMethods(Request $request, Brand $brand): RedirectResponse
-    {
-        $this->authorize('update', Brand::class);
-
-        $validated = $request->validate([
-            'shipping_method_ids' => ['present', 'array'],
-            'shipping_method_ids.*' => ['integer', 'exists:shipping_methods,id'],
-        ]);
-
-        $brand->shippingMethods()->sync($validated['shipping_method_ids']);
-
-        return Redirect::back()->with('success', 'Shipping methods updated successfully');
-    }
 }

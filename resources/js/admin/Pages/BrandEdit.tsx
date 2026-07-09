@@ -7,10 +7,7 @@ import {BrandFormFields} from "@/components/brand-form.tsx";
 import {CategoryPicker} from "@/components/category-picker.tsx";
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Checkbox} from '@/components/ui/checkbox';
-import {Label} from '@/components/ui/label';
 import {useLang} from '@/lib/lang';
-import type {ShippingMethod} from '@/types/api';
 import type {PageProps} from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -26,24 +23,22 @@ interface BrandData {
         email: string;
     } | null;
     category_ids: number[];
-    shipping_methods: ShippingMethod[];
+    shipping_methods: {id: number; name: string}[];
     created_at: string;
     updated_at: string;
 }
 
 interface BrandEditProps {
     brand: BrandData;
-    allShippingMethods: ShippingMethod[];
 }
 
 interface BrandEditFormData {
     name: string;
     description: string | null;
     category_ids: number[];
-    shipping_method_ids: number[];
 }
 
-export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
+export default function BrandEdit({brand}: BrandEditProps) {
     const {t} = useLang();
     const {auth} = usePage<PageProps>().props;
 
@@ -51,7 +46,6 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
         name: brand.name,
         description: brand.description,
         category_ids: brand.category_ids,
-        shipping_method_ids: brand.shipping_methods.map(m => m.id),
     });
 
     const canImpersonate = auth?.user?.is_admin && brand.user;
@@ -60,14 +54,6 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
         if (brand.user) {
             router.post(route('admin.impersonate', {user: brand.user.id}));
         }
-    };
-
-    const handleShippingMethodToggle = (methodId: number, checked: boolean) => {
-        setData('shipping_method_ids',
-            checked
-                ? [...data.shipping_method_ids, methodId]
-                : data.shipping_method_ids.filter(id => id !== methodId)
-        );
     };
 
     const onSubmit: FormEventHandler = (e) => {
@@ -159,31 +145,19 @@ export default function BrandEdit({brand, allShippingMethods}: BrandEditProps) {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {allShippingMethods.length === 0 ? (
+                                {/* Read-only: способы доставки настраивает менеджер в «Настройки → Доставка» */}
+                                {brand.shipping_methods.length === 0 ? (
                                     <p className="text-sm text-muted-foreground">
                                         {t('admin.brands_edit.no_shipping_methods')}
                                     </p>
                                 ) : (
-                                    <div className="space-y-3">
-                                        {allShippingMethods.map((method) => (
-                                            <div key={method.id} className="flex items-center space-x-3">
-                                                <Checkbox
-                                                    id={`shipping-${method.id}`}
-                                                    checked={data.shipping_method_ids.includes(method.id)}
-                                                    disabled={processing}
-                                                    onCheckedChange={(checked) =>
-                                                        handleShippingMethodToggle(method.id, checked === true)
-                                                    }
-                                                />
-                                                <Label
-                                                    htmlFor={`shipping-${method.id}`}
-                                                    className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    {method.name}
-                                                </Label>
-                                            </div>
+                                    <ul className="space-y-2">
+                                        {brand.shipping_methods.map((method) => (
+                                            <li key={method.id} className="text-sm font-medium">
+                                                {method.name}
+                                            </li>
                                         ))}
-                                    </div>
+                                    </ul>
                                 )}
                             </CardContent>
                         </Card>

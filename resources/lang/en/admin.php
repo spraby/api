@@ -614,6 +614,7 @@ return [
             'name' => 'Recipient',
             'phone' => 'Phone',
             'note' => 'Note',
+            'method' => 'Shipping method',
             'no_shipping' => 'No shipping information',
         ],
         'timeline' => [
@@ -997,10 +998,8 @@ return [
         'categories_save' => 'Save',
         'categories_saving' => 'Saving...',
         'shipping_methods' => 'Shipping Methods',
-        'shipping_methods_description' => 'Select available shipping methods for this brand',
-        'no_shipping_methods' => 'No shipping methods available',
-        'shipping_save' => 'Save',
-        'shipping_saving' => 'Saving...',
+        'shipping_methods_description' => 'Shipping methods enabled by the store in Settings → Delivery',
+        'no_shipping_methods' => 'The store has not enabled any shipping methods yet',
     ],
 
     'brands_create' => [
@@ -1380,12 +1379,54 @@ return [
         'title' => 'Delivery',
         'description' => 'Select available shipping methods for your store',
         'no_methods' => 'No shipping methods available',
+        'select_placeholder' => 'Type a value and press Enter',
         'actions' => [
             'save' => 'Save',
             'saving' => 'Saving...',
         ],
         'messages' => [
             'updated' => 'Shipping methods updated',
+        ],
+        'errors' => [
+            'too_long' => 'value is too long',
+            'too_many_items' => 'too many list items',
+            'not_a_number' => 'value must be a number',
+        ],
+    ],
+
+    'shipping_constructors' => [
+        'title' => 'Shipping methods',
+        'description' => 'Create universal shipping templates and choose fields for the merchant and the customer',
+        'add' => 'Add method',
+        'no_constructors' => 'No shipping methods yet',
+        'fields' => [
+            'name' => 'Shipping method name',
+            'position' => 'Position',
+            'description' => 'Description',
+            'active' => 'Active',
+        ],
+        'merchant_fields' => [
+            'title' => 'Merchant fields',
+            'description' => 'The store fills in these settings in its delivery tab',
+        ],
+        'customer_fields' => [
+            'title' => 'Customer fields',
+            'description' => 'The customer fills in these fields at checkout',
+        ],
+        'actions' => [
+            'save' => 'Save',
+            'saving' => 'Saving...',
+            'delete' => 'Delete',
+            'cancel' => 'Cancel',
+        ],
+        'delete_confirm' => [
+            'title' => 'Delete shipping method?',
+            'description' => 'Its settings for all stores will also be deleted. This action cannot be undone.',
+        ],
+        'messages' => [
+            'created' => 'Shipping method created',
+            'updated' => 'Shipping method updated',
+            'deleted' => 'Shipping method deleted',
         ],
     ],
 

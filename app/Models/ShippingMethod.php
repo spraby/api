@@ -7,15 +7,21 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
+ * Персональная конфигурация способа доставки: запись = бренд × конструктор.
+ * merchant_settings / customer_settings — снапшот полей конструктора со значениями:
+ * [{key, name, type, value}, ...].
+ *
  * @property int $id
- * @property string $key
- * @property string $name
- * @property string|null $description
+ * @property int $shipping_method_constructor_id
+ * @property array $merchant_settings
+ * @property array $customer_settings
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read ShippingMethodConstructor $methodConstructor
  * @property-read Collection<Brand> $brands
  *
  * @method static Builder|static query()
@@ -26,37 +32,22 @@ class ShippingMethod extends Model
 {
     use HasFactory;
 
-    public const KEY_EURO_POST_RB = 'euro_post_rb';
-    public const KEY_COURIER_MINSK = 'courier_minsk';
-    public const KEY_PICKUP = 'pickup';
-
-    public const DEFAULTS = [
-        self::KEY_EURO_POST_RB => 'ЕВРОПОЧТА по РБ',
-        self::KEY_COURIER_MINSK => 'Курьером по Минску',
-        self::KEY_PICKUP => 'Самовывоз',
-    ];
-
     protected $fillable = [
-        'key',
-        'name',
-        'description',
+        'shipping_method_constructor_id',
+        'merchant_settings',
+        'customer_settings',
     ];
 
     protected $casts = [
+        'merchant_settings' => 'array',
+        'customer_settings' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Convert to array for frontend select/checkbox components.
-     */
-    public function toSelectArray(): array
+    public function methodConstructor(): BelongsTo
     {
-        return [
-            'id' => $this->id,
-            'key' => $this->key,
-            'name' => $this->name,
-        ];
+        return $this->belongsTo(ShippingMethodConstructor::class, 'shipping_method_constructor_id');
     }
 
     public function brands(): BelongsToMany
