@@ -5,6 +5,8 @@
  * These represent the shape of data returned by the backend.
  */
 
+import type {ShippingFieldValue} from './api';
+
 // ============================================
 // USER
 // ============================================
@@ -249,6 +251,10 @@ export interface OrderShipping {
     name: string;
     phone: string;
     note: string | null;
+    shipping_method_id: number | null;
+    shipping_method_name: string | null;
+    // Бэкенд нормализует снапшот до key/name/value (см. OrderController::show)
+    customer_settings: Omit<ShippingFieldValue, 'type'>[];
     created_at: string | null;
     updated_at: string | null;
 }
@@ -306,9 +312,10 @@ export interface Contact {
 export interface ShippingMethod {
     uid: string;
     id: number | null;
-    key: string;
-    name: string;
-    description: string | null;
+    constructor_id: number;
+    name?: string;
+    merchant_settings: ShippingFieldValue[];
+    customer_settings: ShippingFieldValue[];
     created_at: string | null;
     updated_at: string | null;
 }

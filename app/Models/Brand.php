@@ -51,6 +51,15 @@ class Brand extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        // У shipping_methods нет FK на бренд (связь через пивот) — без явной
+        // зачистки записи бренда остались бы сиротами после каскадного удаления пивота.
+        static::deleting(function (Brand $brand) {
+            $brand->shippingMethods()->get()->each->delete();
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -9,20 +9,31 @@ import DeliverySection from '@/components/settings/DeliverySection';
 import GeneralSection from '@/components/settings/GeneralSection';
 import type {MenuNode, MenuOption} from '@/components/settings/menu/types';
 import MenuSection from '@/components/settings/MenuSection';
+import ShippingConstructorsSection from '@/components/settings/ShippingConstructorsSection';
 import {Separator} from '@/components/ui/separator';
 import AdminLayout from '@/layouts/AdminLayout';
 import {useLang} from '@/lib/lang';
 import {cn} from '@/lib/utils';
-import type {Address, ContactsMap, ShippingMethod} from '@/types/api';
+import type {
+    Address,
+    BrandShippingMethod,
+    ContactsMap,
+    ShippingConstructorOption,
+    ShippingFieldDef,
+    ShippingMethodConstructor,
+} from '@/types/api';
 import type {PageProps} from '@/types/inertia';
 
 interface SettingsPageProps extends Record<string, unknown> {
     addresses: Address[];
     contacts: ContactsMap;
-    shippingMethods: ShippingMethod[];
-    allShippingMethods: ShippingMethod[];
+    shippingConstructors: ShippingConstructorOption[];
+    brandShippingMethods: BrandShippingMethod[];
     about: string;
     refundPolicy: string;
+    allShippingConstructors?: ShippingMethodConstructor[];
+    merchantFieldsCatalog?: ShippingFieldDef[];
+    customerFieldsCatalog?: ShippingFieldDef[];
     menu?: MenuNode[];
     menuCollections?: MenuOption[];
     menuCategories?: MenuOption[];
@@ -41,16 +52,16 @@ type TabId = (typeof tabs)[number]['id'];
 function ManagerSettings({
     addresses,
     contacts,
-    shippingMethods,
-    allShippingMethods,
+    shippingConstructors,
+    brandShippingMethods,
     about,
     refundPolicy,
     locale,
 }: {
     addresses: Address[];
     contacts: ContactsMap;
-    shippingMethods: ShippingMethod[];
-    allShippingMethods: ShippingMethod[];
+    shippingConstructors: ShippingConstructorOption[];
+    brandShippingMethods: BrandShippingMethod[];
     about: string;
     refundPolicy: string;
     locale: string;
@@ -86,7 +97,7 @@ function ManagerSettings({
             <div className="flex-1 min-w-0">
                 {activeTab === 'general' && <GeneralSection about={about} refundPolicy={refundPolicy}/>}
                 {activeTab === 'addresses' && <AddressesSection addresses={addresses}/>}
-                {activeTab === 'delivery' && <DeliverySection shippingMethods={shippingMethods} allShippingMethods={allShippingMethods}/>}
+                {activeTab === 'delivery' && <DeliverySection constructors={shippingConstructors} brandMethods={brandShippingMethods}/>}
                 {activeTab === 'contacts' && <ContactsSection contacts={contacts}/>}
             </div>
         </div>
@@ -95,6 +106,7 @@ function ManagerSettings({
 
 const adminTabs = [
     {id: 'menu', icon: MenuIcon, label_ru: 'Меню', label_en: 'Menu'},
+    {id: 'delivery', icon: TruckIcon, label_ru: 'Доставка', label_en: 'Delivery'},
 ] as const;
 
 type AdminTabId = (typeof adminTabs)[number]['id'];
@@ -104,12 +116,18 @@ function AdminSettings({
     collections,
     categories,
     maxDepth,
+    constructors,
+    merchantCatalog,
+    customerCatalog,
     locale,
 }: {
     menu: MenuNode[];
     collections: MenuOption[];
     categories: MenuOption[];
     maxDepth: number;
+    constructors: ShippingMethodConstructor[];
+    merchantCatalog: ShippingFieldDef[];
+    customerCatalog: ShippingFieldDef[];
     locale: string;
 }) {
     const [activeTab, setActiveTab] = useState<AdminTabId>('menu');
@@ -149,6 +167,13 @@ function AdminSettings({
                         maxDepth={maxDepth}
                     />
                 )}
+                {activeTab === 'delivery' && (
+                    <ShippingConstructorsSection
+                        constructors={constructors}
+                        merchantCatalog={merchantCatalog}
+                        customerCatalog={customerCatalog}
+                    />
+                )}
             </div>
         </div>
     );
@@ -160,10 +185,13 @@ export default function Settings() {
         auth,
         addresses,
         contacts,
-        shippingMethods,
-        allShippingMethods,
+        shippingConstructors,
+        brandShippingMethods,
         about,
         refundPolicy,
+        allShippingConstructors,
+        merchantFieldsCatalog,
+        customerFieldsCatalog,
         menu,
         menuCollections,
         menuCategories,
@@ -182,10 +210,13 @@ export default function Settings() {
                         collections={menuCollections ?? []}
                         categories={menuCategories ?? []}
                         maxDepth={menuMaxDepth ?? 3}
+                        constructors={allShippingConstructors ?? []}
+                        merchantCatalog={merchantFieldsCatalog ?? []}
+                        customerCatalog={customerFieldsCatalog ?? []}
                         locale={locale}
                     />
                 ) : (
-                    <ManagerSettings addresses={addresses} contacts={contacts} shippingMethods={shippingMethods} allShippingMethods={allShippingMethods} about={about} refundPolicy={refundPolicy} locale={locale}/>
+                    <ManagerSettings addresses={addresses} contacts={contacts} shippingConstructors={shippingConstructors} brandShippingMethods={brandShippingMethods} about={about} refundPolicy={refundPolicy} locale={locale}/>
                 )}
             </div>
         </AdminLayout>

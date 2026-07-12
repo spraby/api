@@ -9,12 +9,14 @@ class SettingsSeeder extends Seeder
 {
     public function run(): void
     {
-        Settings::create([
-            'id' => 'global',
-            'data' => [
-                'site_name' => 'Spraby App',
-                'maintenance' => false,
+        Settings::firstOrCreate(
+            ['key' => 'global'],
+            [
+                'data' => [
+                    'site_name' => 'Spraby App',
+                    'maintenance' => false,
+                ],
             ],
-        ]);
+        );
     }
 }

@@ -19,7 +19,7 @@ class OrderShippingFactory extends Factory
             'order_id' => Order::inRandomOrder()->first()?->id,
             'name' => $this->faker->name(),
             'phone' => $this->faker->phoneNumber(),
-            'note' => $this->faker->optional()->sentence(),
+            'note' => $this->faker->optional()->sentence() ?? '',
         ];
     }
 }

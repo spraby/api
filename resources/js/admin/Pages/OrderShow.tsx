@@ -74,6 +74,8 @@ interface OrderShipping {
   name: string;
   phone: string;
   note: string;
+  shipping_method_name: string | null;
+  customer_settings: {key: string; name: string; type: string; value: string | string[]}[];
 }
 
 interface AuditUser {
@@ -585,6 +587,23 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                             </span>
                             <span className="font-medium">{shipping.phone}</span>
                           </div>
+                          {shipping.shipping_method_name ? (
+                            <div className="flex items-center gap-2">
+                              <TruckIcon className="size-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                {t('admin.order_show.shipping.method')}:
+                              </span>
+                              <span className="font-medium">{shipping.shipping_method_name}</span>
+                            </div>
+                          ) : null}
+                          {shipping.customer_settings
+                            .filter((field) => (Array.isArray(field.value) ? field.value.length > 0 : `${field.value}`.trim() !== ''))
+                            .map((field) => (
+                              <div key={field.key} className="flex items-start gap-2 pl-6">
+                                <span className="text-sm text-muted-foreground">{field.name}:</span>
+                                <span>{Array.isArray(field.value) ? field.value.join(', ') : field.value}</span>
+                              </div>
+                            ))}
                           {shipping.note ? (
                             <div className="flex items-start gap-2">
                               <span className="text-sm text-muted-foreground">

@@ -269,9 +269,44 @@ export type ContactsMap = Partial<Record<ContactType, string>>;
 // SHIPPING METHOD TYPES
 // ============================================
 
-export interface ShippingMethod {
-  id: number;
+export type ShippingFieldType = 'string' | 'number' | 'select';
+
+// Поле из каталога конструктора (без значения)
+export interface ShippingFieldDef {
   key: string;
   name: string;
+  type: ShippingFieldType;
+}
+
+// Поле со значением, заполненным продавцом/покупателем
+export interface ShippingFieldValue extends ShippingFieldDef {
+  value: string | string[];
+}
+
+// Конструктор для админской вкладки «Доставка»:
+// merchant_fields/customer_fields — списки ключей включённых полей
+export interface ShippingMethodConstructor {
+  id: number;
+  name: string;
+  description: string | null;
+  active: boolean;
+  position: number;
+  merchant_fields: string[];
+  customer_fields: string[];
+}
+
+// Активный конструктор в менеджерской вкладке «Доставка»
+export interface ShippingConstructorOption {
+  id: number;
+  name: string;
+  description: string | null;
+  merchant_fields: ShippingFieldDef[];
+}
+
+// Настроенный способ доставки бренда (запись shipping_methods)
+export interface BrandShippingMethod {
+  id: number;
+  constructor_id: number;
+  merchant_settings: ShippingFieldValue[];
 }
 

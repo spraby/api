@@ -99,7 +99,6 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
                 Route::put('/', [App\Http\Controllers\Admin\BrandController::class, 'update'])->name('brands.update');
                 Route::delete('/', [App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('brands.destroy');
                 Route::put('/categories', [App\Http\Controllers\Admin\BrandController::class, 'syncCategories'])->name('brands.categories.sync');
-                Route::put('/shipping-methods', [App\Http\Controllers\Admin\BrandController::class, 'syncShippingMethods'])->name('brands.shipping-methods.sync');
             });
         });
 
@@ -202,6 +201,11 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::delete('/settings/addresses/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyAddress'])->name('settings.addresses.destroy');
         Route::put('/settings/contacts', [App\Http\Controllers\Admin\SettingsController::class, 'updateContacts'])->name('settings.contacts.update');
         Route::put('/settings/shipping-methods', [App\Http\Controllers\Admin\SettingsController::class, 'syncShippingMethods'])->name('settings.shipping-methods.sync');
+
+        // Конструкторы способов доставки (admin only, проверка в реквесте/контроллере)
+        Route::post('/settings/shipping-constructors', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'store'])->name('settings.shipping-constructors.store');
+        Route::put('/settings/shipping-constructors/{constructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'update'])->name('settings.shipping-constructors.update');
+        Route::delete('/settings/shipping-constructors/{constructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'destroy'])->name('settings.shipping-constructors.destroy');
         Route::put('/settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general.update');
         Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
 
