@@ -204,8 +204,10 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
 
         // Конструкторы способов доставки (admin only, проверка в реквесте/контроллере)
         Route::post('/settings/shipping-constructors', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'store'])->name('settings.shipping-constructors.store');
-        Route::put('/settings/shipping-constructors/{constructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'update'])->name('settings.shipping-constructors.update');
-        Route::delete('/settings/shipping-constructors/{constructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'destroy'])->name('settings.shipping-constructors.destroy');
+        // Имя сегмента не должно совпадать со свойствами Object.prototype
+        // (constructor, toString, ...) — Ziggy на фронте ломается на таких параметрах
+        Route::put('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'update'])->name('settings.shipping-constructors.update');
+        Route::delete('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'destroy'])->name('settings.shipping-constructors.destroy');
         Route::put('/settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general.update');
         Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
 

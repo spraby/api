@@ -23,9 +23,9 @@ class ShippingMethodConstructorController extends Controller
     /**
      * Update a shipping method constructor (admin only).
      */
-    public function update(StoreShippingMethodConstructorRequest $request, ShippingMethodConstructor $constructor): RedirectResponse
+    public function update(StoreShippingMethodConstructorRequest $request, ShippingMethodConstructor $shippingConstructor): RedirectResponse
     {
-        $constructor->update($this->payload($request));
+        $shippingConstructor->update($this->payload($request));
 
         return redirect()->back();
     }
@@ -34,13 +34,13 @@ class ShippingMethodConstructorController extends Controller
      * Delete a shipping method constructor (admin only).
      * Каскадом удаляются и настроенные брендами shipping_methods.
      */
-    public function destroy(Request $request, ShippingMethodConstructor $constructor): RedirectResponse
+    public function destroy(Request $request, ShippingMethodConstructor $shippingConstructor): RedirectResponse
     {
         if (! $request->user()->isAdmin()) {
             abort(403, 'Only administrators can manage shipping method constructors.');
         }
 
-        $constructor->delete();
+        $shippingConstructor->delete();
 
         return redirect()->back();
     }
