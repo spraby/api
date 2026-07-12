@@ -616,6 +616,10 @@ return [
             'note' => 'Note',
             'method' => 'Shipping method',
             'no_shipping' => 'No shipping information',
+            'price' => 'Shipping price',
+            'price_placeholder' => 'Amount',
+            'price_save' => 'Save',
+            'price_updated' => 'Shipping price updated',
         ],
         'timeline' => [
             'event' => [
@@ -629,6 +633,10 @@ return [
         ],
         'totals' => [
             'subtotal' => 'Subtotal',
+            'items' => 'Items',
+            'discount' => 'Discount',
+            'shipping' => 'Shipping',
+            'shipping_negotiable' => 'To be agreed with the customer',
             'total' => 'Total',
         ],
         'note' => 'Note',

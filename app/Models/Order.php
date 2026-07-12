@@ -20,6 +20,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $status
  * @property string $delivery_status
  * @property string $financial_status
+ * @property string|null $subtotal
+ * @property string|null $discount_total
+ * @property string|null $shipping_price
+ * @property string|null $total
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property string $status_url
@@ -45,6 +49,12 @@ class Order extends Model
         'status' => 'string',
         'delivery_status' => 'string',
         'financial_status' => 'string',
+        // NULL — старый заказ (тоталы считаются из order_items) либо,
+        // для shipping_price, «стоимость согласуется с продавцом»
+        'subtotal' => 'decimal:2',
+        'discount_total' => 'decimal:2',
+        'shipping_price' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     public const STATUSES = [

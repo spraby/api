@@ -400,6 +400,13 @@ class SettingsController extends Controller
     private const MERCHANT_SELECT_MAX_ITEMS = 100;
 
     /**
+     * Денежные merchant-поля: из них витрина считает стоимость доставки
+     * в заказе, поэтому валидируются как число независимо от типа в каталоге
+     * и сохраняются в каноничном виде (точка, два знака).
+     */
+    private const MERCHANT_MONEY_FIELD_KEYS = ['shipping_price', 'free_shipping_threshold'];
+
+    /**
      * Привести значения полей продавца к типам каталога:
      * select — массив непустых строк, number — числовая строка, остальное — строка.
      * Значения снапшотятся в JSONB как есть, поэтому размер и тип проверяем здесь.
@@ -441,6 +448,16 @@ class SettingsController extends Controller
 
             if ($type === 'number' && $string !== '' && ! is_numeric($string)) {
                 $this->failMerchantValue($field, __('admin.settings_delivery.errors.not_a_number'));
+            }
+
+            if ($string !== '' && in_array($field['key'], self::MERCHANT_MONEY_FIELD_KEYS, true)) {
+                $normalized = str_replace([' ', "\u{00A0}", ','], ['', '', '.'], $string);
+
+                if (! is_numeric($normalized) || (float) $normalized < 0) {
+                    $this->failMerchantValue($field, __('admin.settings_delivery.errors.not_a_number'));
+                }
+
+                $string = number_format((float) $normalized, 2, '.', '');
             }
 
             $values[$field['key']] = $string;

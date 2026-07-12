@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
   ArrowLeftIcon,
@@ -18,6 +19,7 @@ import { toast } from 'sonner';
 
 import {Money} from '@/components/money';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
@@ -96,6 +98,12 @@ interface Order {
   financial_status: FinancialStatus;
   note: string | null;
   status_url: string;
+  // Финансовый снапшот заказа; null во всех — старый заказ (считаем из позиций).
+  // shipping_price null при заполненном total — «стоимость согласуется»
+  subtotal: string | null;
+  discount_total: string | null;
+  shipping_price: string | null;
+  total: string | null;
   created_at: string;
   updated_at: string;
   customer: Customer | null;
@@ -352,6 +360,33 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
     }, 0);
   };
 
+  // Финансовый снапшот заказа; старые заказы (total === null) — из позиций
+  const hasTotalsSnapshot = order.total !== null;
+  const itemsSubtotal = order.subtotal !== null ? parseFloat(order.subtotal) : calculateTotal();
+  const discountTotal = order.discount_total !== null ? parseFloat(order.discount_total) : 0;
+  const orderTotal = order.total !== null ? parseFloat(order.total) : calculateTotal();
+
+  const [shippingPriceInput, setShippingPriceInput] = useState(order.shipping_price ?? '');
+  const [savingShippingPrice, setSavingShippingPrice] = useState(false);
+
+  const saveShippingPrice = () => {
+    setSavingShippingPrice(true);
+    router.put(
+      `/admin/orders/${order.id}/shipping-price`,
+      { shipping_price: shippingPriceInput === '' ? null : shippingPriceInput },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast.success(t('admin.order_show.shipping.price_updated'));
+        },
+        onError: () => {
+          toast.error(t('admin.order_show.status_update_failed'));
+        },
+        onFinish: () => setSavingShippingPrice(false),
+      }
+    );
+  };
+
   return (
     <AdminLayout title={`${t('admin.order_show.title')} - ${order.name}`}>
       <div className="flex items-center flex-col gap-5">
@@ -464,9 +499,30 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                       {/* Totals */}
                       <div className="flex justify-end">
                         <div className="w-full max-w-xs space-y-2">
+                          <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>{t('admin.order_show.totals.items')}</span>
+                            <Money value={itemsSubtotal}/>
+                          </div>
+                          {discountTotal > 0 && (
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                              <span>{t('admin.order_show.totals.discount')}</span>
+                              <Money value={-discountTotal}/>
+                            </div>
+                          )}
+                          {hasTotalsSnapshot && (
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                              <span>{t('admin.order_show.totals.shipping')}</span>
+                              {order.shipping_price !== null ? (
+                                <Money value={parseFloat(order.shipping_price)}/>
+                              ) : (
+                                <span>{t('admin.order_show.totals.shipping_negotiable')}</span>
+                              )}
+                            </div>
+                          )}
+                          <Separator />
                           <div className="flex justify-between text-lg font-semibold">
                             <span>{t('admin.order_show.totals.total')}</span>
-                            <Money value={calculateTotal()}/>
+                            <Money value={orderTotal}/>
                           </div>
                         </div>
                       </div>
@@ -614,6 +670,34 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                           ) : null}
                         </div>
                       ))}
+
+                      {/* Стоимость доставки: проставляется/корректируется менеджером,
+                          когда она «согласуется» или изменилась по договорённости */}
+                      <Separator className="my-3" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CircleDollarSignIcon className="size-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {t('admin.order_show.shipping.price')}:
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          className="h-8 w-28"
+                          placeholder={t('admin.order_show.shipping.price_placeholder')}
+                          value={shippingPriceInput}
+                          disabled={savingShippingPrice}
+                          onChange={(event) => setShippingPriceInput(event.target.value)}
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={savingShippingPrice || (shippingPriceInput === (order.shipping_price ?? ''))}
+                          onClick={saveShippingPrice}
+                        >
+                          {t('admin.order_show.shipping.price_save')}
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-center text-muted-foreground py-4">

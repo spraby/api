@@ -77,7 +77,9 @@ class OrderController extends Controller
             ->orderByDesc('o.created_at')
             ->selectRaw('o.id, o.name, o.status, o.delivery_status, o.financial_status, o.note, o.created_at, o.customer_id')
             ->selectRaw('COALESCE(oi.items_count, 0) as items_count')
-            ->selectRaw('COALESCE(oi.total, 0) as total')
+            // o.total — финансовый снапшот заказа (товары + доставка);
+            // для старых заказов без снапшота — сумма позиций на лету
+            ->selectRaw('COALESCE(o.total, oi.total, 0) as total')
             ->selectRaw('c.name as customer_name')
             ->selectRaw('c.email as customer_email')
             ->selectRaw('c.phone as customer_phone');
@@ -178,6 +180,12 @@ class OrderController extends Controller
             'financial_status' => $order->financial_status,
             'note' => $order->note,
             'status_url' => $order->status_url,
+            // Финансовый снапшот; NULL — старый заказ, фронт считает из позиций.
+            // shipping_price NULL при заполненном total — «стоимость согласуется»
+            'subtotal' => $order->subtotal,
+            'discount_total' => $order->discount_total,
+            'shipping_price' => $order->shipping_price,
+            'total' => $order->total,
             'created_at' => $order->created_at->toISOString(),
             'updated_at' => $order->updated_at->toISOString(),
             'customer' => $order->customer ? [
@@ -253,6 +261,42 @@ class OrderController extends Controller
         ]);
 
         $order->update($validated);
+
+        return redirect()->back();
+    }
+
+    /**
+     * Проставить стоимость доставки, когда она «согласуется с продавцом»
+     * (или скорректировать по договорённости). total пересчитывается,
+     * subtotal/discount_total остаются снапшотом момента заказа.
+     */
+    public function updateShippingPrice(Request $request, Order $order): RedirectResponse
+    {
+        /**
+         * @var User $user
+         * @var Brand $brand
+         */
+        $user = auth()->user();
+        $brand = $user->getBrand();
+
+        if (!$brand || $order->brand_id !== $brand->id) {
+            return redirect()->route('admin.orders');
+        }
+
+        $validated = $request->validate([
+            'shipping_price' => 'nullable|numeric|min:0|max:99999999',
+        ]);
+
+        $shippingPrice = $validated['shipping_price'] ?? null;
+        $subtotal = $order->subtotal !== null
+            ? (float) $order->subtotal
+            : (float) $order->orderItems()->selectRaw('COALESCE(SUM(final_price * quantity), 0) as aggregate')->value('aggregate');
+
+        $order->update([
+            'subtotal' => number_format($subtotal, 2, '.', ''),
+            'shipping_price' => $shippingPrice,
+            'total' => number_format($subtotal + (float) ($shippingPrice ?? 0), 2, '.', ''),
+        ]);
 
         return redirect()->back();
     }

@@ -616,6 +616,10 @@ return [
             'note' => 'Примечание',
             'method' => 'Способ доставки',
             'no_shipping' => 'Нет информации о доставке',
+            'price' => 'Стоимость доставки',
+            'price_placeholder' => 'Сумма',
+            'price_save' => 'Сохранить',
+            'price_updated' => 'Стоимость доставки обновлена',
         ],
         'timeline' => [
             'event' => [
@@ -629,6 +633,10 @@ return [
         ],
         'totals' => [
             'subtotal' => 'Подытог',
+            'items' => 'Товары',
+            'discount' => 'Скидка',
+            'shipping' => 'Доставка',
+            'shipping_negotiable' => 'Согласуется с покупателем',
             'total' => 'Итого',
         ],
         'note' => 'Примечание',
