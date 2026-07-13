@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $quantity
  * @property string $price
  * @property string $final_price
+ * @property string|null $imageUrl
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Order $order
@@ -74,5 +75,12 @@ class OrderItem extends Model
     public function image(): BelongsTo
     {
         return $this->belongsTo(ProductImage::class);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image?->image?->url
+            ?? $this->variant?->image?->image?->url
+            ?? $this->product?->imageUrl;
     }
 }

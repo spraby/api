@@ -148,10 +148,14 @@ export default function Media({ images }: MediaProps) {
                       </p>
                     )}
                   </div>
-                  <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="absolute right-2 top-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
                     <Button
+                      aria-label={trans('admin.common.delete')}
+                      className="size-8 border-border/80 bg-background/90 text-destructive shadow-sm backdrop-blur hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                       size="icon"
-                      variant="destructive"
+                      title={trans('admin.common.delete')}
+                      type="button"
+                      variant="outline"
                       onClick={() => { confirmDelete(image); }}
                     >
                       <Trash2Icon className="h-4 w-4" />

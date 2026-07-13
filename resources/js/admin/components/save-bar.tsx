@@ -5,7 +5,6 @@ import {Loader2Icon, RotateCcwIcon, SaveIcon} from 'lucide-react';
 
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -141,20 +140,37 @@ export function SaveBar({className}: {className?: string}) {
               )}
 
             <AlertDialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
-                <AlertDialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-lg">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{t('admin.products_edit.unsaved.dialog.title')}</AlertDialogTitle>
-                        <AlertDialogDescription>{t('admin.products_edit.unsaved.dialog.description')}</AlertDialogDescription>
+                <AlertDialogContent
+                    className="w-[calc(100%-2rem)] max-w-sm gap-5 rounded-xl border-border/80 p-5 shadow-xl sm:max-w-md sm:p-6"
+                    motion="none"
+                    overlayClassName="bg-black/45"
+                >
+                    <AlertDialogHeader className="space-y-2 text-left">
+                        <AlertDialogTitle className="text-xl leading-7">
+                            {t('admin.products_edit.unsaved.dialog.title')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm leading-6">
+                            {t('admin.products_edit.unsaved.dialog.description')}
+                        </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="flex flex-col gap-2 pt-2">
-                        <AlertDialogAction disabled={saving} onClick={() => void handleDialogSave()}>
+                    <div className="flex flex-col gap-2">
+                        <Button
+                            className="h-10 rounded-md shadow-sm"
+                            disabled={saving}
+                            onClick={() => void handleDialogSave()}
+                        >
                             {!!saving && <Loader2Icon className="mr-2 size-4 animate-spin"/>}
                             {t('admin.products_edit.unsaved.dialog.save')}
-                        </AlertDialogAction>
-                        <Button disabled={saving} variant="destructive" onClick={handleDialogDiscard}>
+                        </Button>
+                        <Button
+                            className="h-10 border-red-200 bg-red-50 text-red-700 shadow-sm hover:bg-red-100 hover:text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50"
+                            disabled={saving}
+                            variant="outline"
+                            onClick={handleDialogDiscard}
+                        >
                             {t('admin.products_edit.unsaved.dialog.discard')}
                         </Button>
-                        <AlertDialogCancel className="mt-0" disabled={saving}>
+                        <AlertDialogCancel className="mt-0 h-10 rounded-md border-border/80 shadow-sm" disabled={saving}>
                             {t('admin.products_edit.unsaved.dialog.cancel')}
                         </AlertDialogCancel>
                     </div>

@@ -5,16 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Order;
+use App\Models\OrderShipping;
 use App\Models\User;
+use App\Services\Orders\OrderShippingService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class OrderController extends Controller
 {
+    private const ORDER_HISTORY_LIMIT = 10;
+    private const ORDER_HISTORY_STEP = 10;
+
     /**
      * Show the orders list page with orders data.
      */
@@ -127,7 +133,11 @@ class OrderController extends Controller
     /**
      * Show the order detail page.
      */
-    public function show(Order $order): Response|RedirectResponse
+    public function show(
+        Request $request,
+        Order $order,
+        OrderShippingService $orderShippingService,
+    ): Response|RedirectResponse
     {
         /**
          * @var User $user
@@ -144,16 +154,26 @@ class OrderController extends Controller
         // Load relationships
         $order->load([
             'customer',
-            'orderItems.product',
-            'orderItems.variant',
+            'orderItems.product.images.image',
+            'orderItems.variant.image.image',
             'orderItems.image.image',
             'orderShippings',
         ]);
 
-        // Load audits with user
-        $audits = $order->audits()
+        $auditsQuery = $order->audits()
             ->with('user')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'desc');
+        $auditsTotal = (clone $auditsQuery)->count();
+        $auditsLimit = self::ORDER_HISTORY_LIMIT;
+
+        if ($request->header('X-Inertia') && $request->has('history_limit')) {
+            $auditsLimit = max(self::ORDER_HISTORY_LIMIT, (int) $request->query('history_limit'));
+            $auditsLimit = min($auditsLimit, max($auditsTotal, self::ORDER_HISTORY_LIMIT));
+        }
+
+        // Load audits with user
+        $audits = $auditsQuery
+            ->limit($auditsLimit)
             ->get()
             ->map(function ($audit) {
                 return [
@@ -203,37 +223,43 @@ class OrderController extends Controller
                     'quantity' => $item->quantity,
                     'price' => (string) $item->price,
                     'final_price' => (string) $item->final_price,
-                    'image_url' => $item->image?->image?->url,
+                    'image_url' => $item->imageUrl,
                 ];
             }),
-            'order_shippings' => $order->orderShippings->map(function ($shipping) {
-                // customer_settings пишутся витриной со слов клиента — форму
-                // гарантируем здесь, чтобы кривой JSON не ронял страницу заказа.
-                $customerSettings = collect(is_array($shipping->customer_settings) ? $shipping->customer_settings : [])
-                    ->filter(fn ($field) => is_array($field) && is_scalar($field['key'] ?? null) && is_scalar($field['name'] ?? null))
-                    ->map(fn (array $field) => [
-                        'key' => (string) $field['key'],
-                        'name' => (string) $field['name'],
-                        'value' => is_array($field['value'] ?? null)
-                            ? array_values(array_map('strval', array_filter($field['value'], 'is_scalar')))
-                            : (is_scalar($field['value'] ?? null) ? (string) $field['value'] : ''),
-                    ])
-                    ->values();
-
+            'order_shippings' => $order->orderShippings->map(function ($shipping) use ($orderShippingService) {
                 return [
                     'id' => $shipping->id,
                     'name' => $shipping->name,
                     'phone' => $shipping->phone,
                     'note' => $shipping->note,
+                    'shipping_method_id' => $shipping->shipping_method_id,
                     'shipping_method_name' => $shipping->shipping_method_name,
-                    'customer_settings' => $customerSettings,
+                    // customer_settings пишутся витриной со слов клиента — форму
+                    // гарантируем здесь, чтобы кривой JSON не ронял страницу заказа.
+                    'customer_settings' => $orderShippingService->normalizeCustomerSettings($shipping->customer_settings),
                 ];
             }),
         ];
 
+        $shippingMethods = $brand->shippingMethods()
+            ->with('methodConstructor')
+            ->get()
+            ->filter(fn ($method) => filled($method->methodConstructor?->name))
+            ->sortBy(fn ($method) => $method->methodConstructor->name)
+            ->map(fn ($method) => [
+                'id' => $method->id,
+                'name' => $method->methodConstructor->name,
+                'customer_settings' => $orderShippingService->normalizeCustomerSettings($method->customer_settings),
+            ])
+            ->values();
+
         return Inertia::render('OrderShow', [
             'order' => $orderData,
             'audits' => $audits,
+            'auditsTotal' => $auditsTotal,
+            'auditsLimit' => $auditsLimit,
+            'historyStep' => self::ORDER_HISTORY_STEP,
+            'shippingMethods' => $shippingMethods,
         ]);
     }
 
@@ -270,7 +296,11 @@ class OrderController extends Controller
      * (или скорректировать по договорённости). total пересчитывается,
      * subtotal/discount_total остаются снапшотом момента заказа.
      */
-    public function updateShippingPrice(Request $request, Order $order): RedirectResponse
+    public function updateShippingPrice(
+        Request $request,
+        Order $order,
+        OrderShippingService $orderShippingService,
+    ): RedirectResponse
     {
         /**
          * @var User $user
@@ -287,16 +317,61 @@ class OrderController extends Controller
             'shipping_price' => 'nullable|numeric|min:0|max:99999999',
         ]);
 
-        $shippingPrice = $validated['shipping_price'] ?? null;
-        $subtotal = $order->subtotal !== null
-            ? (float) $order->subtotal
-            : (float) $order->orderItems()->selectRaw('COALESCE(SUM(final_price * quantity), 0) as aggregate')->value('aggregate');
+        $orderShippingService->updateShippingPrice($order, $validated['shipping_price'] ?? null);
 
-        $order->update([
-            'subtotal' => number_format($subtotal, 2, '.', ''),
-            'shipping_price' => $shippingPrice,
-            'total' => number_format($subtotal + (float) ($shippingPrice ?? 0), 2, '.', ''),
+        return redirect()->back();
+    }
+
+    /**
+     * Update the delivery snapshot attached to an order.
+     */
+    public function updateShipping(
+        Request $request,
+        Order $order,
+        OrderShipping $shipping,
+        OrderShippingService $orderShippingService,
+    ): RedirectResponse
+    {
+        /**
+         * @var User $user
+         * @var Brand $brand
+         */
+        $user = auth()->user();
+        $brand = $user->getBrand();
+
+        if (! $brand || $order->brand_id !== $brand->id || $shipping->order_id !== $order->id) {
+            return redirect()->route('admin.orders');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['present', 'nullable', 'string', 'max:255'],
+            'note' => ['present', 'nullable', 'string', 'max:2000'],
+            'shipping_method_id' => ['present', 'nullable', 'integer'],
+            'customer_settings' => ['present', 'array'],
+            'customer_settings.*.key' => ['required', 'string', 'max:255'],
+            'customer_settings.*.name' => ['required', 'string', 'max:255'],
+            'customer_settings.*.type' => ['nullable', 'string', 'max:50'],
+            'customer_settings.*.value' => ['nullable'],
         ]);
+
+        $shippingMethod = null;
+        $shippingMethodId = $validated['shipping_method_id'];
+
+        if ($shippingMethodId !== null) {
+            $shippingMethod = $brand->shippingMethods()
+                ->with('methodConstructor')
+                ->whereKey($shippingMethodId)
+                ->first();
+
+            if (! $shippingMethod) {
+                throw ValidationException::withMessages([
+                    'shipping_method_id' => __('validation.exists', ['attribute' => 'shipping_method_id']),
+                ]);
+            }
+        }
+
+        $orderShippingService->updateShipping($order, $shipping, $validated, $shippingMethod);
 
         return redirect()->back();
     }

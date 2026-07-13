@@ -106,6 +106,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::get('/orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
         Route::put('/orders/{order}/shipping-price', [App\Http\Controllers\Admin\OrderController::class, 'updateShippingPrice'])->name('orders.update-shipping-price');
+        Route::put('/orders/{order}/shippings/{shipping}', [App\Http\Controllers\Admin\OrderController::class, 'updateShipping'])->name('orders.shippings.update');
 
         // Manager: «Мои категории»
         Route::prefix('my-categories')->group(function () {

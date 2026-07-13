@@ -10,9 +10,12 @@ import {useDialog} from '@/stores/dialog';
 
 interface Props {
     onChoose: (selected: ImageSelectorItem[]) => void;
+    selectedImages?: ImageSelectorItem[];
 }
 
-export function ImagePickerDialog({onChoose}: Props) {
+const EMPTY_SELECTED_IMAGES: ImageSelectorItem[] = [];
+
+export function ImagePickerDialog({onChoose, selectedImages = EMPTY_SELECTED_IMAGES}: Props) {
     const {t} = useLang();
     const {openDialog, closeDialog} = useDialog();
 
@@ -24,12 +27,14 @@ export function ImagePickerDialog({onChoose}: Props) {
     }, [onChoose, closeDialog]);
 
     const onClick = () => {
-        selectedItemsRef.current = [];
+        selectedItemsRef.current = selectedImages;
         openDialog({
             title: t('admin.products_edit.images.add_images'),
             className: 'max-w-[1000px] min-h-[300px] max-h-[80vh] overflow-y-auto',
             content: (
                 <ImagePicker
+                    images={selectedImages}
+                    initialSelectedImages={selectedImages}
                     resource={route('admin.media.api.index')}
                     onChange={items => {
                         selectedItemsRef.current = items;

@@ -1,4 +1,14 @@
-import {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {
+    forwardRef,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+    type Dispatch,
+    type SetStateAction,
+} from 'react';
 
 import {Loader2} from 'lucide-react';
 import {toast} from 'sonner';
@@ -24,9 +34,26 @@ interface ResourceImageSelectorHandle {
 interface Props {
     resource?: string;
     images?: ImageSelectorItem[];
+    initialSelectedImages?: ImageSelectorItem[];
     perPage?: number;
     multiple?: boolean;
     onChange?: (selected: ImageSelectorItem[]) => void;
+}
+
+const EMPTY_IMAGES: ImageSelectorItem[] = [];
+
+type SelectedImagesSetter = Dispatch<SetStateAction<ImageSelectorItem[]>>;
+
+function mergeSelectedImages(
+    current: ImageSelectorItem[],
+    sourceImages: ImageSelectorItem[],
+    values: string[],
+): ImageSelectorItem[] {
+    const sourceUids = new Set(sourceImages.map(image => image.uid));
+    const selectedSourceImages = sourceImages.filter(image => values.includes(image.uid));
+    const selectedOtherImages = current.filter(image => !sourceUids.has(image.uid));
+
+    return [...selectedOtherImages, ...selectedSourceImages];
 }
 
 /**
@@ -40,14 +67,19 @@ interface Props {
  */
 export function ImagePicker({
                                 resource,
-                                images = [],
+                                images = EMPTY_IMAGES,
+                                initialSelectedImages = EMPTY_IMAGES,
                                 perPage = 24,
                                 multiple = true,
                                 onChange,
                             }: Props) {
-    const [selectedImages, setSelectedImages] = useState<ImageSelectorItem[]>([]);
+    const [selectedImages, setSelectedImages] = useState<ImageSelectorItem[]>(() => initialSelectedImages);
     const [loadedImages, setLoadedImages] = useState<ImageSelectorItem[]>([]);
     const resourceSelectorRef = useRef<ResourceImageSelectorHandle>(null);
+    const excludeIds = useMemo(
+        () => images.filter((i): i is ImageSelectorItem & { id: number } => i.id != null).map(i => i.id),
+        [images],
+    );
 
     useEffect(() => {
         if (onChange) {
@@ -102,7 +134,7 @@ export function ImagePicker({
                         selectedImages={selectedImages}
                         setSelectedImages={setSelectedImages}
                         perPage={perPage}
-                        excludeIds={images.filter((i): i is ImageSelectorItem & { id: number } => i.id != null).map(i => i.id)}
+                        excludeIds={excludeIds}
                     />
                 }
             </div>
@@ -122,12 +154,12 @@ const DataImageSelector = ({images, selectedImages, setSelectedImages, multiple 
     images: ImageSelectorItem[]
     multiple: boolean,
     selectedImages: ImageSelectorItem[],
-    setSelectedImages: (selected: ImageSelectorItem[]) => void
+    setSelectedImages: SelectedImagesSetter
 }) => {
 
     const handleSelectionChange = useCallback((values: string[]) => {
         if (setSelectedImages) {
-            setSelectedImages(images.filter(img => values.includes(img.uid)));
+            setSelectedImages(current => mergeSelectedImages(current, images, values));
         }
     }, [setSelectedImages, images]);
 
@@ -147,7 +179,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
     resource: string,
     multiple: boolean,
     selectedImages: ImageSelectorItem[],
-    setSelectedImages: (selected: ImageSelectorItem[]) => void,
+    setSelectedImages: SelectedImagesSetter,
     perPage?: number;
     excludeIds?: number[];
 }>(({resource, multiple = false, selectedImages, setSelectedImages, perPage = 24, loadedImages = [], excludeIds = []}, ref) => {
@@ -172,7 +204,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
 
     const handleSelectionChange = useCallback((values: string[]) => {
         if (setSelectedImages) {
-            setSelectedImages(images.filter(img => values.includes(img.uid)));
+            setSelectedImages(current => mergeSelectedImages(current, images, values));
         }
     }, [setSelectedImages, images]);
 

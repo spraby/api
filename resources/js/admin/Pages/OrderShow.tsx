@@ -1,298 +1,41 @@
-import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import {
-  ArrowLeftIcon,
-  CheckCircle2Icon,
-  CircleDollarSignIcon,
-  ClockIcon,
-  MailIcon,
-  PackageIcon,
-  PhoneIcon,
-  PlusCircleIcon,
-  RefreshCwIcon,
-  Trash2Icon,
-  TruckIcon,
-  UserIcon,
-  XCircleIcon,
-} from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowLeftIcon } from 'lucide-react';
 
-import {Money} from '@/components/money';
+import { OrderCustomerCard } from '@/components/orders/order-customer-card';
+import { OrderItemsCard } from '@/components/orders/order-items-card';
+import { OrderShippingCard } from '@/components/orders/order-shipping-card';
+import { OrderStatusControls } from '@/components/orders/order-status-controls';
+import { OrderTimelineCard } from '@/components/orders/order-timeline';
+import type { AuditData, AvailableShippingMethod, OrderShowData } from '@/components/orders/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { useLang } from '@/lib/lang';
-import { cn } from '@/lib/utils';
-import type { Audit, OrderStatus, DeliveryStatus, FinancialStatus } from '@/types/models';
 
 import AdminLayout from '../layouts/AdminLayout';
 
-// ============================================
-// TYPES
-// ============================================
-
-interface Customer {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-}
-
-interface OrderItem {
-  id: number;
-  title: string;
-  variant_title: string;
-  description: string | null;
-  quantity: number;
-  price: string;
-  final_price: string;
-  image_url: string | null;
-}
-
-interface OrderShipping {
-  id: number;
-  name: string;
-  phone: string;
-  note: string;
-  shipping_method_name: string | null;
-  customer_settings: {key: string; name: string; type: string; value: string | string[]}[];
-}
-
-interface AuditUser {
-  id: number;
-  name: string;
-  email: string;
-}
-
-interface AuditData extends Omit<Audit, 'user'> {
-  user: AuditUser | null;
-}
-
-interface Order {
-  id: number;
-  name: string;
-  status: OrderStatus;
-  delivery_status: DeliveryStatus;
-  financial_status: FinancialStatus;
-  note: string | null;
-  status_url: string;
-  // Финансовый снапшот заказа; null во всех — старый заказ (считаем из позиций).
-  // shipping_price null при заполненном total — «стоимость согласуется»
-  subtotal: string | null;
-  discount_total: string | null;
-  shipping_price: string | null;
-  total: string | null;
-  created_at: string;
-  updated_at: string;
-  customer: Customer | null;
-  order_items: OrderItem[];
-  order_shippings: OrderShipping[];
-}
-
 interface OrderShowProps {
-  order: Order;
+  order: OrderShowData;
   audits: AuditData[];
+  auditsTotal: number;
+  auditsLimit: number;
+  historyStep: number;
+  shippingMethods: AvailableShippingMethod[];
 }
 
-// ============================================
-// STATUS SELECT COMPONENTS
-// ============================================
-
-const ORDER_STATUSES: OrderStatus[] = ['pending', 'confirmed', 'processing', 'completed', 'cancelled', 'archived'];
-const DELIVERY_STATUSES: DeliveryStatus[] = ['pending', 'packing', 'shipped', 'transit', 'delivered'];
-const FINANCIAL_STATUSES: FinancialStatus[] = ['unpaid', 'paid', 'partial_paid', 'refunded'];
-
-function OrderStatusSelect({
-  value,
-  orderId,
-  t,
-}: {
-  value: OrderStatus;
-  orderId: number;
-  t: (key: string) => string;
-}) {
-  const statusIcons = {
-    pending: ClockIcon,
-    confirmed: CheckCircle2Icon,
-    processing: PackageIcon,
-    completed: CheckCircle2Icon,
-    cancelled: XCircleIcon,
-    archived: PackageIcon,
-  };
-
-  const handleChange = (newStatus: OrderStatus) => {
-    router.put(
-      `/admin/orders/${orderId}/status`,
-      { status: newStatus },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          toast.success(t('admin.order_show.status_updated'));
-        },
-        onError: () => {
-          toast.error(t('admin.order_show.status_update_failed'));
-        },
-      }
-    );
-  };
-
-  return (
-    <Select value={value} onValueChange={handleChange}>
-      <SelectTrigger className="w-[160px]">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {ORDER_STATUSES.map((status) => {
-          const StatusIcon = statusIcons[status];
-
-          return (
-            <SelectItem key={status} value={status}>
-              <div className="flex items-center gap-2">
-                <StatusIcon className="size-4" />
-                {t(`admin.orders_table.status.${status}`)}
-              </div>
-            </SelectItem>
-          );
-        })}
-      </SelectContent>
-    </Select>
-  );
-}
-
-function DeliveryStatusSelect({
-  value,
-  orderId,
-  t,
-}: {
-  value: DeliveryStatus;
-  orderId: number;
-  t: (key: string) => string;
-}) {
-  const statusIcons = {
-    pending: ClockIcon,
-    packing: PackageIcon,
-    shipped: TruckIcon,
-    transit: TruckIcon,
-    delivered: CheckCircle2Icon,
-  };
-
-  const handleChange = (newStatus: DeliveryStatus) => {
-    router.put(
-      `/admin/orders/${orderId}/status`,
-      { delivery_status: newStatus },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          toast.success(t('admin.order_show.status_updated'));
-        },
-        onError: () => {
-          toast.error(t('admin.order_show.status_update_failed'));
-        },
-      }
-    );
-  };
-
-  return (
-    <Select value={value} onValueChange={handleChange}>
-      <SelectTrigger className="w-[160px]">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {DELIVERY_STATUSES.map((status) => {
-          const StatusIcon = statusIcons[status];
-
-          return (
-            <SelectItem key={status} value={status}>
-              <div className="flex items-center gap-2">
-                <StatusIcon className="size-4" />
-                {t(`admin.orders_table.delivery_status.${status}`)}
-              </div>
-            </SelectItem>
-          );
-        })}
-      </SelectContent>
-    </Select>
-  );
-}
-
-function FinancialStatusSelect({
-  value,
-  orderId,
-  t,
-}: {
-  value: FinancialStatus;
-  orderId: number;
-  t: (key: string) => string;
-}) {
-  const handleChange = (newStatus: FinancialStatus) => {
-    router.put(
-      `/admin/orders/${orderId}/status`,
-      { financial_status: newStatus },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          toast.success(t('admin.order_show.status_updated'));
-        },
-        onError: () => {
-          toast.error(t('admin.order_show.status_update_failed'));
-        },
-      }
-    );
-  };
-
-  return (
-    <Select value={value} onValueChange={handleChange}>
-      <SelectTrigger className="w-[160px]">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {FINANCIAL_STATUSES.map((status) => (
-          <SelectItem key={status} value={status}>
-            <div className="flex items-center gap-2">
-              <CircleDollarSignIcon className="size-4" />
-              {t(`admin.orders_table.financial_status.${status}`)}
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
-// ============================================
-// TIMELINE COMPONENT
-// ============================================
-
-function TimelineItem({ audit, t, isLast }: { audit: AuditData; t: (key: string) => string; isLast: boolean }) {
-  const eventConfig = {
-    created: { icon: PlusCircleIcon, className: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" },
-    updated: { icon: RefreshCwIcon, className: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" },
-    deleted: { icon: Trash2Icon, className: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
-  };
-
-  const { icon: Icon, className } = eventConfig[audit.event] || eventConfig.updated;
+export default function OrderShow({
+  order,
+  audits,
+  auditsTotal,
+  auditsLimit,
+  historyStep,
+  shippingMethods,
+}: OrderShowProps) {
+  const { t, trans } = useLang();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -306,83 +49,16 @@ function TimelineItem({ audit, t, isLast }: { audit: AuditData; t: (key: string)
     });
   };
 
-  return (
-    <div className="flex gap-4">
-      {/* Timeline line and dot */}
-      <div className="flex flex-col items-center">
-        <div className={cn("flex size-8 items-center justify-center rounded-full", className)}>
-          <Icon className="size-4" />
-        </div>
-        {!isLast && <div className="w-px flex-1 bg-border" />}
-      </div>
+  const loadMoreHistory = () => {
+    const nextLimit = Math.min(auditsLimit + historyStep, auditsTotal);
 
-      {/* Content */}
-      <div className={cn("flex-1 pb-6", isLast && "pb-0")}>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">
-              {t(`admin.order_show.timeline.event.${audit.event}`)}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {t('admin.order_show.timeline.by')} {audit.user?.name || t('admin.order_show.timeline.system')}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">{audit.message}</p>
-          <span className="text-xs text-muted-foreground">{formatDate(audit.created_at || '')}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// MAIN COMPONENT
-// ============================================
-
-export default function OrderShow({ order, audits }: OrderShowProps) {
-  const { t } = useLang();
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const calculateTotal = () => {
-    return order.order_items.reduce((sum, item) => {
-      return sum + parseFloat(item.final_price) * item.quantity;
-    }, 0);
-  };
-
-  // Финансовый снапшот заказа; старые заказы (total === null) — из позиций
-  const hasTotalsSnapshot = order.total !== null;
-  const itemsSubtotal = order.subtotal !== null ? parseFloat(order.subtotal) : calculateTotal();
-  const discountTotal = order.discount_total !== null ? parseFloat(order.discount_total) : 0;
-  const orderTotal = order.total !== null ? parseFloat(order.total) : calculateTotal();
-
-  const [shippingPriceInput, setShippingPriceInput] = useState(order.shipping_price ?? '');
-  const [savingShippingPrice, setSavingShippingPrice] = useState(false);
-
-  const saveShippingPrice = () => {
-    setSavingShippingPrice(true);
-    router.put(
-      `/admin/orders/${order.id}/shipping-price`,
-      { shipping_price: shippingPriceInput === '' ? null : shippingPriceInput },
+    router.get(
+      `/admin/orders/${order.id}`,
+      { history_limit: nextLimit },
       {
         preserveScroll: true,
-        onSuccess: () => {
-          toast.success(t('admin.order_show.shipping.price_updated'));
-        },
-        onError: () => {
-          toast.error(t('admin.order_show.status_update_failed'));
-        },
-        onFinish: () => setSavingShippingPrice(false),
+        preserveState: true,
+        preserveUrl: true,
       }
     );
   };
@@ -391,7 +67,6 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
     <AdminLayout title={`${t('admin.order_show.title')} - ${order.name}`}>
       <div className="flex items-center flex-col gap-5">
         <div className="max-w-[1200px] w-full @container/main flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:p-6">
-          {/* Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -413,299 +88,45 @@ export default function OrderShow({ order, audits }: OrderShowProps) {
                 {t('admin.order_show.created_at')}: {formatDate(order.created_at)}
               </p>
             </div>
-
           </div>
 
-          {/* Status Selects */}
-          <div className="flex flex-wrap gap-3 pl-10 sm:pl-0">
-            <OrderStatusSelect
-              value={order.status}
-              orderId={order.id}
-              t={t}
-            />
-            <DeliveryStatusSelect
-              value={order.delivery_status}
-              orderId={order.id}
-              t={t}
-            />
-            <FinancialStatusSelect
-              value={order.financial_status}
-              orderId={order.id}
-              t={t}
-            />
-          </div>
+          <OrderStatusControls order={order} t={t} />
 
-          {/* Main Content Grid */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            {/* Left Column - Order Items & Shipping */}
-            <div className="flex flex-col gap-4 lg:col-span-2">
-              {/* Order Items */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('admin.order_show.sections.items')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {order.order_items.length > 0 ? (
-                    <>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[300px]">{t('admin.order_show.items.product')}</TableHead>
-                            <TableHead>{t('admin.order_show.items.quantity')}</TableHead>
-                            <TableHead>{t('admin.order_show.items.price')}</TableHead>
-                            <TableHead className="text-right">{t('admin.order_show.items.total')}</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {order.order_items.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell>
-                                <div className="flex items-center gap-3">
-                                  {item.image_url ? (
-                                    <img
-                                      src={item.image_url}
-                                      alt={item.title}
-                                      className="size-12 rounded-md object-cover"
-                                    />
-                                  ) : (
-                                    <div className="flex size-12 items-center justify-center rounded-md bg-muted">
-                                      <PackageIcon className="size-6 text-muted-foreground" />
-                                    </div>
-                                  )}
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{item.title}</span>
-                                    {item.variant_title ? (
-                                      <span className="text-sm text-muted-foreground">
-                                        {item.variant_title}
-                                      </span>
-                                    ) : null}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>
-                                <Money value={item.final_price}/>
-                              </TableCell>
-                              <TableCell className="text-right font-medium">
-                                <Money value={parseFloat(item.final_price) * item.quantity}/>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+          <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
+            <div className="contents lg:order-1 lg:col-span-2 lg:flex lg:min-w-0 lg:flex-col lg:gap-4">
+              <OrderItemsCard order={order} t={t} />
 
-                      <Separator className="my-4" />
+              <OrderTimelineCard
+                audits={audits}
+                auditsTotal={auditsTotal}
+                historyStep={historyStep}
+                updatedAt={order.updated_at}
+                className="order-4 lg:order-3 lg:col-span-2"
+                t={t}
+                trans={trans}
+                formatDate={formatDate}
+                onLoadMore={loadMoreHistory}
+              />
 
-                      {/* Totals */}
-                      <div className="flex justify-end">
-                        <div className="w-full max-w-xs space-y-2">
-                          <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>{t('admin.order_show.totals.items')}</span>
-                            <Money value={itemsSubtotal}/>
-                          </div>
-                          {discountTotal > 0 && (
-                            <div className="flex justify-between text-sm text-muted-foreground">
-                              <span>{t('admin.order_show.totals.discount')}</span>
-                              <Money value={-discountTotal}/>
-                            </div>
-                          )}
-                          {hasTotalsSnapshot && (
-                            <div className="flex justify-between text-sm text-muted-foreground">
-                              <span>{t('admin.order_show.totals.shipping')}</span>
-                              {order.shipping_price !== null ? (
-                                <Money value={parseFloat(order.shipping_price)}/>
-                              ) : (
-                                <span>{t('admin.order_show.totals.shipping_negotiable')}</span>
-                              )}
-                            </div>
-                          )}
-                          <Separator />
-                          <div className="flex justify-between text-lg font-semibold">
-                            <span>{t('admin.order_show.totals.total')}</span>
-                            <Money value={orderTotal}/>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-8">
-                      {t('admin.order_show.items.no_items')}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Timeline */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('admin.order_show.sections.timeline')}</CardTitle>
-                  <CardDescription>
-                    {t('admin.order_show.updated_at')}: {formatDate(order.updated_at)}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {audits.length > 0 ? (
-                    <div className="space-y-0">
-                      {audits.map((audit, index) => (
-                        <TimelineItem
-                          key={audit.id}
-                          audit={audit}
-                          t={t}
-                          isLast={index === audits.length - 1}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">
-                      {t('admin.order_show.timeline.no_history')}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Order Note */}
               {order.note ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t('admin.order_show.note')}</CardTitle>
+                <Card className="order-3 lg:order-4 lg:col-span-2">
+                  <CardHeader className="p-4 pb-2 sm:p-5 sm:pb-3">
+                    <CardTitle className="text-base leading-6">{t('admin.order_show.note')}</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
                     <p className="text-sm">{order.note}</p>
                   </CardContent>
                 </Card>
               ) : null}
             </div>
 
-            {/* Right Column - Customer & Shipping */}
-            <div className="flex flex-col gap-4">
-              {/* Customer Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('admin.order_show.sections.customer')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {order.customer ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <UserIcon className="size-4 text-muted-foreground" />
-                        <span className="font-medium">{order.customer.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MailIcon className="size-4 text-muted-foreground" />
-                        <a
-                          href={`mailto:${order.customer.email}`}
-                          className="text-sm text-primary hover:underline"
-                        >
-                          {order.customer.email}
-                        </a>
-                      </div>
-                      {order.customer.phone ? (
-                        <div className="flex items-center gap-2">
-                          <PhoneIcon className="size-4 text-muted-foreground" />
-                          <a
-                            href={`tel:${order.customer.phone}`}
-                            className="text-sm text-primary hover:underline"
-                          >
-                            {order.customer.phone}
-                          </a>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">
-                      {t('admin.order_show.customer.no_customer')}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Shipping Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('admin.order_show.sections.shipping')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {order.order_shippings.length > 0 ? (
-                    <div className="space-y-4">
-                      {order.order_shippings.map((shipping) => (
-                        <div key={shipping.id} className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="size-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              {t('admin.order_show.shipping.name')}:
-                            </span>
-                            <span className="font-medium">{shipping.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <PhoneIcon className="size-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              {t('admin.order_show.shipping.phone')}:
-                            </span>
-                            <span className="font-medium">{shipping.phone}</span>
-                          </div>
-                          {shipping.shipping_method_name ? (
-                            <div className="flex items-center gap-2">
-                              <TruckIcon className="size-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">
-                                {t('admin.order_show.shipping.method')}:
-                              </span>
-                              <span className="font-medium">{shipping.shipping_method_name}</span>
-                            </div>
-                          ) : null}
-                          {shipping.customer_settings
-                            .filter((field) => (Array.isArray(field.value) ? field.value.length > 0 : `${field.value}`.trim() !== ''))
-                            .map((field) => (
-                              <div key={field.key} className="flex items-start gap-2 pl-6">
-                                <span className="text-sm text-muted-foreground">{field.name}:</span>
-                                <span>{Array.isArray(field.value) ? field.value.join(', ') : field.value}</span>
-                              </div>
-                            ))}
-                          {shipping.note ? (
-                            <div className="flex items-start gap-2">
-                              <span className="text-sm text-muted-foreground">
-                                {t('admin.order_show.shipping.note')}:
-                              </span>
-                              <span>{shipping.note}</span>
-                            </div>
-                          ) : null}
-                        </div>
-                      ))}
-
-                      {/* Стоимость доставки: проставляется/корректируется менеджером,
-                          когда она «согласуется» или изменилась по договорённости */}
-                      <Separator className="my-3" />
-                      <div className="flex flex-wrap items-center gap-2">
-                        <CircleDollarSignIcon className="size-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          {t('admin.order_show.shipping.price')}:
-                        </span>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          className="h-8 w-28"
-                          placeholder={t('admin.order_show.shipping.price_placeholder')}
-                          value={shippingPriceInput}
-                          disabled={savingShippingPrice}
-                          onChange={(event) => setShippingPriceInput(event.target.value)}
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={savingShippingPrice || (shippingPriceInput === (order.shipping_price ?? ''))}
-                          onClick={saveShippingPrice}
-                        >
-                          {t('admin.order_show.shipping.price_save')}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">
-                      {t('admin.order_show.shipping.no_shipping')}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+            <div className="order-2 flex flex-col gap-4">
+              <OrderCustomerCard customer={order.customer} t={t} />
+              <OrderShippingCard
+                order={order}
+                shippingMethods={shippingMethods}
+                t={t}
+              />
             </div>
           </div>
         </div>

@@ -81,7 +81,7 @@ export function ImageSelector({
                         'hover:opacity-90',
                         image.loading && 'pointer-events-none opacity-60',
                         isSelected(image.uid)
-                            ? 'border-primary ring-2 ring-primary/30'
+                            ? 'border-primary'
                             : 'border-muted hover:border-muted-foreground/30',
                     )}
                 >

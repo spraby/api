@@ -172,6 +172,31 @@ export function ProductImagesCard({
         () => orderedImages.map(pi => pi.uid),
         [orderedImages],
     );
+    const selectedPickerImages = useMemo<ImageSelectorItem[]>(
+        () => orderedImages
+            .map((productImage): ImageSelectorItem | null => {
+                const {image} = productImage;
+                const id = image?.id ?? productImage.image_id;
+
+                if (id == null || !image?.url) {
+                    return null;
+                }
+
+                return {
+                    uid: image.uid || String(id),
+                    id,
+                    url: image.url,
+                    name: image.name,
+                    alt: image.alt ?? null,
+                };
+            })
+            .filter((image): image is ImageSelectorItem => image !== null),
+        [orderedImages],
+    );
+    const selectedPickerImageIds = useMemo(
+        () => new Set(orderedImages.map(image => image.image_id).filter((id): id is number => id != null)),
+        [orderedImages],
+    );
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         setDraggingId(null);
@@ -195,12 +220,14 @@ export function ProductImagesCard({
     // ── Image picker handler ────────────────────────────────────────────────
 
     const handleImagesChosen = useCallback((images: ImageSelectorItem[]) => {
-        if (images.length === 0) {
+        const newImages = images.filter(image => image.id != null && !selectedPickerImageIds.has(image.id));
+
+        if (newImages.length === 0) {
             return;
         }
 
-        onLibraryImagesAdd?.(images);
-    }, [onLibraryImagesAdd]);
+        onLibraryImagesAdd?.(newImages);
+    }, [onLibraryImagesAdd, selectedPickerImageIds]);
 
     // ── Image grid ────────────────────────────────────────────────────────
     const hasImages = orderedImages.length > 0;
@@ -239,7 +266,7 @@ export function ProductImagesCard({
     return (
         <Card className="flex flex-col gap-4 p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
-                <ImagePickerDialog onChoose={handleImagesChosen}/>
+                <ImagePickerDialog selectedImages={selectedPickerImages} onChoose={handleImagesChosen}/>
             </div>
 
             {hasImages ? imageGrid : <EmptyState/>}

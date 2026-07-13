@@ -591,9 +591,9 @@ return [
         'title' => 'Order Details',
         'back' => 'Back to Orders',
         'sections' => [
-            'customer' => 'Customer Information',
-            'items' => 'Order Items',
-            'shipping' => 'Shipping Information',
+            'customer' => 'Customer',
+            'items' => 'Order',
+            'shipping' => 'Delivery',
             'timeline' => 'Order History',
         ],
         'customer' => [
@@ -620,6 +620,12 @@ return [
             'price_placeholder' => 'Amount',
             'price_save' => 'Save',
             'price_updated' => 'Shipping price updated',
+            'edit' => 'Edit',
+            'save' => 'Save',
+            'cancel' => 'Cancel',
+            'empty' => '—',
+            'updated' => 'Shipping information updated',
+            'update_failed' => 'Failed to update shipping information',
         ],
         'timeline' => [
             'event' => [
@@ -630,6 +636,8 @@ return [
             'by' => 'by',
             'system' => 'System',
             'no_history' => 'No history available',
+            'show_all' => 'Show :count more',
+            'show_less' => 'Collapse history',
         ],
         'totals' => [
             'subtotal' => 'Subtotal',
