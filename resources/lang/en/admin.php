@@ -626,6 +626,7 @@ return [
             'empty' => '—',
             'updated' => 'Shipping information updated',
             'update_failed' => 'Failed to update shipping information',
+            'method_change_price_hint' => 'Shipping price and order total will be recalculated for the selected method',
         ],
         'timeline' => [
             'event' => [

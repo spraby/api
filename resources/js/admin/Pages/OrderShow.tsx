@@ -49,18 +49,25 @@ export default function OrderShow({
     });
   };
 
-  const loadMoreHistory = () => {
-    const nextLimit = Math.min(auditsLimit + historyStep, auditsTotal);
-
+  // history_limit живёт в URL: так развёрнутая история переживает
+  // redirect()->back() после мутаций, обновление страницы и деплинки.
+  const visitWithHistoryLimit = (limit: number | null) => {
     router.get(
       `/admin/orders/${order.id}`,
-      { history_limit: nextLimit },
+      limit === null ? {} : { history_limit: limit },
       {
         preserveScroll: true,
         preserveState: true,
-        preserveUrl: true,
       }
     );
+  };
+
+  const loadMoreHistory = () => {
+    visitWithHistoryLimit(Math.min(auditsLimit + historyStep, auditsTotal));
+  };
+
+  const collapseHistory = () => {
+    visitWithHistoryLimit(null);
   };
 
   return (
@@ -106,6 +113,7 @@ export default function OrderShow({
                 trans={trans}
                 formatDate={formatDate}
                 onLoadMore={loadMoreHistory}
+                onCollapse={collapseHistory}
               />
 
               {order.note ? (

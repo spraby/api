@@ -176,7 +176,7 @@ export function ProductForm({product: defaultProduct}: {
                 <ProductImagesCard
                     product={product}
                     isEdit={isEdit}
-                    onLibraryImagesAdd={(libraryImages) => {
+                    onLibraryImagesUpdate={(libraryImages, removedUids) => {
                         const newImages: ProductImage[] = libraryImages
                             .filter((img): img is typeof img & { id: number } => img.id != null)
                             .map(img => ({
@@ -190,7 +190,10 @@ export function ProductForm({product: defaultProduct}: {
                                     alt: img.alt ?? null,
                                 },
                             }));
-                        const merged = addUniqueImages(images, newImages);
+                        const kept = removedUids.length > 0
+                            ? images.filter(i => !removedUids.includes(i.uid))
+                            : images;
+                        const merged = addUniqueImages(kept, newImages);
 
                         if (merged !== images) {
                             onChange({images: merged});

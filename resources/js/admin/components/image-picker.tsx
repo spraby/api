@@ -48,9 +48,17 @@ function mergeSelectedImages(
     current: ImageSelectorItem[],
     sourceImages: ImageSelectorItem[],
     values: string[],
+    multiple: boolean,
 ): ImageSelectorItem[] {
-    const sourceUids = new Set(sourceImages.map(image => image.uid));
     const selectedSourceImages = sourceImages.filter(image => values.includes(image.uid));
+
+    // Single-select: клик в любой из секций заменяет весь выбор,
+    // иначе выбор из другой секции «прилипает» и onChoose берёт не тот item.
+    if (!multiple) {
+        return selectedSourceImages;
+    }
+
+    const sourceUids = new Set(sourceImages.map(image => image.uid));
     const selectedOtherImages = current.filter(image => !sourceUids.has(image.uid));
 
     return [...selectedOtherImages, ...selectedSourceImages];
@@ -159,9 +167,9 @@ const DataImageSelector = ({images, selectedImages, setSelectedImages, multiple 
 
     const handleSelectionChange = useCallback((values: string[]) => {
         if (setSelectedImages) {
-            setSelectedImages(current => mergeSelectedImages(current, images, values));
+            setSelectedImages(current => mergeSelectedImages(current, images, values, multiple));
         }
-    }, [setSelectedImages, images]);
+    }, [setSelectedImages, images, multiple]);
 
     return <ImageSelector
         onChange={handleSelectionChange}
@@ -204,9 +212,9 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
 
     const handleSelectionChange = useCallback((values: string[]) => {
         if (setSelectedImages) {
-            setSelectedImages(current => mergeSelectedImages(current, images, values));
+            setSelectedImages(current => mergeSelectedImages(current, images, values, multiple));
         }
-    }, [setSelectedImages, images]);
+    }, [setSelectedImages, images, multiple]);
 
     const fetchPage = useCallback(async (page: number, signal?: AbortSignal) => {
         const url = new URL(resource, window.location.origin);

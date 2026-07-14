@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -31,6 +32,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read Category|null $category
  * @property-read Collection<Variant> $variants
  * @property-read Collection<ProductImage> $images
+ * @property-read ProductImage|null $firstImage
  * @property-read Collection<OrderItem> $orderItems
  *
  * @method static Builder|static query()
@@ -89,6 +91,18 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
+    }
+
+    /**
+     * Главное изображение как one-of-many: в отличие от images
+     * eager load тянет одну строку на товар, а не всю галерею.
+     */
+    public function firstImage(): HasOne
+    {
+        return $this->hasOne(ProductImage::class)->ofMany([
+            'position' => 'min',
+            'id' => 'min',
+        ]);
     }
 
     public function media(): HasManyThrough

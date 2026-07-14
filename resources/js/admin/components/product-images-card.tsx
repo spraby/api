@@ -135,7 +135,7 @@ function EmptyState() {
 interface Props {
     product: Product;
     isEdit: boolean;
-    onLibraryImagesAdd?: (images: ImageSelectorItem[]) => void;
+    onLibraryImagesUpdate?: (added: ImageSelectorItem[], removedUids: string[]) => void;
     onLibraryImageRemove?: (uid: string) => void;
     onReorder?: (images: ProductImage[]) => void;
 }
@@ -143,7 +143,7 @@ interface Props {
 export function ProductImagesCard({
                                       product,
                                       isEdit: _isEdit,
-                                      onLibraryImagesAdd,
+                                      onLibraryImagesUpdate,
                                       onLibraryImageRemove,
                                       onReorder,
                                   }: Props) {
@@ -219,15 +219,23 @@ export function ProductImagesCard({
 
     // ── Image picker handler ────────────────────────────────────────────────
 
+    // Диалог показывает прикреплённые картинки предвыбранными, поэтому
+    // «Выбрать» — это синхронизация: снятые галочки открепляют картинку.
     const handleImagesChosen = useCallback((images: ImageSelectorItem[]) => {
+        const chosenIds = new Set(images.map(image => image.id).filter((id): id is number => id != null));
         const newImages = images.filter(image => image.id != null && !selectedPickerImageIds.has(image.id));
+        // Открепляем только то, что реально показывалось выбранным в диалоге.
+        const shownIds = new Set(selectedPickerImages.map(image => image.id));
+        const removedUids = orderedImages
+            .filter(pi => pi.image_id != null && shownIds.has(pi.image_id) && !chosenIds.has(pi.image_id))
+            .map(pi => pi.uid);
 
-        if (newImages.length === 0) {
+        if (newImages.length === 0 && removedUids.length === 0) {
             return;
         }
 
-        onLibraryImagesAdd?.(newImages);
-    }, [onLibraryImagesAdd, selectedPickerImageIds]);
+        onLibraryImagesUpdate?.(newImages, removedUids);
+    }, [onLibraryImagesUpdate, selectedPickerImageIds, selectedPickerImages, orderedImages]);
 
     // ── Image grid ────────────────────────────────────────────────────────
     const hasImages = orderedImages.length > 0;

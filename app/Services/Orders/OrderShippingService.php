@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class OrderShippingService
 {
-    public function updateShippingPrice(Order $order, mixed $shippingPrice): void
+    /**
+     * @return array{subtotal: string, shipping_price: string|null, total: string} applied attributes
+     */
+    public function updateShippingPrice(Order $order, mixed $shippingPrice, bool $quietly = false): array
     {
         $shippingPrice = $shippingPrice === null || $shippingPrice === ''
             ? null
@@ -18,14 +21,34 @@ class OrderShippingService
             ? (float) $order->subtotal
             : (float) $order->orderItems()->selectRaw('COALESCE(SUM(final_price * quantity), 0) as aggregate')->value('aggregate');
 
-        $order->update([
+        $attributes = [
             'subtotal' => number_format($subtotal, 2, '.', ''),
             'shipping_price' => $shippingPrice,
             'total' => number_format($subtotal + (float) ($shippingPrice ?? 0), 2, '.', ''),
-        ]);
+        ];
+
+        // quietly — когда пересчёт цены является частью другого действия,
+        // которое пишет свой аудит: авто-аудит Order::updated дал бы дубль.
+        $quietly ? $order->updateQuietly($attributes) : $order->update($attributes);
+
+        return $attributes;
     }
 
-    public function updateShipping(
+    /**
+     * Apply several delivery-snapshot updates atomically.
+     *
+     * @param array<int, array{shipping: OrderShipping, validated: array, method: ShippingMethod|null}> $changes
+     */
+    public function updateShippings(Order $order, array $changes): void
+    {
+        DB::transaction(function () use ($order, $changes) {
+            foreach ($changes as $change) {
+                $this->applyShippingUpdate($order, $change['shipping'], $change['validated'], $change['method']);
+            }
+        });
+    }
+
+    private function applyShippingUpdate(
         Order $order,
         OrderShipping $shipping,
         array $validated,
@@ -67,15 +90,24 @@ class OrderShippingService
             'customer_settings' => $customerSettings,
         ]);
 
-        DB::transaction(function () use ($order, $shipping, $shippingMethod, $methodChanged, $oldAuditValues, $newAuditValues) {
-            $shipping->save();
+        $shipping->save();
 
-            if ($methodChanged && $shippingMethod) {
-                $this->updateShippingPrice($order, $this->shippingPriceFromMethod($shippingMethod));
-            }
+        if ($methodChanged && $shippingMethod) {
+            $oldAuditValues['shipping_price'] = $order->shipping_price;
+            $oldAuditValues['total'] = $order->total;
 
-            $this->recordShippingAudit($order, $oldAuditValues, $newAuditValues);
-        });
+            // Цена пересчитывается тихо, а изменение попадает в общий аудит
+            // доставки — одно действие менеджера остаётся одной записью истории.
+            $applied = $this->updateShippingPrice(
+                $order,
+                $this->shippingPriceFromMethod($shippingMethod),
+                quietly: true,
+            );
+            $newAuditValues['shipping_price'] = $applied['shipping_price'];
+            $newAuditValues['total'] = $applied['total'];
+        }
+
+        $this->recordShippingAudit($order, $oldAuditValues, $newAuditValues);
     }
 
     /**
@@ -115,11 +147,19 @@ class OrderShippingService
 
         $value = $priceField['value'] ?? null;
 
-        if ($value === null || $value === '') {
+        if (! is_scalar($value)) {
             return null;
         }
 
-        return is_scalar($value) && is_numeric($value)
+        // Мерчанты вводят цену и с десятичной запятой («7,50») — не считать
+        // такую настройку «ценой по договорённости».
+        $value = trim(str_replace(',', '.', (string) $value));
+
+        if ($value === '') {
+            return null;
+        }
+
+        return is_numeric($value)
             ? number_format((float) $value, 2, '.', '')
             : null;
     }
@@ -188,10 +228,10 @@ class OrderShippingService
         $keys = array_unique(array_merge(array_keys($oldValues), array_keys($newValues)));
 
         foreach ($keys as $key) {
-            $oldValue = $oldValues[$key] ?? '';
-            $newValue = $newValues[$key] ?? '';
+            $oldValue = $oldValues[$key] ?? null;
+            $newValue = $newValues[$key] ?? null;
 
-            if ($oldValue === $newValue) {
+            if (($oldValue ?? '') === ($newValue ?? '')) {
                 continue;
             }
 

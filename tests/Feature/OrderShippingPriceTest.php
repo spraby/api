@@ -184,19 +184,27 @@ class OrderShippingPriceTest extends TestCase
         ]);
 
         $this->actingAs($this->manager)
-            ->put(route('admin.orders.shippings.update', [$order, $shipping]), [
-                'name' => 'New Recipient',
-                'phone' => '222',
-                'note' => 'Позвонить заранее',
-                'shipping_method_id' => $method->id,
-                'shipping_method_name' => 'Старый способ',
-                'customer_settings' => [
-                    ['key' => 'city', 'name' => 'Город', 'type' => 'string', 'value' => 'Гомель'],
-                    ['key' => 'shipping_address', 'name' => 'Адрес доставки', 'type' => 'string', 'value' => 'Новый адрес'],
-                    ['key' => 'extra', 'name' => 'Лишнее', 'type' => 'string', 'value' => 'Не сохранять'],
+            ->put(route('admin.orders.shippings.update', $order), [
+                'shippings' => [
+                    [
+                        'id' => $shipping->id,
+                        'name' => 'New Recipient',
+                        'phone' => '222',
+                        'note' => 'Позвонить заранее',
+                        'shipping_method_id' => $method->id,
+                        'customer_settings' => [
+                            ['key' => 'city', 'name' => 'Город', 'type' => 'string', 'value' => 'Гомель'],
+                            ['key' => 'shipping_address', 'name' => 'Адрес доставки', 'type' => 'string', 'value' => 'Новый адрес'],
+                            ['key' => 'extra', 'name' => 'Лишнее', 'type' => 'string', 'value' => 'Не сохранять'],
+                        ],
+                    ],
                 ],
             ])
             ->assertRedirect();
+
+        // Одно действие менеджера — одна запись истории: пересчёт цены
+        // не должен порождать отдельный авто-аудит Order::updated.
+        $this->assertSame(1, $order->audits()->where('event', 'updated')->count());
 
         $audit = $order->audits()
             ->where('message', 'Изменена информация о доставке')
@@ -211,6 +219,8 @@ class OrderShippingPriceTest extends TestCase
         $this->assertSame('Минск', $audit->old_values['shipping_field:city:Город']);
         $this->assertSame('Гомель', $audit->new_values['shipping_field:city:Город']);
         $this->assertArrayNotHasKey('shipping_field:extra:Лишнее', $audit->new_values);
+        $this->assertSame('7.50', $audit->new_values['shipping_price']);
+        $this->assertSame('32.50', $audit->new_values['total']);
 
         $order->refresh();
         $this->assertSame('7.50', $order->shipping_price);
@@ -232,14 +242,19 @@ class OrderShippingPriceTest extends TestCase
         ]);
 
         $this->actingAs($this->manager)
-            ->put(route('admin.orders.shippings.update', [$order, $shipping]), [
-                'name' => 'Recipient',
-                'phone' => '111',
-                'note' => '',
-                'shipping_method_id' => null,
-                'customer_settings' => [
-                    ['key' => 'city', 'name' => 'Подменённый город', 'type' => 'string', 'value' => 'Гомель'],
-                    ['key' => 'extra', 'name' => 'Лишнее', 'type' => 'string', 'value' => 'Не сохранять'],
+            ->put(route('admin.orders.shippings.update', $order), [
+                'shippings' => [
+                    [
+                        'id' => $shipping->id,
+                        'name' => 'Recipient',
+                        'phone' => '111',
+                        'note' => '',
+                        'shipping_method_id' => null,
+                        'customer_settings' => [
+                            ['key' => 'city', 'name' => 'Подменённый город', 'type' => 'string', 'value' => 'Гомель'],
+                            ['key' => 'extra', 'name' => 'Лишнее', 'type' => 'string', 'value' => 'Не сохранять'],
+                        ],
+                    ],
                 ],
             ])
             ->assertRedirect();
@@ -286,13 +301,18 @@ class OrderShippingPriceTest extends TestCase
         ]);
 
         $this->actingAs($this->manager)
-            ->put(route('admin.orders.shippings.update', [$order, $shipping]), [
-                'name' => 'Recipient',
-                'phone' => '111',
-                'note' => '',
-                'shipping_method_id' => $freeMethod->id,
-                'customer_settings' => [
-                    ['key' => 'pickup_point', 'name' => 'Пункт самовывоза', 'type' => 'string', 'value' => 'ТЦ Замок'],
+            ->put(route('admin.orders.shippings.update', $order), [
+                'shippings' => [
+                    [
+                        'id' => $shipping->id,
+                        'name' => 'Recipient',
+                        'phone' => '111',
+                        'note' => '',
+                        'shipping_method_id' => $freeMethod->id,
+                        'customer_settings' => [
+                            ['key' => 'pickup_point', 'name' => 'Пункт самовывоза', 'type' => 'string', 'value' => 'ТЦ Замок'],
+                        ],
+                    ],
                 ],
             ])
             ->assertRedirect();
@@ -302,13 +322,18 @@ class OrderShippingPriceTest extends TestCase
         $this->assertSame('25.00', $order->total);
 
         $this->actingAs($this->manager)
-            ->put(route('admin.orders.shippings.update', [$order, $shipping->refresh()]), [
-                'name' => 'Recipient',
-                'phone' => '111',
-                'note' => '',
-                'shipping_method_id' => $negotiatedMethod->id,
-                'customer_settings' => [
-                    ['key' => 'shipping_address', 'name' => 'Адрес доставки', 'type' => 'string', 'value' => 'Гомель'],
+            ->put(route('admin.orders.shippings.update', $order), [
+                'shippings' => [
+                    [
+                        'id' => $shipping->refresh()->id,
+                        'name' => 'Recipient',
+                        'phone' => '111',
+                        'note' => '',
+                        'shipping_method_id' => $negotiatedMethod->id,
+                        'customer_settings' => [
+                            ['key' => 'shipping_address', 'name' => 'Адрес доставки', 'type' => 'string', 'value' => 'Гомель'],
+                        ],
+                    ],
                 ],
             ])
             ->assertRedirect();
@@ -316,5 +341,76 @@ class OrderShippingPriceTest extends TestCase
         $order->refresh();
         $this->assertNull($order->shipping_price);
         $this->assertSame('25.00', $order->total);
+    }
+
+    public function test_shipping_method_price_with_comma_decimal_is_applied(): void
+    {
+        $order = $this->makeOrder($this->brand);
+        $method = $this->makeShippingMethod(
+            name: 'Курьер (ru-локаль)',
+            merchantValues: ['shipping_price' => '7,50'],
+        );
+        $shipping = OrderShipping::create([
+            'order_id' => $order->id,
+            'name' => 'Recipient',
+            'phone' => '111',
+            'note' => '',
+            'shipping_method_name' => 'Старый способ',
+            'customer_settings' => [
+                ['key' => 'city', 'name' => 'Город', 'type' => 'string', 'value' => 'Минск'],
+            ],
+        ]);
+
+        $this->actingAs($this->manager)
+            ->put(route('admin.orders.shippings.update', $order), [
+                'shippings' => [
+                    [
+                        'id' => $shipping->id,
+                        'name' => 'Recipient',
+                        'phone' => '111',
+                        'note' => '',
+                        'shipping_method_id' => $method->id,
+                        'customer_settings' => [
+                            ['key' => 'city', 'name' => 'Город', 'type' => 'string', 'value' => 'Минск'],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertRedirect();
+
+        $order->refresh();
+        $this->assertSame('7.50', $order->shipping_price);
+        $this->assertSame('32.50', $order->total);
+    }
+
+    public function test_shipping_of_another_order_is_rejected(): void
+    {
+        $order = $this->makeOrder($this->brand);
+        $otherOrder = $this->makeOrder($this->brand);
+        $foreignShipping = OrderShipping::create([
+            'order_id' => $otherOrder->id,
+            'name' => 'Recipient',
+            'phone' => '111',
+            'note' => '',
+            'shipping_method_name' => 'Курьер',
+            'customer_settings' => [],
+        ]);
+
+        $this->actingAs($this->manager)
+            ->put(route('admin.orders.shippings.update', $order), [
+                'shippings' => [
+                    [
+                        'id' => $foreignShipping->id,
+                        'name' => 'Hacked',
+                        'phone' => '111',
+                        'note' => '',
+                        'shipping_method_id' => null,
+                        'customer_settings' => [],
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('shippings.0.id');
+
+        $this->assertSame('Recipient', $foreignShipping->refresh()->name);
     }
 }

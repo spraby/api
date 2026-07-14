@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { formatMoney } from '@/components/money';
+import { Money } from '@/components/money';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -33,11 +33,43 @@ import { cn } from '@/lib/utils';
 
 import { DetailRow, EditableDetailRow } from './detail-rows';
 
-import type { AvailableShippingMethod, OrderShipping, OrderShowData, TFunction } from './types';
+import type {
+  AvailableShippingMethod,
+  OrderShipping,
+  OrderShowData,
+  ShippingCustomerSetting,
+  TFunction,
+} from './types';
 
-type ShippingDraft = Pick<OrderShipping, 'name' | 'phone' | 'note' | 'shipping_method_id' | 'customer_settings'>;
+// Черновик хранит значение как текст: контролируемый инпут не должен
+// парсить список на каждый ввод, иначе разделитель-запятую нельзя набрать.
+interface DraftSetting {
+  key: string;
+  name: string;
+  type: string;
+  isList: boolean;
+  value: string;
+}
 
-type ShippingPayload = ShippingDraft;
+interface ShippingDraft {
+  name: string;
+  phone: string;
+  note: string;
+  shipping_method_id: number | null;
+  customer_settings: DraftSetting[];
+}
+
+// type, а не interface: у type-литералов есть неявная index signature,
+// без неё payload не проходит типизацию router.put (FormDataConvertible).
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type ShippingPayload = {
+  id: number;
+  name: string;
+  phone: string;
+  note: string;
+  shipping_method_id: number | null;
+  customer_settings: { key: string; name: string; type: string; value: string | string[] }[];
+};
 
 export function OrderShippingCard({
   order,
@@ -63,12 +95,13 @@ export function OrderShippingCard({
     return Array.isArray(value) ? value.join(', ') : (value ?? '');
   };
 
-  const normalizedCustomerSettings = (shipping: OrderShipping) => {
-    return shipping.customer_settings.map((field) => ({
+  const draftSettingsFromFields = (fields: ShippingCustomerSetting[]): DraftSetting[] => {
+    return fields.map((field) => ({
       key: field.key,
       name: field.name,
       type: field.type ?? 'string',
-      value: field.value,
+      isList: Array.isArray(field.value),
+      value: shippingValueToText(field.value),
     }));
   };
 
@@ -77,7 +110,7 @@ export function OrderShippingCard({
     phone: shipping.phone,
     note: shipping.note ?? '',
     shipping_method_id: shipping.shipping_method_id,
-    customer_settings: normalizedCustomerSettings(shipping),
+    customer_settings: draftSettingsFromFields(shipping.customer_settings),
   });
 
   const availableShippingMethodId = (methodId: number | null) => {
@@ -86,7 +119,8 @@ export function OrderShippingCard({
       : null;
   };
 
-  const payloadFromDraft = (draft: ShippingDraft): ShippingPayload => ({
+  const payloadFromDraft = (shippingId: number, draft: ShippingDraft): ShippingPayload => ({
+    id: shippingId,
     name: draft.name.trim(),
     phone: draft.phone.trim(),
     note: draft.note.trim(),
@@ -94,9 +128,9 @@ export function OrderShippingCard({
     customer_settings: draft.customer_settings.map((field) => ({
       key: field.key,
       name: field.name,
-      type: field.type ?? 'string',
-      value: Array.isArray(field.value)
-        ? field.value.map((item) => item.trim()).filter(Boolean)
+      type: field.type,
+      value: field.isList
+        ? field.value.split(',').map((item) => item.trim()).filter(Boolean)
         : field.value.trim(),
     })),
   });
@@ -133,11 +167,45 @@ export function OrderShippingCard({
     });
   };
 
-  const updateShippingSetting = (
-    shippingId: number,
-    fieldKey: string,
-    value: string | string[]
-  ) => {
+  // Зеркалит бэкенд: форму полей задаёт выбранный способ доставки,
+  // значения совпадающих по key полей переносятся из текущего черновика.
+  const settingsForMethod = (
+    shipping: OrderShipping,
+    methodId: number,
+    currentSettings: DraftSetting[],
+  ): DraftSetting[] => {
+    const template = methodId === shipping.shipping_method_id
+      ? draftSettingsFromFields(shipping.customer_settings)
+      : draftSettingsFromFields(
+          shippingMethods.find((method) => method.id === methodId)?.customer_settings ?? [],
+        );
+    const valuesByKey = new Map(currentSettings.map((field) => [field.key, field.value]));
+
+    return template.map((field) => (
+      valuesByKey.has(field.key) ? { ...field, value: valuesByKey.get(field.key) ?? '' } : field
+    ));
+  };
+
+  const changeShippingMethod = (shipping: OrderShipping, methodId: number) => {
+    setShippingDrafts((drafts) => {
+      const draft = drafts[shipping.id];
+
+      if (!draft || draft.shipping_method_id === methodId) {
+        return drafts;
+      }
+
+      return {
+        ...drafts,
+        [shipping.id]: {
+          ...draft,
+          shipping_method_id: methodId,
+          customer_settings: settingsForMethod(shipping, methodId, draft.customer_settings),
+        },
+      };
+    });
+  };
+
+  const updateShippingSetting = (shippingId: number, fieldKey: string, value: string) => {
     setShippingDrafts((drafts) => {
       const draft = drafts[shippingId];
 
@@ -167,8 +235,15 @@ export function OrderShippingCard({
     return shipping.shipping_method_name ? `current:${shipping.id}` : '';
   };
 
+  const isMethodChanged = (shipping: OrderShipping, draft: ShippingDraft) => {
+    const draftMethodId = availableShippingMethodId(draft.shipping_method_id);
+
+    return draftMethodId !== null && draftMethodId !== shipping.shipping_method_id;
+  };
+
   const hasShippingChanges = (shipping: OrderShipping, payload: ShippingPayload) => {
-    return JSON.stringify(payloadFromDraft(draftFromShipping(shipping))) !== JSON.stringify(payload);
+    return JSON.stringify(payloadFromDraft(shipping.id, draftFromShipping(shipping)))
+      !== JSON.stringify(payload);
   };
 
   const saveShippingBlock = () => {
@@ -184,11 +259,11 @@ export function OrderShippingCard({
           return null;
         }
 
-        const payload = payloadFromDraft(draft);
+        const payload = payloadFromDraft(shipping.id, draft);
 
-        return hasShippingChanges(shipping, payload) ? { shipping, payload } : null;
+        return hasShippingChanges(shipping, payload) ? payload : null;
       })
-      .filter((change): change is { shipping: OrderShipping; payload: ShippingPayload } => change !== null);
+      .filter((payload): payload is ShippingPayload => payload !== null);
 
     if (changedShippings.length === 0) {
       cancelShippingBlockEdit();
@@ -198,38 +273,21 @@ export function OrderShippingCard({
 
     setSavingShippingBlock(true);
 
-    const saveNext = (index: number) => {
-      const change = changedShippings[index];
-
-      router.put(
-        `/admin/orders/${order.id}/shippings/${change.shipping.id}`,
-        change.payload,
-        {
-          preserveScroll: true,
-          onSuccess: () => {
-            if (index + 1 < changedShippings.length) {
-              saveNext(index + 1);
-
-              return;
-            }
-
-            toast.success(t('admin.order_show.shipping.updated'));
-            cancelShippingBlockEdit();
-          },
-          onError: () => {
-            toast.error(t('admin.order_show.shipping.update_failed'));
-            setSavingShippingBlock(false);
-          },
-          onFinish: () => {
-            if (index + 1 >= changedShippings.length) {
-              setSavingShippingBlock(false);
-            }
-          },
-        }
-      );
-    };
-
-    saveNext(0);
+    router.put(
+      `/admin/orders/${order.id}/shippings`,
+      { shippings: changedShippings },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast.success(t('admin.order_show.shipping.updated'));
+          cancelShippingBlockEdit();
+        },
+        onError: () => {
+          toast.error(t('admin.order_show.shipping.update_failed'));
+        },
+        onFinish: () => setSavingShippingBlock(false),
+      }
+    );
   };
 
   const cancelShippingPriceEdit = () => {
@@ -334,36 +392,43 @@ export function OrderShippingCard({
                 >
                   <DetailRow icon={TruckIcon} label={t('admin.order_show.shipping.method')}>
                     {editingShippingBlock ? (
-                      <Select
-                        value={shippingMethodSelectValue(shipping, draft)}
-                        onValueChange={(value) => {
-                          const methodId = Number(value);
+                      <div className="space-y-1">
+                        <Select
+                          value={shippingMethodSelectValue(shipping, draft)}
+                          onValueChange={(value) => {
+                            const methodId = Number(value);
 
-                          if (Number.isInteger(methodId)) {
-                            updateShippingDraft(shipping.id, { shipping_method_id: methodId });
-                          }
-                        }}
-                      >
-                        <SelectTrigger
-                          className="h-8 min-w-0 px-2 text-sm shadow-none"
-                          disabled={savingShippingBlock}
+                            if (Number.isInteger(methodId)) {
+                              changeShippingMethod(shipping, methodId);
+                            }
+                          }}
                         >
-                          <SelectValue placeholder={shipping.shipping_method_name || t('admin.order_show.shipping.empty')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {shipping.shipping_method_name
-                            && !shippingMethods.some((method) => method.id === shipping.shipping_method_id) ? (
-                              <SelectItem disabled value={`current:${shipping.id}`}>
-                                {shipping.shipping_method_name}
+                          <SelectTrigger
+                            className="h-8 min-w-0 px-2 text-sm shadow-none"
+                            disabled={savingShippingBlock}
+                          >
+                            <SelectValue placeholder={shipping.shipping_method_name || t('admin.order_show.shipping.empty')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {shipping.shipping_method_name
+                              && !shippingMethods.some((method) => method.id === shipping.shipping_method_id) ? (
+                                <SelectItem disabled value={`current:${shipping.id}`}>
+                                  {shipping.shipping_method_name}
+                                </SelectItem>
+                              ) : null}
+                            {shippingMethods.map((method) => (
+                              <SelectItem key={method.id} value={String(method.id)}>
+                                {method.name}
                               </SelectItem>
-                            ) : null}
-                          {shippingMethods.map((method) => (
-                            <SelectItem key={method.id} value={String(method.id)}>
-                              {method.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isMethodChanged(shipping, draft) ? (
+                          <p className="text-xs font-normal text-amber-700 dark:text-amber-400">
+                            {t('admin.order_show.shipping.method_change_price_hint')}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : renderTextValue(shipping.shipping_method_name, "break-words")}
                   </DetailRow>
                   <DetailRow icon={UserIcon} label={t('admin.order_show.shipping.name')}>
@@ -387,20 +452,14 @@ export function OrderShippingCard({
                       />
                     ) : renderTextValue(shipping.phone, "break-all")}
                   </DetailRow>
-                  {draft.customer_settings.map((field) => (
+                  {(editingShippingBlock ? draft.customer_settings : draftSettingsFromFields(shipping.customer_settings)).map((field) => (
                     <DetailRow key={field.key} label={field.name}>
                       {editingShippingBlock ? (
                         <Input
                           className="h-8 min-w-0 px-2 text-sm"
                           disabled={savingShippingBlock}
-                          value={shippingValueToText(field.value)}
-                          onChange={(event) => updateShippingSetting(
-                            shipping.id,
-                            field.key,
-                            Array.isArray(field.value)
-                              ? event.target.value.split(',').map((item) => item.trim()).filter(Boolean)
-                              : event.target.value
-                          )}
+                          value={field.value}
+                          onChange={(event) => updateShippingSetting(shipping.id, field.key, event.target.value)}
                         />
                       ) : renderTextValue(field.value, "break-words")}
                     </DetailRow>
@@ -423,7 +482,7 @@ export function OrderShippingCard({
             <EditableDetailRow
               editLabel={t('admin.order_show.shipping.edit')}
               editValue={shippingPriceInput}
-              displayValue={`${formatMoney(order.shipping_price)} BYN`}
+              displayValue={<Money value={order.shipping_price} />}
               emptyLabel={t('admin.order_show.totals.shipping_negotiable')}
               icon={CircleDollarSignIcon}
               inputType="number"

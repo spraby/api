@@ -81,6 +81,6 @@ class OrderItem extends Model
     {
         return $this->image?->image?->url
             ?? $this->variant?->image?->image?->url
-            ?? $this->product?->imageUrl;
+            ?? $this->product?->firstImage?->image?->url;
     }
 }

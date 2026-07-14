@@ -20,18 +20,20 @@ import { cn } from '@/lib/utils';
 
 import type { AuditData, TFunction } from './types';
 
-const AUDIT_FIELDS = [
-  'status',
-  'delivery_status',
-  'financial_status',
-  'shipping_price',
-  'total',
-  'note',
-  'shipping_method_name',
-  'shipping_name',
-  'shipping_phone',
-  'shipping_note',
-] as const;
+// Единый источник: какие поля аудита показываем и каким ключом переводим.
+const AUDIT_FIELD_LABEL_KEYS: Record<string, string> = {
+  status: 'admin.orders_table.columns.status',
+  delivery_status: 'admin.orders_table.columns.delivery',
+  financial_status: 'admin.orders_table.columns.payment',
+  shipping_price: 'admin.order_show.shipping.price',
+  total: 'admin.order_show.totals.total',
+  note: 'admin.order_show.note',
+  shipping_method_name: 'admin.order_show.shipping.method',
+  shipping_name: 'admin.order_show.shipping.name',
+  shipping_phone: 'admin.order_show.shipping.phone',
+  shipping_note: 'admin.order_show.shipping.note',
+};
+const AUDIT_FIELDS = Object.keys(AUDIT_FIELD_LABEL_KEYS);
 const SHIPPING_AUDIT_FIELD_PREFIX = 'shipping_field:';
 
 type AuditTone = 'default' | 'muted' | 'yellow' | 'blue' | 'purple' | 'green' | 'red' | 'gray' | 'money';
@@ -106,20 +108,9 @@ function getAuditFieldLabel(field: string, t: TFunction): string {
     return labelParts.join(':') || key || field;
   }
 
-  const labels: Record<string, string> = {
-    status: t('admin.orders_table.columns.status'),
-    delivery_status: t('admin.orders_table.columns.delivery'),
-    financial_status: t('admin.orders_table.columns.payment'),
-    shipping_price: t('admin.order_show.shipping.price'),
-    total: t('admin.order_show.totals.total'),
-    note: t('admin.order_show.note'),
-    shipping_method_name: t('admin.order_show.shipping.method'),
-    shipping_name: t('admin.order_show.shipping.name'),
-    shipping_phone: t('admin.order_show.shipping.phone'),
-    shipping_note: t('admin.order_show.shipping.note'),
-  };
+  const labelKey = AUDIT_FIELD_LABEL_KEYS[field];
 
-  return labels[field] ?? field;
+  return labelKey ? t(labelKey) : field;
 }
 
 function formatAuditValue(
@@ -283,6 +274,7 @@ export function OrderTimelineCard({
   trans,
   formatDate,
   onLoadMore,
+  onCollapse,
 }: {
   audits: AuditData[];
   auditsTotal: number;
@@ -293,9 +285,11 @@ export function OrderTimelineCard({
   trans: (key: string, replacements?: Record<string, string | number>) => string;
   formatDate: (dateString: string) => string;
   onLoadMore: () => void;
+  onCollapse: () => void;
 }) {
   const hiddenAuditsCount = Math.max(auditsTotal - audits.length, 0);
   const nextAuditsCount = Math.min(historyStep, hiddenAuditsCount);
+  const canCollapse = audits.length > historyStep;
 
   return (
     <Card className={className}>
@@ -319,16 +313,31 @@ export function OrderTimelineCard({
                 />
               ))}
             </div>
-            {hiddenAuditsCount > 0 ? (
-              <Button
-                className="w-full"
-                size="sm"
-                type="button"
-                variant="outline"
-                onClick={onLoadMore}
-              >
-                {trans('admin.order_show.timeline.show_all', { count: nextAuditsCount })}
-              </Button>
+            {(hiddenAuditsCount > 0 || canCollapse) ? (
+              <div className="flex gap-2">
+                {hiddenAuditsCount > 0 ? (
+                  <Button
+                    className="flex-1"
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                    onClick={onLoadMore}
+                  >
+                    {trans('admin.order_show.timeline.show_all', { count: nextAuditsCount })}
+                  </Button>
+                ) : null}
+                {canCollapse ? (
+                  <Button
+                    className="flex-1"
+                    size="sm"
+                    type="button"
+                    variant="ghost"
+                    onClick={onCollapse}
+                  >
+                    {t('admin.order_show.timeline.show_less')}
+                  </Button>
+                ) : null}
+              </div>
             ) : null}
           </div>
         ) : (

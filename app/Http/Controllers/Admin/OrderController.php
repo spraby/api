@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Order;
-use App\Models\OrderShipping;
 use App\Models\User;
 use App\Services\Orders\OrderShippingService;
 use Carbon\Carbon;
@@ -154,7 +153,7 @@ class OrderController extends Controller
         // Load relationships
         $order->load([
             'customer',
-            'orderItems.product.images.image',
+            'orderItems.product.firstImage.image',
             'orderItems.variant.image.image',
             'orderItems.image.image',
             'orderShippings',
@@ -166,7 +165,7 @@ class OrderController extends Controller
         $auditsTotal = (clone $auditsQuery)->count();
         $auditsLimit = self::ORDER_HISTORY_LIMIT;
 
-        if ($request->header('X-Inertia') && $request->has('history_limit')) {
+        if ($request->has('history_limit')) {
             $auditsLimit = max(self::ORDER_HISTORY_LIMIT, (int) $request->query('history_limit'));
             $auditsLimit = min($auditsLimit, max($auditsTotal, self::ORDER_HISTORY_LIMIT));
         }
@@ -323,12 +322,11 @@ class OrderController extends Controller
     }
 
     /**
-     * Update the delivery snapshot attached to an order.
+     * Update the delivery snapshots attached to an order in one transaction.
      */
-    public function updateShipping(
+    public function updateShippings(
         Request $request,
         Order $order,
-        OrderShipping $shipping,
         OrderShippingService $orderShippingService,
     ): RedirectResponse
     {
@@ -339,39 +337,71 @@ class OrderController extends Controller
         $user = auth()->user();
         $brand = $user->getBrand();
 
-        if (! $brand || $order->brand_id !== $brand->id || $shipping->order_id !== $order->id) {
+        if (! $brand || $order->brand_id !== $brand->id) {
             return redirect()->route('admin.orders');
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['present', 'nullable', 'string', 'max:255'],
-            'note' => ['present', 'nullable', 'string', 'max:2000'],
-            'shipping_method_id' => ['present', 'nullable', 'integer'],
-            'customer_settings' => ['present', 'array'],
-            'customer_settings.*.key' => ['required', 'string', 'max:255'],
-            'customer_settings.*.name' => ['required', 'string', 'max:255'],
-            'customer_settings.*.type' => ['nullable', 'string', 'max:50'],
-            'customer_settings.*.value' => ['nullable'],
+            'shippings' => ['required', 'array', 'min:1'],
+            'shippings.*.id' => ['required', 'integer'],
+            'shippings.*.name' => ['required', 'string', 'max:255'],
+            'shippings.*.phone' => ['present', 'nullable', 'string', 'max:255'],
+            'shippings.*.note' => ['present', 'nullable', 'string', 'max:2000'],
+            'shippings.*.shipping_method_id' => ['present', 'nullable', 'integer'],
+            'shippings.*.customer_settings' => ['present', 'array'],
+            'shippings.*.customer_settings.*.key' => ['required', 'string', 'max:255'],
+            'shippings.*.customer_settings.*.name' => ['required', 'string', 'max:255'],
+            'shippings.*.customer_settings.*.type' => ['nullable', 'string', 'max:50'],
+            'shippings.*.customer_settings.*.value' => ['nullable'],
         ]);
 
-        $shippingMethod = null;
-        $shippingMethodId = $validated['shipping_method_id'];
-
-        if ($shippingMethodId !== null) {
-            $shippingMethod = $brand->shippingMethods()
+        $shippings = $order->orderShippings()
+            ->whereKey(collect($validated['shippings'])->pluck('id')->all())
+            ->get()
+            ->keyBy('id');
+        $methodIds = collect($validated['shippings'])
+            ->pluck('shipping_method_id')
+            ->filter(fn ($id) => $id !== null)
+            ->unique();
+        $shippingMethods = $methodIds->isEmpty()
+            ? collect()
+            : $brand->shippingMethods()
                 ->with('methodConstructor')
-                ->whereKey($shippingMethodId)
-                ->first();
+                ->whereKey($methodIds->all())
+                ->get()
+                ->keyBy('id');
 
-            if (! $shippingMethod) {
+        $changes = [];
+
+        foreach ($validated['shippings'] as $index => $shippingData) {
+            $shipping = $shippings->get((int) $shippingData['id']);
+
+            if (! $shipping) {
                 throw ValidationException::withMessages([
-                    'shipping_method_id' => __('validation.exists', ['attribute' => 'shipping_method_id']),
+                    "shippings.{$index}.id" => __('validation.exists', ['attribute' => 'shipping']),
                 ]);
             }
+
+            $shippingMethod = null;
+
+            if ($shippingData['shipping_method_id'] !== null) {
+                $shippingMethod = $shippingMethods->get((int) $shippingData['shipping_method_id']);
+
+                if (! $shippingMethod) {
+                    throw ValidationException::withMessages([
+                        "shippings.{$index}.shipping_method_id" => __('validation.exists', ['attribute' => 'shipping_method_id']),
+                    ]);
+                }
+            }
+
+            $changes[] = [
+                'shipping' => $shipping,
+                'validated' => $shippingData,
+                'method' => $shippingMethod,
+            ];
         }
 
-        $orderShippingService->updateShipping($order, $shipping, $validated, $shippingMethod);
+        $orderShippingService->updateShippings($order, $changes);
 
         return redirect()->back();
     }
