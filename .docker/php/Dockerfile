@@ -4,7 +4,8 @@ ARG WWWUSER
 ARG WWWGROUP
 
 RUN echo "upload_max_filesize=10M" >> /usr/local/etc/php/conf.d/docker-php-custom.ini \
- && echo "post_max_size=10M" >> /usr/local/etc/php/conf.d/docker-php-custom.ini
+ && echo "post_max_size=10M" >> /usr/local/etc/php/conf.d/docker-php-custom.ini \
+ && echo "memory_limit=512M" >> /usr/local/etc/php/conf.d/docker-php-custom.ini
 
 RUN apt-get update && apt-get install -y \
     build-essential \

@@ -32,6 +32,12 @@ class MigrateImagesToWebpCommand extends Command
 
     public function handle(ImageOptimizer $optimizer): int
     {
+        // GD holds the full uncompressed bitmap in memory; the default 128M
+        // limit is not enough for large photos
+        if (ini_get('memory_limit') !== '-1') {
+            ini_set('memory_limit', '1G');
+        }
+
         $dryRun = (bool) $this->option('dry-run');
         $keepOriginal = (bool) $this->option('keep-original');
         $limit = $this->option('limit') !== null ? (int) $this->option('limit') : null;
@@ -77,6 +83,10 @@ class MigrateImagesToWebpCommand extends Command
                         continue;
                     }
 
+                    // Printed BEFORE decoding: if the process is killed
+                    // (OOM/segfault), the last line names the culprit file
+                    $this->line("Converting: {$image->src} (image #{$image->id})");
+
                     $optimized = $optimizer->optimizeBinary($contents);
                     $oldPath = $image->src;
 
@@ -94,8 +104,15 @@ class MigrateImagesToWebpCommand extends Command
                     $bytesAfter += strlen($optimized);
                     $converted++;
 
-                    $this->line("Converted: {$newPath} (image #{$image->id})");
-                } catch (\Exception $e) {
+                    $this->line(sprintf(
+                        '  -> %s (%s -> %s)',
+                        $newPath,
+                        $this->formatBytes(strlen($contents)),
+                        $this->formatBytes(strlen($optimized)),
+                    ));
+
+                    unset($contents, $optimized);
+                } catch (\Throwable $e) {
                     $failed++;
                     $this->error("Failed: {$image->src} (image #{$image->id}) — {$e->getMessage()}");
                     Log::error('[images:migrate-webp] conversion failed', [

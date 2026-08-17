@@ -19,6 +19,13 @@ class ImageOptimizer
     /** WebP encoding quality (0-100) */
     public const WEBP_QUALITY = 82;
 
+    /**
+     * Refuse to decode anything above this pixel count: GD holds the full
+     * uncompressed bitmap in memory (~5 bytes/pixel), so a huge image can
+     * kill the process before any catchable error is thrown.
+     */
+    public const MAX_PIXELS = 60_000_000;
+
     public const OUTPUT_EXTENSION = 'webp';
 
     /**
@@ -58,6 +65,14 @@ class ImageOptimizer
      */
     public function optimizeBinary(string $contents): string
     {
+        $info = getimagesizefromstring($contents);
+
+        if ($info !== false && $info[0] * $info[1] > self::MAX_PIXELS) {
+            throw new \RuntimeException(
+                "Image is too large to optimize safely ({$info[0]}x{$info[1]} px)"
+            );
+        }
+
         $manager = new ImageManager(new Driver());
 
         $image = $manager->decodeBinary($contents);
