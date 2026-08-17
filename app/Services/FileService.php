@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\DTOs\FileUploadDTO;
+use App\Enums\FileType;
 use App\Exceptions\FileUploadException;
 use App\Services\Contracts\FileServiceInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -19,6 +21,7 @@ class FileService implements FileServiceInterface
 
     public function __construct(
         protected FileValidator $validator,
+        protected ImageOptimizer $optimizer,
         string $diskName = 's3'
     ) {
         $this->disk = Storage::disk($diskName);
@@ -32,14 +35,28 @@ class FileService implements FileServiceInterface
         // Validate file
         $this->validator->validate($file, $dto);
 
+        // Optimize raster images: downscale and convert to WebP.
+        // Falls back to the original file if optimization fails (corrupt file, etc).
+        $contents = null;
+        $extensionOverride = null;
+
+        if ($dto->fileType === FileType::IMAGE && $this->optimizer->supports($file)) {
+            try {
+                $contents = $this->optimizer->optimize($file);
+                $extensionOverride = ImageOptimizer::OUTPUT_EXTENSION;
+            } catch (\Exception $e) {
+                Log::warning('[FileService.upload] image optimization failed, uploading original', [
+                    'file' => $file->getClientOriginalName(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         // Generate filename
-        $filename = $this->generateFilename($file, $dto);
+        $filename = $this->generateFilename($file, $dto, $extensionOverride);
 
         // Get directory path
         $directory = $dto->getFullDirectory();
-
-        // Build full path
-        $path = $directory ? "{$directory}/{$filename}" : $filename;
 
         // Upload file
         try {
@@ -49,7 +66,7 @@ class FileService implements FileServiceInterface
             // Upload file using put method (without visibility parameter for S3 compatibility)
             $success = $this->disk->put(
                 $fullPath,
-                file_get_contents($file->getRealPath())
+                $contents ?? file_get_contents($file->getRealPath())
             );
 
             if (! $success) {
@@ -180,15 +197,18 @@ class FileService implements FileServiceInterface
      *
      * @param  UploadedFile  $file  File being uploaded
      * @param  FileUploadDTO  $dto  Upload configuration
+     * @param  string|null  $extensionOverride  Extension to use instead of the original (e.g. after conversion)
      * @return string Generated filename
      */
-    protected function generateFilename(UploadedFile $file, FileUploadDTO $dto): string
+    protected function generateFilename(UploadedFile $file, FileUploadDTO $dto, ?string $extensionOverride = null): string
     {
-        $extension = $file->getClientOriginalExtension();
+        $extension = $extensionOverride ?? $file->getClientOriginalExtension();
 
         // Use original filename if requested
         if ($dto->preserveOriginalName) {
-            return $file->getClientOriginalName();
+            $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+            return "{$basename}.{$extension}";
         }
 
         // Use custom filename if provided
@@ -202,6 +222,8 @@ class FileService implements FileServiceInterface
         }
 
         // Use original filename
-        return $file->getClientOriginalName();
+        $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+        return "{$basename}.{$extension}";
     }
 }

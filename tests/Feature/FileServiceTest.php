@@ -186,6 +186,72 @@ class FileServiceTest extends TestCase
 
         $path = $this->fileService->upload($file, $dto);
 
-        $this->assertStringContainsString('original-name.jpg', $path);
+        // Basename is preserved, but the image is converted to WebP
+        $this->assertStringContainsString('original-name.webp', $path);
+    }
+
+    public function test_converts_uploaded_image_to_webp(): void
+    {
+        $file = UploadedFile::fake()->image('photo.jpg', 500, 400);
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: 'test'
+        );
+
+        $path = $this->fileService->upload($file, $dto);
+
+        $this->assertStringEndsWith('.webp', $path);
+
+        $info = getimagesizefromstring(Storage::disk('s3')->get($path));
+
+        $this->assertSame('image/webp', $info['mime']);
+    }
+
+    public function test_downscales_oversized_image(): void
+    {
+        $file = UploadedFile::fake()->image('huge.jpg', 3000, 1500);
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: 'test'
+        );
+
+        $path = $this->fileService->upload($file, $dto);
+
+        [$width, $height] = getimagesizefromstring(Storage::disk('s3')->get($path));
+
+        $this->assertSame(2000, $width);
+        $this->assertSame(1000, $height); // aspect ratio preserved
+    }
+
+    public function test_does_not_convert_svg(): void
+    {
+        $svg = '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
+        $file = UploadedFile::fake()->createWithContent('icon.svg', $svg);
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: 'test'
+        );
+
+        $path = $this->fileService->upload($file, $dto);
+
+        $this->assertStringEndsWith('.svg', $path);
+        $this->assertSame($svg, Storage::disk('s3')->get($path));
+    }
+
+    public function test_non_image_files_are_uploaded_untouched(): void
+    {
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::DOCUMENT,
+            directory: 'test'
+        );
+
+        $path = $this->fileService->upload($file, $dto);
+
+        $this->assertStringEndsWith('.pdf', $path);
     }
 }
