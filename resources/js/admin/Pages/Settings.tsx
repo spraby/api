@@ -69,8 +69,8 @@ function ManagerSettings({
     const [activeTab, setActiveTab] = useState<TabId>('general');
 
     return (
-        <div className="flex flex-1 gap-6">
-            <nav className="w-48 shrink-0 flex flex-col gap-1">
+        <div className="flex flex-1 flex-col gap-4 md:flex-row md:gap-6">
+            <nav className="-mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 pb-1 md:mx-0 md:w-48 md:flex-col md:overflow-visible md:px-0 md:pb-0">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const label = locale === 'ru' ? tab.label_ru : tab.label_en;
@@ -81,7 +81,7 @@ function ManagerSettings({
                             type="button"
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
-                                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-left',
+                                'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm font-medium transition-colors md:gap-3',
                                 activeTab === tab.id
                                     ? 'bg-muted text-foreground'
                                     : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'

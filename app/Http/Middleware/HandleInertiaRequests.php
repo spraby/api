@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
+use App\Services\AdminOnboardingService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -24,6 +26,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        /** @var User|null $user */
+        $user = $request->user();
         $impersonatorId = $request->session()->get('impersonator_id');
         $impersonator = null;
 
@@ -41,18 +45,19 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'first_name' => $request->user()->first_name,
-                    'last_name' => $request->user()->last_name,
-                    'email' => $request->user()->email,
-                    'roles' => $request->user()->getRoleNames(),
-                    'permissions' => $request->user()->getAllPermissions()->pluck('name'),
-                    'is_admin' => $request->user()->isAdmin(),
-                    'is_manager' => $request->user()->isManager(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'roles' => $user->getRoleNames(),
+                    'permissions' => $user->getAllPermissions()->pluck('name'),
+                    'is_admin' => $user->isAdmin(),
+                    'is_manager' => $user->isManager(),
                 ] : null,
                 'impersonator' => $impersonator,
             ],
+            'onboarding' => fn () => $this->onboarding($user),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -62,5 +67,16 @@ class HandleInertiaRequests extends Middleware
             'locale' => app()->getLocale(),
             'lang' => syncLangFiles(['admin']),
         ];
+    }
+
+    private function onboarding(?User $user): ?array
+    {
+        if (! $user?->isManager()) {
+            return null;
+        }
+
+        $onboarding = app(AdminOnboardingService::class);
+
+        return $onboarding->build($user, $onboarding->findBrand($user));
     }
 }

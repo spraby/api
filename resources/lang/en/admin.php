@@ -139,6 +139,65 @@ return [
         'title' => 'Dashboard',
         'period' => 'Last :days days • :start — :end',
         'range_days' => ':days days',
+        'onboarding' => [
+            'progress' => [
+                'value' => ':completed/:total',
+            ],
+            'current' => [
+                'categories' => 'Now: request categories',
+                'settings' => 'Now: store settings',
+                'product' => 'Now: publish a product',
+                'complete' => 'Core steps completed',
+            ],
+            'actions' => [
+                'dismiss' => 'Hide tutorial',
+                'expand' => 'Show progress',
+                'continue' => 'Continue',
+                'close_hint' => 'Close hint',
+                'go' => 'Open',
+            ],
+            'strip' => [
+                'categories' => 'Categories',
+                'settings' => 'Settings',
+                'product' => 'First product',
+                'waiting' => 'Waiting for category',
+            ],
+            'hints' => [
+                'step_1' => 'Step 1',
+                'step_2' => 'Step 2',
+                'step_3' => 'Step 3',
+                'categories' => [
+                    'title' => 'Open categories',
+                    'description' => 'Submit a request and approved product categories will appear here.',
+                    'description_rejected' => 'Submit the request again. Choose suitable categories and retry.',
+                ],
+                'settings' => [
+                    'title' => 'Set up your store',
+                    'description' => 'Only add what you need: description, delivery, addresses, or contacts.',
+                ],
+                'product' => [
+                    'title' => 'Publish your first product',
+                    'description' => 'Create a product and enable it for display on the site.',
+                    'description_blocked' => 'This step unlocks after at least one category is approved.',
+                ],
+            ],
+            'status' => [
+                'completed' => 'Done',
+                'not_started' => 'Not started',
+            ],
+            'categories' => [
+                'status' => [
+                    'not_submitted' => 'Required',
+                    'pending' => 'Under review',
+                    'approved' => 'Approved',
+                    'partial' => 'Partially approved',
+                    'rejected' => 'Action needed',
+                ],
+            ],
+            'errors' => [
+                'update' => 'Could not save your progress. Please try again.',
+            ],
+        ],
         'kpi' => [
             'revenue' => 'Revenue',
             'orders_amount' => 'Orders amount',

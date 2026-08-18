@@ -16,6 +16,9 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $last_name
  * @property string $email
  * @property string|null $phone
+ * @property array|null $onboarding_skipped_steps
+ * @property array|null $onboarding_hidden_hints
+ * @property Carbon|null $onboarding_dismissed_at
  * @property string $password
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -40,6 +43,9 @@ class User extends Authenticatable
         'last_name',
         'email',
         'phone',
+        'onboarding_skipped_steps',
+        'onboarding_hidden_hints',
+        'onboarding_dismissed_at',
         'role',
         'password',
     ];
@@ -52,6 +58,9 @@ class User extends Authenticatable
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'onboarding_skipped_steps' => 'array',
+        'onboarding_hidden_hints' => 'array',
+        'onboarding_dismissed_at' => 'datetime',
         'role' => 'string',
     ];
 

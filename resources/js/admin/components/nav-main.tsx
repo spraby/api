@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react"
 import { type LucideIcon } from "lucide-react"
 
+import {OnboardingMenuHint, type MenuHint} from '@/components/onboarding/menu-hint';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -16,6 +17,7 @@ export function NavMain({
     title: string
     url: string
     icon?: LucideIcon
+    hint?: MenuHint
   }[]
 }) {
   return (
@@ -30,6 +32,7 @@ export function NavMain({
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
+              {item.hint ? <OnboardingMenuHint hint={item.hint}/> : null}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
