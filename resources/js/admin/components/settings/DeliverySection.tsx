@@ -56,8 +56,8 @@ function TagsInput({
       {value.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {value.map((tag) => (
-            <Badge key={tag} variant="secondary" className="gap-1 pr-1">
-              {tag}
+            <Badge key={tag} variant="secondary" className="max-w-full gap-1 pr-1">
+              <span className="truncate">{tag}</span>
               <button
                 type="button"
                 disabled={disabled}
@@ -224,11 +224,11 @@ export default function DeliverySection({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-4 sm:p-6">
         <CardTitle>{t('admin.settings_delivery.title')}</CardTitle>
         <CardDescription>{t('admin.settings_delivery.description')}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
         {constructors.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t('admin.settings_delivery.no_methods')}
@@ -243,7 +243,7 @@ export default function DeliverySection({
               }
 
               return (
-                <div key={constructor.id} className="rounded-lg border p-4">
+                <div key={constructor.id} className="min-w-0 rounded-lg border p-3 sm:p-4">
                   <div className="flex items-start space-x-3">
                     <Checkbox
                       id={`shipping-${constructor.id}`}
@@ -252,18 +252,18 @@ export default function DeliverySection({
                       disabled={isSaving}
                       onCheckedChange={(checked) => toggleMethod(constructor.id, checked === true)}
                     />
-                    <div>
+                    <div className="min-w-0">
                       <Label htmlFor={`shipping-${constructor.id}`} className="cursor-pointer font-medium">
                         {constructor.name}
                       </Label>
                       {constructor.description ? (
-                        <p className="text-sm text-muted-foreground">{constructor.description}</p>
+                        <p className="break-words text-sm text-muted-foreground">{constructor.description}</p>
                       ) : null}
                     </div>
                   </div>
 
                   {state.enabled && constructor.merchant_fields.length > 0 ? (
-                    <div className="mt-4 grid grid-cols-1 gap-4 pl-7 sm:grid-cols-2">
+                    <div className="mt-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:pl-7">
                       {constructor.merchant_fields.map((field) => (
                         <div
                           key={field.key}
@@ -286,7 +286,7 @@ export default function DeliverySection({
             })}
 
             <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={isSaving}>
+              <Button className="w-full sm:w-auto" onClick={handleSave} disabled={isSaving}>
                 {isSaving
                   ? t('admin.settings_delivery.actions.saving')
                   : t('admin.settings_delivery.actions.save')}

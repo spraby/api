@@ -172,15 +172,15 @@ function AddressCreateForm({
   };
 
   return (
-    <div className="rounded-lg border p-4">
+    <div className="rounded-lg border p-3 sm:p-4">
       <p className="mb-3 text-sm font-medium">{t('admin.settings_addresses.new_address')}</p>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <AddressFormFields data={data} setData={setData} errors={errors} t={t} />
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onCancel}>
             {t('admin.settings_addresses.actions.cancel')}
           </Button>
-          <Button type="submit" disabled={processing}>
+          <Button type="submit" className="w-full sm:w-auto" disabled={processing}>
             {processing
               ? t('admin.settings_addresses.actions.adding')
               : t('admin.settings_addresses.actions.add')}
@@ -223,15 +223,15 @@ function AddressEditForm({
   };
 
   return (
-    <div className="rounded-lg border p-4">
+    <div className="rounded-lg border p-3 sm:p-4">
       <p className="mb-3 text-sm font-medium">{t('admin.settings_addresses.edit_address')}</p>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <AddressFormFields data={data} setData={setData} errors={errors} t={t} />
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onCancel}>
             {t('admin.settings_addresses.actions.cancel')}
           </Button>
-          <Button type="submit" disabled={processing}>
+          <Button type="submit" className="w-full sm:w-auto" disabled={processing}>
             {processing
               ? t('admin.settings_addresses.actions.saving')
               : t('admin.settings_addresses.actions.save')}
@@ -290,7 +290,7 @@ function AddressCard({
         {address.name ? (
           <p className="text-sm font-medium">{address.name}</p>
         ) : null}
-        <p className="text-sm text-muted-foreground">{formattedAddress}</p>
+        <p className="break-words text-sm text-muted-foreground">{formattedAddress}</p>
       </div>
       <div className="flex shrink-0 gap-1">
         <Button variant="ghost" size="icon" className="size-8" onClick={onEdit}>
@@ -329,19 +329,19 @@ export default function AddressesSection({ addresses }: { addresses: Address[] }
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <CardHeader className="flex flex-col gap-3 space-y-0 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
         <div className="flex flex-col gap-1.5">
           <CardTitle>{t('admin.settings_addresses.title')}</CardTitle>
           <CardDescription>{t('admin.settings_addresses.description')}</CardDescription>
         </div>
         {!showCreateForm ? (
-          <Button size="sm" onClick={() => setShowCreateForm(true)}>
+          <Button size="sm" className="w-full sm:w-auto" onClick={() => setShowCreateForm(true)}>
             <PlusIcon className="mr-1.5 size-4" />
             {t('admin.settings_addresses.actions.add')}
           </Button>
         ) : null}
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex flex-col gap-3 px-4 pb-4 sm:px-6 sm:pb-6">
         {showCreateForm ? (
           <AddressCreateForm
             onCancel={() => setShowCreateForm(false)}

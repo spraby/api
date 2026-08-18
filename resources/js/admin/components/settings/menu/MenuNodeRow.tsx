@@ -90,7 +90,7 @@ export default function MenuNodeRow({
     return (
         <div ref={setNodeRef} style={style} className="group">
             <div className={cn(
-                'flex items-start gap-2 rounded-md border bg-card p-2 shadow-sm',
+                'flex flex-wrap items-start gap-2 rounded-md border bg-card p-2 shadow-sm sm:flex-nowrap',
                 isDragging && 'ring-2 ring-primary'
             )}>
                 <button
@@ -116,7 +116,7 @@ export default function MenuNodeRow({
                     {collapsed ? <ChevronRightIcon className="size-4"/> : <ChevronDownIcon className="size-4"/>}
                 </button>
 
-                <div className="grid flex-1 min-w-0 gap-2 sm:grid-cols-[1fr_140px_1fr]">
+                <div className="order-last grid min-w-0 basis-full gap-2 sm:order-none sm:flex-1 sm:basis-auto sm:grid-cols-[1fr_140px_1fr]">
                     <div className="flex flex-col gap-1 min-w-0">
                         <Input
                             value={node.title}
@@ -167,7 +167,7 @@ export default function MenuNodeRow({
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="ml-auto flex shrink-0 items-center gap-1 sm:ml-0">
                     {canAddChild ? (
                         <Button
                             type="button"

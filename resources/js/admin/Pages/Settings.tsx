@@ -1,7 +1,7 @@
 import {useState} from 'react';
 
 import {usePage} from '@inertiajs/react';
-import {Building2Icon, MapPinIcon, MenuIcon, TruckIcon, PhoneIcon} from 'lucide-react';
+import {Building2Icon, MapPinIcon, MenuIcon, PhoneIcon, TruckIcon} from 'lucide-react';
 
 import AddressesSection from '@/components/settings/AddressesSection';
 import ContactsSection from '@/components/settings/ContactsSection';
@@ -49,6 +49,60 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]['id'];
 
+interface SettingsNavigationProps<T extends string> {
+    activeTab: T;
+    className?: string;
+    locale: string;
+    onChange: (tab: T) => void;
+    tabs: readonly {
+        id: T;
+        icon: typeof Building2Icon;
+        label_ru: string;
+        label_en: string;
+    }[];
+}
+
+function SettingsNavigation<T extends string>({
+    activeTab,
+    className,
+    locale,
+    onChange,
+    tabs: navigationTabs,
+}: SettingsNavigationProps<T>) {
+    return (
+        <nav
+            aria-label={locale === 'ru' ? 'Разделы настроек' : 'Settings sections'}
+            className={cn(
+                'grid gap-1 lg:w-48 lg:shrink-0 lg:grid-cols-1 lg:self-start',
+                className,
+            )}
+        >
+            {navigationTabs.map((tab) => {
+                const Icon = tab.icon;
+                const label = locale === 'ru' ? tab.label_ru : tab.label_en;
+
+                return (
+                    <button
+                        key={tab.id}
+                        type="button"
+                        aria-pressed={activeTab === tab.id}
+                        onClick={() => onChange(tab.id)}
+                        className={cn(
+                            'flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors lg:justify-start lg:gap-3',
+                            activeTab === tab.id
+                                ? 'bg-muted text-foreground'
+                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                        )}
+                    >
+                        <Icon className="size-4 shrink-0"/>
+                        <span className="truncate">{label}</span>
+                    </button>
+                );
+            })}
+        </nav>
+    );
+}
+
 function ManagerSettings({
     addresses,
     contacts,
@@ -69,32 +123,16 @@ function ManagerSettings({
     const [activeTab, setActiveTab] = useState<TabId>('general');
 
     return (
-        <div className="flex flex-1 gap-6">
-            <nav className="w-48 shrink-0 flex flex-col gap-1">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const label = locale === 'ru' ? tab.label_ru : tab.label_en;
+        <div className="flex min-w-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
+            <SettingsNavigation
+                activeTab={activeTab}
+                className="grid-cols-2 sm:grid-cols-4"
+                locale={locale}
+                onChange={setActiveTab}
+                tabs={tabs}
+            />
 
-                    return (
-                        <button
-                            key={tab.id}
-                            type="button"
-                            onClick={() => setActiveTab(tab.id)}
-                            className={cn(
-                                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-left',
-                                activeTab === tab.id
-                                    ? 'bg-muted text-foreground'
-                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                            )}
-                        >
-                            <Icon className="size-4 shrink-0"/>
-                            {label}
-                        </button>
-                    );
-                })}
-            </nav>
-
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
                 {activeTab === 'general' && <GeneralSection about={about} refundPolicy={refundPolicy}/>}
                 {activeTab === 'addresses' && <AddressesSection addresses={addresses}/>}
                 {activeTab === 'delivery' && <DeliverySection constructors={shippingConstructors} brandMethods={brandShippingMethods}/>}
@@ -133,32 +171,16 @@ function AdminSettings({
     const [activeTab, setActiveTab] = useState<AdminTabId>('menu');
 
     return (
-        <div className="flex flex-1 gap-6">
-            <nav className="w-48 shrink-0 flex flex-col gap-1">
-                {adminTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const label = locale === 'ru' ? tab.label_ru : tab.label_en;
+        <div className="flex min-w-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
+            <SettingsNavigation
+                activeTab={activeTab}
+                className="grid-cols-2"
+                locale={locale}
+                onChange={setActiveTab}
+                tabs={adminTabs}
+            />
 
-                    return (
-                        <button
-                            key={tab.id}
-                            type="button"
-                            onClick={() => setActiveTab(tab.id)}
-                            className={cn(
-                                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-left',
-                                activeTab === tab.id
-                                    ? 'bg-muted text-foreground'
-                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                            )}
-                        >
-                            <Icon className="size-4 shrink-0"/>
-                            {label}
-                        </button>
-                    );
-                })}
-            </nav>
-
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
                 {activeTab === 'menu' && (
                     <MenuSection
                         menu={menu}
@@ -200,7 +222,7 @@ export default function Settings() {
 
     return (
         <AdminLayout title={t('admin.nav.settings')}>
-            <div className="flex flex-1 flex-col gap-4">
+            <div className="flex min-w-0 flex-1 flex-col gap-4">
                 <h1 className="text-2xl font-semibold">{t('admin.nav.settings')}</h1>
                 <Separator/>
 

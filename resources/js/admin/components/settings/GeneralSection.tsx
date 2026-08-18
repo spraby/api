@@ -35,13 +35,13 @@ export default function GeneralSection({about, refundPolicy}: GeneralSectionProp
 
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
                 <CardTitle>{t('admin.settings_general.title')}</CardTitle>
                 <CardDescription>{t('admin.settings_general.description')}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
                 <form onSubmit={onSubmit} className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-2">
+                    <div className="flex min-w-0 flex-col gap-2">
                         <Label>{t('admin.settings_general.fields.about')}</Label>
                         <RichTextEditor
                             value={data.about}
@@ -50,7 +50,7 @@ export default function GeneralSection({about, refundPolicy}: GeneralSectionProp
                         />
                     </div>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex min-w-0 flex-col gap-2">
                         <Label>{t('admin.settings_general.fields.refund_policy')}</Label>
                         <RichTextEditor
                             value={data.refund_policy}
@@ -60,7 +60,7 @@ export default function GeneralSection({about, refundPolicy}: GeneralSectionProp
                     </div>
 
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={processing}>
+                        <Button type="submit" className="w-full sm:w-auto" disabled={processing}>
                             {processing
                                 ? t('admin.settings_general.actions.saving')
                                 : t('admin.settings_general.actions.save')}

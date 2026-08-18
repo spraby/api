@@ -60,11 +60,11 @@ export default function ContactsSection({ contacts }: { contacts: ContactsMap })
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-4 sm:p-6">
         <CardTitle>{t('admin.settings_contacts.title')}</CardTitle>
         <CardDescription>{t('admin.settings_contacts.description')}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             {contactTypes.map((item) => {
@@ -90,7 +90,7 @@ export default function ContactsSection({ contacts }: { contacts: ContactsMap })
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={processing}>
+            <Button type="submit" className="w-full sm:w-auto" disabled={processing}>
               {processing
                 ? t('admin.settings_contacts.actions.saving')
                 : t('admin.settings_contacts.actions.save')}

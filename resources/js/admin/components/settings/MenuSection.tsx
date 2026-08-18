@@ -151,11 +151,11 @@ export default function MenuSection({menu, collections, categories, maxDepth}: M
 
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
                 <CardTitle>{t('admin.settings_menu.title')}</CardTitle>
                 <CardDescription>{t('admin.settings_menu.description')}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -183,12 +183,12 @@ export default function MenuSection({menu, collections, categories, maxDepth}: M
                         />
                     )}
 
-                    <div className="mt-4 flex items-center justify-between">
-                        <Button type="button" variant="outline" onClick={handleAddRoot}>
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={handleAddRoot}>
                             <PlusIcon className="mr-1 size-4"/>
                             {t('admin.settings_menu.actions.add_root')}
                         </Button>
-                        <Button type="button" onClick={handleSave} disabled={processing}>
+                        <Button type="button" className="w-full sm:w-auto" onClick={handleSave} disabled={processing}>
                             {processing
                                 ? t('admin.settings_menu.actions.saving')
                                 : t('admin.settings_menu.actions.save')}
@@ -255,7 +255,7 @@ function MenuList({
                                 errors={errors}
                             />
                             {node.children?.length && !isCollapsed ? (
-                                <div className="ml-8 border-l border-dashed pl-3">
+                                <div className="ml-3 border-l border-dashed pl-2 sm:ml-8 sm:pl-3">
                                     <MenuList
                                         nodes={node.children}
                                         parentPath={path}

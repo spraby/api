@@ -52,7 +52,7 @@ function FieldsPanel({
   onToggle: (key: string, checked: boolean) => void;
 }) {
   return (
-    <div className="flex-1 rounded-lg border p-4">
+    <div className="min-w-0 flex-1 rounded-lg border p-3 sm:p-4">
       <p className="text-sm font-semibold">{title}</p>
       <p className="mb-3 text-xs text-muted-foreground">{description}</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -168,7 +168,7 @@ function ConstructorCard({
 
   return (
     <Card>
-      <CardContent className="flex flex-col gap-4 pt-6">
+      <CardContent className="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1 space-y-2">
             <Label htmlFor={`ctor-name-${cardId}`}>
@@ -241,15 +241,15 @@ function ConstructorCard({
           />
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
           {isNew ? (
-            <Button variant="ghost" disabled={isSaving} onClick={handleDelete}>
+            <Button variant="ghost" className="w-full sm:w-auto" disabled={isSaving} onClick={handleDelete}>
               {t('admin.shipping_constructors.actions.cancel')}
             </Button>
           ) : (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" className="text-destructive hover:text-destructive" disabled={isSaving}>
+                <Button variant="ghost" className="w-full text-destructive hover:text-destructive sm:w-auto" disabled={isSaving}>
                   <Trash2Icon className="mr-2 size-4"/>
                   {t('admin.shipping_constructors.actions.delete')}
                 </Button>
@@ -278,7 +278,7 @@ function ConstructorCard({
             </AlertDialog>
           )}
 
-          <Button disabled={isSaving || form.name.trim() === ''} onClick={handleSave}>
+          <Button className="w-full sm:w-auto" disabled={isSaving || form.name.trim() === ''} onClick={handleSave}>
             {isSaving
               ? t('admin.shipping_constructors.actions.saving')
               : t('admin.shipping_constructors.actions.save')}
@@ -312,13 +312,13 @@ export default function ShippingConstructorsSection({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold">{t('admin.shipping_constructors.title')}</h2>
           <p className="text-sm text-muted-foreground">
             {t('admin.shipping_constructors.description')}
           </p>
         </div>
-        <Button onClick={addDraft}>
+        <Button className="w-full sm:w-auto" onClick={addDraft}>
           <PlusIcon className="mr-2 size-4"/>
           {t('admin.shipping_constructors.add')}
         </Button>
