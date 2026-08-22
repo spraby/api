@@ -20,21 +20,56 @@ export interface MenuHint {
   title: string;
 }
 
+const autoOpenSessionKey = (key: OnboardingHintKey) => `onboarding-hint-closed:${key}`;
+
+function wasClosedThisSession(key: OnboardingHintKey): boolean {
+  try {
+    return sessionStorage.getItem(autoOpenSessionKey(key)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function rememberClosed(key: OnboardingHintKey) {
+  try {
+    sessionStorage.setItem(autoOpenSessionKey(key), '1');
+  } catch {
+    // ignore — просто снова авто-откроется на следующей странице
+  }
+}
+
 export function OnboardingMenuHint({hint}: {hint: MenuHint}) {
   const {isMobile} = useSidebar();
   const {t} = useLang();
-  const [open, setOpen] = React.useState(hint.isCurrent);
+  const [open, setOpen] = React.useState(false);
   const [hidden, setHidden] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
 
   React.useEffect(() => {
-    if (hint.isCurrent) {
-      setOpen(true);
+    // Авто-открытие только если пользователь не закрывал подсказку в этой сессии
+    // (AdminLayout не персистентный — компонент ремонтируется на каждой навигации).
+    if (!hint.isCurrent || wasClosedThisSession(hint.key)) {
+      return;
     }
+
+    // Отложенное открытие: на мобильных сайдбар живёт в модальном Radix Sheet,
+    // и попап, открытый в том же коммите, регистрируется раньше диалога —
+    // получает pointer-events:none/aria-hidden и становится некликабельным.
+    const timer = window.setTimeout(() => setOpen(true), 0);
+
+    return () => window.clearTimeout(timer);
   }, [hint.isCurrent, hint.key]);
 
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+
+    if (!next) {
+      rememberClosed(hint.key);
+    }
+  };
+
   const closePermanently = async () => {
-    setOpen(false);
+    handleOpenChange(false);
     setHidden(true);
     setIsClosing(true);
 
@@ -54,7 +89,7 @@ export function OnboardingMenuHint({hint}: {hint: MenuHint}) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <SidebarMenuAction
           type="button"
@@ -97,7 +132,7 @@ export function OnboardingMenuHint({hint}: {hint: MenuHint}) {
           <Link
             href={hint.href}
             className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-chart-2 hover:underline"
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
           >
             {t('admin.dashboard.onboarding.actions.go')}
             <ArrowRightIcon className="size-3.5"/>

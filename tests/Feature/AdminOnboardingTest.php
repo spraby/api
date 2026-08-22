@@ -226,4 +226,80 @@ class AdminOnboardingTest extends TestCase
                 ->where('onboarding.steps.categories.status', 'rejected')
             );
     }
+
+    public function test_rejected_request_keeps_step_incomplete_even_with_attached_categories(): void
+    {
+        $category = \App\Models\Category::factory()->create();
+        $this->brand->categories()->attach($category->id);
+
+        CategoryRequest::create([
+            'brand_id' => $this->brand->id,
+            'user_id' => $this->manager->id,
+            'status' => CategoryRequest::STATUS_REJECTED,
+        ]);
+
+        $this->actingAs($this->manager)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('onboarding.steps.categories.completed', false)
+                ->where('onboarding.steps.categories.status', 'rejected')
+                ->where('onboarding.progress.current_step', 'categories')
+            );
+    }
+
+    public function test_dismissed_tutorial_stays_hidden_after_completeness_regresses(): void
+    {
+        CategoryRequest::create([
+            'brand_id' => $this->brand->id,
+            'user_id' => $this->manager->id,
+            'status' => CategoryRequest::STATUS_PENDING,
+        ]);
+        $product = $this->brand->products()->create([
+            'title' => 'Published product',
+            'enabled' => true,
+        ]);
+        $this->manager->forceFill([
+            'onboarding_skipped_steps' => [
+                'settings.general',
+                'settings.addresses',
+                'settings.delivery',
+                'settings.contacts',
+            ],
+            'onboarding_dismissed_at' => now(),
+        ])->save();
+
+        // Регресс завершённости: единственный опубликованный товар снят с публикации.
+        $product->update(['enabled' => false]);
+
+        // Скрытый туториал не воскресает (onboarding в middleware отдаёт null без запросов).
+        $this->actingAs($this->manager)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('onboarding', null)
+            );
+    }
+
+    public function test_hiding_settings_hint_preserves_foreign_skipped_steps(): void
+    {
+        $this->manager->forceFill([
+            'onboarding_skipped_steps' => ['product'],
+        ])->save();
+
+        $this->actingAs($this->manager)
+            ->putJson(route('admin.onboarding.update'), [
+                'action' => 'hide_hint',
+                'step' => 'settings',
+            ])
+            ->assertOk();
+
+        $this->assertEqualsCanonicalizing([
+            'product',
+            'settings.general',
+            'settings.addresses',
+            'settings.delivery',
+            'settings.contacts',
+        ], $this->manager->refresh()->onboarding_skipped_steps);
+    }
 }

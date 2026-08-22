@@ -59,6 +59,7 @@ class AdminOnboardingService
             ? CategoryRequest::query()
                 ->where('brand_id', $brand->id)
                 ->latest('created_at')
+                ->orderByDesc('id')
                 ->first(['status'])
             : null;
 
@@ -73,7 +74,9 @@ class AdminOnboardingService
 
         $hasAttachedCategories = (int) ($brand?->categories_count ?? 0) > 0;
         $categoryStatus = $latestRequest?->status ?? ($hasAttachedCategories ? CategoryRequest::STATUS_APPROVED : 'not_submitted');
-        $categoryComplete = $hasAttachedCategories || in_array($categoryStatus, [
+        // Отклонённая последняя заявка держит шаг незавершённым даже при уже
+        // привязанных категориях — иначе подсказка «подайте заявку заново» не показывается.
+        $categoryComplete = in_array($categoryStatus, [
             CategoryRequest::STATUS_PENDING,
             CategoryRequest::STATUS_APPROVED,
             CategoryRequest::STATUS_PARTIAL,
@@ -112,7 +115,9 @@ class AdminOnboardingService
         $isComplete = $completedSteps === 3;
 
         return [
-            'visible' => ! $user->onboarding_dismissed_at || ! $isComplete,
+            // Скрытие туториала — окончательное решение пользователя: регресс
+            // завершённости (например, товар снят с публикации) не воскрешает баннер.
+            'visible' => ! $user->onboarding_dismissed_at,
             'can_dismiss' => $isComplete,
             'hidden_hints' => $hiddenHints,
             'progress' => [
@@ -163,12 +168,11 @@ class AdminOnboardingService
             ];
 
             if ($step === 'settings') {
-                $skippedSettings = array_values(array_intersect(
-                    $user->onboarding_skipped_steps ?? [],
-                    $this->settingsStepKeys(),
-                ));
-                $skippedSettings = [...$skippedSettings, ...$this->settingsStepKeys()];
-                $updates['onboarding_skipped_steps'] = array_values(array_unique($skippedSettings));
+                // Дописываем ключи настроек, сохраняя чужие записи в колонке.
+                $updates['onboarding_skipped_steps'] = array_values(array_unique([
+                    ...($user->onboarding_skipped_steps ?? []),
+                    ...$this->settingsStepKeys(),
+                ]));
             }
 
             $user->forceFill($updates)->save();

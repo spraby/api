@@ -75,6 +75,12 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
+        // Туториал скрыт навсегда — не считаем состояние (5 коррелированных
+        // подзапросов + выборка заявок) на каждой странице админки впустую.
+        if ($user->onboarding_dismissed_at) {
+            return null;
+        }
+
         $onboarding = app(AdminOnboardingService::class);
 
         return $onboarding->build($user, $onboarding->findBrand($user));

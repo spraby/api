@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\DashboardRequest;
 use App\Models\Brand;
 use App\Models\User;
-use App\Services\AdminOnboardingService;
 use App\Services\Analytics\OrderHealthService;
 use App\Services\Analytics\ProductAnalyticsService;
 use App\Services\Analytics\SalesAnalyticsService;
@@ -19,7 +18,6 @@ class DashboardController extends Controller
         private readonly SalesAnalyticsService $salesAnalytics,
         private readonly ProductAnalyticsService $productAnalytics,
         private readonly OrderHealthService $orderHealth,
-        private readonly AdminOnboardingService $onboarding,
     ) {}
 
     public function index(DashboardRequest $request): Response
@@ -34,9 +32,8 @@ class DashboardController extends Controller
         /** @var User|null $user */
         $user = auth()->user();
         /** @var Brand|null $brand */
-        $brand = $user ? $this->onboarding->findBrand($user) : null;
+        $brand = $user?->getBrand();
         $isAdmin = $user?->isAdmin() ?? false;
-        $onboarding = $user ? $this->onboarding->build($user, $brand) : null;
 
         $start = now()->subDays($range - 1)->startOfDay();
         $end = now()->endOfDay();
@@ -48,7 +45,7 @@ class DashboardController extends Controller
         ];
 
         if (! $brand && ! $isAdmin) {
-            return $this->emptyDashboard($range, $tableMode, $dates, $meta, $conversionSort, $conversionDirection, $conversionPage, $conversionPerPage, $onboarding);
+            return $this->emptyDashboard($range, $tableMode, $dates, $meta, $conversionSort, $conversionDirection, $conversionPage, $conversionPerPage);
         }
 
         $brandId = $brand?->id;
@@ -59,7 +56,6 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'range' => $range,
-            'onboarding' => $onboarding,
             'table_mode' => $tableMode,
             'metrics' => $this->salesAnalytics->buildMetrics($salesTotals, $interestTotals),
             'meta' => $meta,
@@ -90,11 +86,9 @@ class DashboardController extends Controller
         string $conversionDirection,
         int $conversionPage,
         int $conversionPerPage,
-        ?array $onboarding,
     ): Response {
         return Inertia::render('Dashboard', [
             'range' => $range,
-            'onboarding' => $onboarding,
             'table_mode' => $tableMode,
             'metrics' => $this->salesAnalytics->emptyMetrics(),
             'category_views' => [],
