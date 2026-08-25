@@ -8,6 +8,8 @@ import { OrdersStatusWidget ,type  OrderStatusWidget } from "@/components/dashbo
 import { DashboardProductsTable } from "@/components/dashboard/products-table"
 import type { DashboardMetrics, InterestPoint, SalesPoint, TopConversionPage, TopProduct } from "@/components/dashboard/types"
 import { useDashboardFormatters } from "@/components/dashboard/use-dashboard-formatters"
+import { AdminOnboarding } from "@/components/onboarding/admin-onboarding"
+import type { OnboardingState } from "@/components/onboarding/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -18,6 +20,7 @@ import AdminLayout from '../layouts/AdminLayout.tsx';
 
 interface DashboardPageProps {
     range: number;
+    onboarding?: OnboardingState | null;
     table_mode?: 'top' | 'gap';
     metrics: DashboardMetrics;
     series: {
@@ -54,6 +57,7 @@ const DASHBOARD_ONLY = [
 export default function Dashboard() {
     const {
         range,
+        onboarding,
         table_mode: tableModeProp,
         metrics,
         series,
@@ -129,6 +133,8 @@ export default function Dashboard() {
                         <ToggleGroupItem value="90">{trans('admin.dashboard.range_days', { days: 90 })}</ToggleGroupItem>
                     </ToggleGroup>
                 </div>
+
+                {onboarding ? <AdminOnboarding onboarding={onboarding}/> : null}
 
                 {error ? (
                     <Alert variant="destructive">

@@ -16,7 +16,10 @@ export function ImpersonationBanner({user}: ImpersonationBannerProps) {
         router.post("/admin/impersonate/stop")
     }
 
-    const userName = `${user.first_name} ${user.last_name}`.trim() || user.email
+    const userName = [user.first_name, user.last_name]
+        .map((namePart) => namePart?.trim())
+        .filter(Boolean)
+        .join(" ") || user.email
 
     return (
         <div className="bg-amber-500 text-amber-950 px-4 py-2 flex items-center justify-between">

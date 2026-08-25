@@ -1,9 +1,11 @@
+import type { OnboardingState } from '@/components/onboarding/types';
+
 import type { Config } from 'ziggy-js';
 
 export interface User {
   id: number;
-  first_name: string;
-  last_name: string;
+  first_name: string | null;
+  last_name: string | null;
   email: string;
   roles: string[];
   permissions: string[];
@@ -43,6 +45,7 @@ export interface LangTranslations {
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
+  onboarding?: OnboardingState | null;
   auth: {
     user: User;
     impersonator?: Impersonator | null;

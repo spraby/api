@@ -26,6 +26,7 @@ import {
 import {NavMain} from "@/components/nav-main"
 import {NavSecondary} from "@/components/nav-secondary"
 import {NavUser} from "@/components/nav-user"
+import type {OnboardingState} from '@/components/onboarding/types';
 import {
     Sidebar,
     SidebarContent,
@@ -35,6 +36,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import {ONBOARDING_UPDATED_EVENT} from '@/lib/api/endpoints/onboarding';
 import {useLang} from "@/lib/lang"
 import {can, Permission} from "@/lib/permissions"
 import type {User} from "@/types/inertia"
@@ -107,11 +109,51 @@ const documents = [
 ]
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+    onboarding?: OnboardingState | null
     user?: User
 }
 
-export function AppSidebar({user, ...props}: AppSidebarProps) {
+export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
     const {t} = useLang()
+    const [onboardingState, setOnboardingState] = React.useState(onboarding)
+
+    React.useEffect(() => {
+        setOnboardingState(onboarding)
+    }, [onboarding])
+
+    React.useEffect(() => {
+        const handleUpdate = (event: Event) => {
+            setOnboardingState((event as CustomEvent<OnboardingState>).detail)
+        }
+
+        window.addEventListener(ONBOARDING_UPDATED_EVENT, handleUpdate)
+
+        return () => window.removeEventListener(ONBOARDING_UPDATED_EVENT, handleUpdate)
+    }, [])
+
+    const visibleOnboarding = onboardingState?.visible ? onboardingState : null
+    const currentStep = visibleOnboarding?.progress.current_step
+    const hiddenHints = new Set(visibleOnboarding?.hidden_hints ?? [])
+
+    const hint = (
+        key: 'categories' | 'settings' | 'product',
+        href: string,
+        step: number,
+        descriptionKey?: string,
+    ) => {
+        if (!visibleOnboarding || hiddenHints.has(key)) {
+            return undefined
+        }
+
+        return {
+            key,
+            href,
+            isCurrent: currentStep === key,
+            stepLabel: t(`admin.dashboard.onboarding.hints.step_${step}`),
+            title: t(`admin.dashboard.onboarding.hints.${key}.title`),
+            description: t(descriptionKey ?? `admin.dashboard.onboarding.hints.${key}.description`),
+        }
+    }
 
     const navMain = [
         {
@@ -160,6 +202,16 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
             title: t('admin.nav.products'),
             url: "/admin/products",
             icon: PackageIcon,
+            hint: visibleOnboarding?.steps.product.completed
+                ? undefined
+                : hint(
+                    'product',
+                    visibleOnboarding?.steps.product.blocked ? '/admin/my-categories' : '/admin/products/create',
+                    3,
+                    visibleOnboarding?.steps.product.blocked
+                        ? 'admin.dashboard.onboarding.hints.product.description_blocked'
+                        : undefined,
+                ),
         }] : []),
         // Orders - requires read_orders permission (manager only)
         ...(can(user, Permission.READ_ORDERS) ? [{
@@ -178,6 +230,16 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
             title: t('admin.nav.my_categories'),
             url: "/admin/my-categories",
             icon: TagIcon,
+            hint: visibleOnboarding?.steps.categories.completed
+                ? undefined
+                : hint(
+                    'categories',
+                    '/admin/my-categories',
+                    1,
+                    visibleOnboarding?.steps.categories.status === 'rejected'
+                        ? 'admin.dashboard.onboarding.hints.categories.description_rejected'
+                        : undefined,
+                ),
         }] : []),
         // Category Requests — админ
         ...(can(user, Permission.READ_CATEGORY_REQUESTS) && can(user, Permission.WRITE_CATEGORIES) ? [{
@@ -201,6 +263,9 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
                 title: t('admin.nav.settings'),
                 url: "/admin/settings",
                 icon: SettingsIcon,
+                hint: visibleOnboarding?.steps.settings.completed
+                    ? undefined
+                    : hint('settings', '/admin/settings', 2),
             },
         ],
         documents,
@@ -208,7 +273,10 @@ export function AppSidebar({user, ...props}: AppSidebarProps) {
     // Prepare user data for NavUser component with default avatar
     const navUserData = user
         ? {
-            name: `${user.first_name} ${user.last_name}`.trim() || user.email,
+            name: [user.first_name, user.last_name]
+                .map((namePart) => namePart?.trim())
+                .filter(Boolean)
+                .join(" ") || user.email,
             email: user.email,
             avatar: "/avatars/default.jpg", // Default avatar since User type doesn't have avatar field
         }
