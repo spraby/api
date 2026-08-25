@@ -1,5 +1,3 @@
-import {useState} from 'react';
-
 import {usePage} from '@inertiajs/react';
 import {Building2Icon, MapPinIcon, MenuIcon, PhoneIcon, TruckIcon} from 'lucide-react';
 
@@ -9,11 +7,11 @@ import DeliverySection from '@/components/settings/DeliverySection';
 import GeneralSection from '@/components/settings/GeneralSection';
 import type {MenuNode, MenuOption} from '@/components/settings/menu/types';
 import MenuSection from '@/components/settings/MenuSection';
+import SettingsTabs, {SettingsTabsPanel} from '@/components/settings/SettingsTabs';
 import ShippingConstructorsSection from '@/components/settings/ShippingConstructorsSection';
 import {Separator} from '@/components/ui/separator';
 import AdminLayout from '@/layouts/AdminLayout';
 import {useLang} from '@/lib/lang';
-import {cn} from '@/lib/utils';
 import type {
     Address,
     BrandShippingMethod,
@@ -41,67 +39,11 @@ interface SettingsPageProps extends Record<string, unknown> {
 }
 
 const tabs = [
-    {id: 'general', icon: Building2Icon, label_ru: 'Основные', label_en: 'General'},
-    {id: 'addresses', icon: MapPinIcon, label_ru: 'Адреса', label_en: 'Addresses'},
-    {id: 'delivery', icon: TruckIcon, label_ru: 'Доставка', label_en: 'Delivery'},
-    {id: 'contacts', icon: PhoneIcon, label_ru: 'Контакты', label_en: 'Contacts'},
+    {id: 'general', icon: Building2Icon, labelKey: 'admin.settings_tabs.general'},
+    {id: 'addresses', icon: MapPinIcon, labelKey: 'admin.settings_tabs.addresses'},
+    {id: 'delivery', icon: TruckIcon, labelKey: 'admin.settings_tabs.delivery'},
+    {id: 'contacts', icon: PhoneIcon, labelKey: 'admin.settings_tabs.contacts'},
 ] as const;
-
-type TabId = (typeof tabs)[number]['id'];
-
-interface SettingsNavigationProps<T extends string> {
-    activeTab: T;
-    className?: string;
-    locale: string;
-    onChange: (tab: T) => void;
-    tabs: readonly {
-        id: T;
-        icon: typeof Building2Icon;
-        label_ru: string;
-        label_en: string;
-    }[];
-}
-
-function SettingsNavigation<T extends string>({
-    activeTab,
-    className,
-    locale,
-    onChange,
-    tabs: navigationTabs,
-}: SettingsNavigationProps<T>) {
-    return (
-        <nav
-            aria-label={locale === 'ru' ? 'Разделы настроек' : 'Settings sections'}
-            className={cn(
-                'grid gap-1 lg:w-48 lg:shrink-0 lg:grid-cols-1 lg:self-start',
-                className,
-            )}
-        >
-            {navigationTabs.map((tab) => {
-                const Icon = tab.icon;
-                const label = locale === 'ru' ? tab.label_ru : tab.label_en;
-
-                return (
-                    <button
-                        key={tab.id}
-                        type="button"
-                        aria-pressed={activeTab === tab.id}
-                        onClick={() => onChange(tab.id)}
-                        className={cn(
-                            'flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors lg:justify-start lg:gap-3',
-                            activeTab === tab.id
-                                ? 'bg-muted text-foreground'
-                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-                        )}
-                    >
-                        <Icon className="size-4 shrink-0"/>
-                        <span className="truncate">{label}</span>
-                    </button>
-                );
-            })}
-        </nav>
-    );
-}
 
 function ManagerSettings({
     addresses,
@@ -110,7 +52,6 @@ function ManagerSettings({
     brandShippingMethods,
     about,
     refundPolicy,
-    locale,
 }: {
     addresses: Address[];
     contacts: ContactsMap;
@@ -118,36 +59,29 @@ function ManagerSettings({
     brandShippingMethods: BrandShippingMethod[];
     about: string;
     refundPolicy: string;
-    locale: string;
 }) {
-    const [activeTab, setActiveTab] = useState<TabId>('general');
-
     return (
-        <div className="flex min-w-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
-            <SettingsNavigation
-                activeTab={activeTab}
-                className="grid-cols-2 sm:grid-cols-4"
-                locale={locale}
-                onChange={setActiveTab}
-                tabs={tabs}
-            />
-
-            <div className="min-w-0 flex-1">
-                {activeTab === 'general' && <GeneralSection about={about} refundPolicy={refundPolicy}/>}
-                {activeTab === 'addresses' && <AddressesSection addresses={addresses}/>}
-                {activeTab === 'delivery' && <DeliverySection constructors={shippingConstructors} brandMethods={brandShippingMethods}/>}
-                {activeTab === 'contacts' && <ContactsSection contacts={contacts}/>}
-            </div>
-        </div>
+        <SettingsTabs defaultTab="general" tabs={tabs}>
+            <SettingsTabsPanel value="general">
+                <GeneralSection about={about} refundPolicy={refundPolicy}/>
+            </SettingsTabsPanel>
+            <SettingsTabsPanel value="addresses">
+                <AddressesSection addresses={addresses}/>
+            </SettingsTabsPanel>
+            <SettingsTabsPanel value="delivery">
+                <DeliverySection constructors={shippingConstructors} brandMethods={brandShippingMethods}/>
+            </SettingsTabsPanel>
+            <SettingsTabsPanel value="contacts">
+                <ContactsSection contacts={contacts}/>
+            </SettingsTabsPanel>
+        </SettingsTabs>
     );
 }
 
 const adminTabs = [
-    {id: 'menu', icon: MenuIcon, label_ru: 'Меню', label_en: 'Menu'},
-    {id: 'delivery', icon: TruckIcon, label_ru: 'Доставка', label_en: 'Delivery'},
+    {id: 'menu', icon: MenuIcon, labelKey: 'admin.settings_tabs.menu'},
+    {id: 'delivery', icon: TruckIcon, labelKey: 'admin.settings_tabs.delivery'},
 ] as const;
-
-type AdminTabId = (typeof adminTabs)[number]['id'];
 
 function AdminSettings({
     menu,
@@ -157,7 +91,6 @@ function AdminSettings({
     constructors,
     merchantCatalog,
     customerCatalog,
-    locale,
 }: {
     menu: MenuNode[];
     collections: MenuOption[];
@@ -166,43 +99,30 @@ function AdminSettings({
     constructors: ShippingMethodConstructor[];
     merchantCatalog: ShippingFieldDef[];
     customerCatalog: ShippingFieldDef[];
-    locale: string;
 }) {
-    const [activeTab, setActiveTab] = useState<AdminTabId>('menu');
-
     return (
-        <div className="flex min-w-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
-            <SettingsNavigation
-                activeTab={activeTab}
-                className="grid-cols-2"
-                locale={locale}
-                onChange={setActiveTab}
-                tabs={adminTabs}
-            />
-
-            <div className="min-w-0 flex-1">
-                {activeTab === 'menu' && (
-                    <MenuSection
-                        menu={menu}
-                        collections={collections}
-                        categories={categories}
-                        maxDepth={maxDepth}
-                    />
-                )}
-                {activeTab === 'delivery' && (
-                    <ShippingConstructorsSection
-                        constructors={constructors}
-                        merchantCatalog={merchantCatalog}
-                        customerCatalog={customerCatalog}
-                    />
-                )}
-            </div>
-        </div>
+        <SettingsTabs defaultTab="menu" tabs={adminTabs}>
+            <SettingsTabsPanel value="menu">
+                <MenuSection
+                    menu={menu}
+                    collections={collections}
+                    categories={categories}
+                    maxDepth={maxDepth}
+                />
+            </SettingsTabsPanel>
+            <SettingsTabsPanel value="delivery">
+                <ShippingConstructorsSection
+                    constructors={constructors}
+                    merchantCatalog={merchantCatalog}
+                    customerCatalog={customerCatalog}
+                />
+            </SettingsTabsPanel>
+        </SettingsTabs>
     );
 }
 
 export default function Settings() {
-    const {t, locale} = useLang();
+    const {t} = useLang();
     const {
         auth,
         addresses,
@@ -235,10 +155,16 @@ export default function Settings() {
                         constructors={allShippingConstructors ?? []}
                         merchantCatalog={merchantFieldsCatalog ?? []}
                         customerCatalog={customerFieldsCatalog ?? []}
-                        locale={locale}
                     />
                 ) : (
-                    <ManagerSettings addresses={addresses} contacts={contacts} shippingConstructors={shippingConstructors} brandShippingMethods={brandShippingMethods} about={about} refundPolicy={refundPolicy} locale={locale}/>
+                    <ManagerSettings
+                        addresses={addresses}
+                        contacts={contacts}
+                        shippingConstructors={shippingConstructors}
+                        brandShippingMethods={brandShippingMethods}
+                        about={about}
+                        refundPolicy={refundPolicy}
+                    />
                 )}
             </div>
         </AdminLayout>

@@ -341,7 +341,7 @@ export default function AddressesSection({ addresses }: { addresses: Address[] }
           </Button>
         ) : null}
       </CardHeader>
-      <CardContent className="flex flex-col gap-3 px-4 pb-4 sm:px-6 sm:pb-6">
+      <CardContent className="flex flex-col gap-3 p-4 pt-0 sm:p-6 sm:pt-0">
         {showCreateForm ? (
           <AddressCreateForm
             onCancel={() => setShowCreateForm(false)}

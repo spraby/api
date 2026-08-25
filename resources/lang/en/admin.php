@@ -1369,6 +1369,15 @@ return [
         ],
     ],
 
+    'settings_tabs' => [
+        'aria_label' => 'Settings sections',
+        'general' => 'General',
+        'addresses' => 'Addresses',
+        'delivery' => 'Delivery',
+        'contacts' => 'Contacts',
+        'menu' => 'Menu',
+    ],
+
     'settings_general' => [
         'title' => 'General Settings',
         'description' => 'General information about your store',

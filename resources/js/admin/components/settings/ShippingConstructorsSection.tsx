@@ -241,7 +241,7 @@ function ConstructorCard({
           />
         </div>
 
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
           {isNew ? (
             <Button variant="ghost" className="w-full sm:w-auto" disabled={isSaving} onClick={handleDelete}>
               {t('admin.shipping_constructors.actions.cancel')}

@@ -1369,6 +1369,15 @@ return [
         ],
     ],
 
+    'settings_tabs' => [
+        'aria_label' => 'Разделы настроек',
+        'general' => 'Основные',
+        'addresses' => 'Адреса',
+        'delivery' => 'Доставка',
+        'contacts' => 'Контакты',
+        'menu' => 'Меню',
+    ],
+
     'settings_general' => [
         'title' => 'Основные настройки',
         'description' => 'Общая информация о вашем магазине',

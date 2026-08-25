@@ -155,7 +155,7 @@ export default function MenuSection({menu, collections, categories, maxDepth}: M
                 <CardTitle>{t('admin.settings_menu.title')}</CardTitle>
                 <CardDescription>{t('admin.settings_menu.description')}</CardDescription>
             </CardHeader>
-            <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+            <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}

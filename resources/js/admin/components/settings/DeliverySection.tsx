@@ -228,7 +228,7 @@ export default function DeliverySection({
         <CardTitle>{t('admin.settings_delivery.title')}</CardTitle>
         <CardDescription>{t('admin.settings_delivery.description')}</CardDescription>
       </CardHeader>
-      <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+      <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
         {constructors.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t('admin.settings_delivery.no_methods')}
@@ -263,7 +263,7 @@ export default function DeliverySection({
                   </div>
 
                   {state.enabled && constructor.merchant_fields.length > 0 ? (
-                    <div className="mt-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:pl-7">
+                    <div className="mt-4 grid min-w-0 grid-cols-1 gap-4 pl-3 sm:grid-cols-2 sm:pl-7">
                       {constructor.merchant_fields.map((field) => (
                         <div
                           key={field.key}

@@ -64,7 +64,7 @@ export default function ContactsSection({ contacts }: { contacts: ContactsMap })
         <CardTitle>{t('admin.settings_contacts.title')}</CardTitle>
         <CardDescription>{t('admin.settings_contacts.description')}</CardDescription>
       </CardHeader>
-      <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+      <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             {contactTypes.map((item) => {
