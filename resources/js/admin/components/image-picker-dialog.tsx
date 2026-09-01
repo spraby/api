@@ -11,12 +11,22 @@ import {useDialog} from '@/stores/dialog';
 interface Props {
     onChoose: (selected: ImageSelectorItem[]) => void;
     selectedImages?: ImageSelectorItem[];
+    /** Одиночный выбор — для полей вроде логотипа бренда. */
+    multiple?: boolean;
+    /** Заголовок диалога и подпись кнопки; по умолчанию — «Добавить изображения». */
+    label?: string;
 }
 
 const EMPTY_SELECTED_IMAGES: ImageSelectorItem[] = [];
 
-export function ImagePickerDialog({onChoose, selectedImages = EMPTY_SELECTED_IMAGES}: Props) {
+export function ImagePickerDialog({
+                                      onChoose,
+                                      selectedImages = EMPTY_SELECTED_IMAGES,
+                                      multiple = true,
+                                      label,
+                                  }: Props) {
     const {t} = useLang();
+    const title = label ?? t('admin.products_edit.images.add_images');
     const {openDialog, closeDialog} = useDialog();
 
     const selectedItemsRef = useRef<ImageSelectorItem[]>([]);
@@ -29,12 +39,13 @@ export function ImagePickerDialog({onChoose, selectedImages = EMPTY_SELECTED_IMA
     const onClick = () => {
         selectedItemsRef.current = selectedImages;
         openDialog({
-            title: t('admin.products_edit.images.add_images'),
+            title,
             className: 'max-w-[1000px] min-h-[300px] max-h-[80vh] overflow-y-auto',
             content: (
                 <ImagePicker
                     images={selectedImages}
                     initialSelectedImages={selectedImages}
+                    multiple={multiple}
                     resource={route('admin.media.api.index')}
                     onChange={items => {
                         selectedItemsRef.current = items;
@@ -52,7 +63,7 @@ export function ImagePickerDialog({onChoose, selectedImages = EMPTY_SELECTED_IMA
     return (
         <Button variant="outline" onClick={onClick}>
             <PlusIcon className="size-4"/>
-            {t('admin.products_edit.images.add_images')}
+            {title}
         </Button>
     );
 }

@@ -14,6 +14,7 @@ import AdminLayout from '@/layouts/AdminLayout';
 import {useLang} from '@/lib/lang';
 import type {
     Address,
+    BrandImage,
     BrandShippingMethod,
     ContactsMap,
     ShippingConstructorOption,
@@ -29,6 +30,7 @@ interface SettingsPageProps extends Record<string, unknown> {
     brandShippingMethods: BrandShippingMethod[];
     about: string;
     refundPolicy: string;
+    image: BrandImage | null;
     allShippingConstructors?: ShippingMethodConstructor[];
     merchantFieldsCatalog?: ShippingFieldDef[];
     customerFieldsCatalog?: ShippingFieldDef[];
@@ -52,6 +54,7 @@ function ManagerSettings({
     brandShippingMethods,
     about,
     refundPolicy,
+    image,
 }: {
     addresses: Address[];
     contacts: ContactsMap;
@@ -59,11 +62,12 @@ function ManagerSettings({
     brandShippingMethods: BrandShippingMethod[];
     about: string;
     refundPolicy: string;
+    image: BrandImage | null;
 }) {
     return (
         <SettingsTabs defaultTab="general" tabs={tabs}>
             <SettingsTabsPanel value="general">
-                <GeneralSection about={about} refundPolicy={refundPolicy}/>
+                <GeneralSection about={about} refundPolicy={refundPolicy} image={image}/>
             </SettingsTabsPanel>
             <SettingsTabsPanel value="addresses">
                 <AddressesSection addresses={addresses}/>
@@ -131,6 +135,7 @@ export default function Settings() {
         brandShippingMethods,
         about,
         refundPolicy,
+        image,
         allShippingConstructors,
         merchantFieldsCatalog,
         customerFieldsCatalog,
@@ -164,6 +169,7 @@ export default function Settings() {
                         brandShippingMethods={brandShippingMethods}
                         about={about}
                         refundPolicy={refundPolicy}
+                        image={image ?? null}
                     />
                 )}
             </div>

@@ -163,6 +163,12 @@ class SettingsController extends Controller
             'brandShippingMethods' => $brandShippingMethods,
             'about' => $brand?->about ?? '',
             'refundPolicy' => $brand?->refund_policy ?? '',
+            'image' => $brand?->image ? [
+                'id' => $brand->image->id,
+                'name' => $brand->image->name,
+                'alt' => $brand->image->alt,
+                'url' => $brand->image->url,
+            ] : null,
             ...$adminData,
         ]);
     }
@@ -493,7 +499,16 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'about' => ['nullable', 'string'],
             'refund_policy' => ['nullable', 'string'],
+            'image_id' => ['nullable', 'integer', 'exists:images,id'],
         ]);
+
+        // Картинку можно поставить только из медиатеки своего бренда —
+        // иначе менеджер подставит чужой id и получит доступ к чужому файлу.
+        if (! empty($validated['image_id']) && ! $brand->images()->whereKey($validated['image_id'])->exists()) {
+            throw ValidationException::withMessages([
+                'image_id' => __('admin.settings_general.errors.image_not_owned'),
+            ]);
+        }
 
         $brand->update($validated);
 

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 /**
  * @property string $id
  * @property string|null $user_id
+ * @property string|null $image_id
  * @property string $name
  * @property string|null $description
  * @property string|null $about
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read User|null $user
+ * @property-read Image|null $image
  * @property-read Collection<Product> $products
  * @property-read Collection<Category> $categories
  * @property-read Collection<Order> $orders
@@ -40,6 +42,7 @@ class Brand extends Model
 
     protected $fillable = [
         'user_id',
+        'image_id',
         'name',
         'description',
         'about',
@@ -63,6 +66,11 @@ class Brand extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function image(): BelongsTo
+    {
+        return $this->belongsTo(Image::class);
     }
 
     public function products(): HasMany

@@ -1384,17 +1384,27 @@ return [
         'fields' => [
             'about' => 'About brand',
             'refund_policy' => 'Refund policy',
+            'image' => 'Brand logo',
         ],
         'placeholders' => [
             'about' => 'Tell about your brand...',
             'refund_policy' => 'Describe your refund policy...',
         ],
+        'hints' => [
+            'image' => 'Shown to customers next to the brand name. A square image works best.',
+        ],
         'actions' => [
             'save' => 'Save',
             'saving' => 'Saving...',
+            'select_image' => 'Select logo',
+            'change_image' => 'Replace logo',
+            'remove_image' => 'Remove',
         ],
         'messages' => [
             'updated' => 'Settings updated',
+        ],
+        'errors' => [
+            'image_not_owned' => 'This image does not belong to your brand',
         ],
     ],
 
