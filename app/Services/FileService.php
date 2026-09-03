@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\FileUploadDTO;
+use App\DTOs\OptimizedImage;
 use App\Enums\FileType;
 use App\Exceptions\FileUploadException;
 use App\Services\Contracts\FileServiceInterface;
@@ -32,54 +33,29 @@ class FileService implements FileServiceInterface
      */
     public function upload(UploadedFile $file, FileUploadDTO $dto): string
     {
-        // Validate file
         $this->validator->validate($file, $dto);
 
-        // Optimize raster images: downscale and convert to WebP.
-        // Falls back to the original file if optimization fails (corrupt file, etc).
-        $contents = null;
-        $extensionOverride = null;
+        $optimized = $this->optimizeImage($file, $dto);
+        $extensionOverride = $optimized ? ImageOptimizer::OUTPUT_EXTENSION : null;
 
-        if ($dto->fileType === FileType::IMAGE && $this->optimizer->supports($file)) {
-            try {
-                $contents = $this->optimizer->optimize($file);
-                $extensionOverride = ImageOptimizer::OUTPUT_EXTENSION;
-            } catch (\Exception $e) {
-                Log::warning('[FileService.upload] image optimization failed, uploading original', [
-                    'file' => $file->getClientOriginalName(),
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        // Generate filename
         $filename = $this->generateFilename($file, $dto, $extensionOverride);
-
-        // Get directory path
         $directory = $dto->getFullDirectory();
+        $fullPath = $directory ? "{$directory}/{$filename}" : $filename;
 
-        // Upload file
         try {
-            // Build full path with filename
-            $fullPath = $directory ? "{$directory}/{$filename}" : $filename;
-
-            // Upload file using put method (without visibility parameter for S3 compatibility)
-            $success = $this->disk->put(
-                $fullPath,
-                $contents ?? file_get_contents($file->getRealPath())
-            );
-
-            if (! $success) {
-                throw FileUploadException::uploadFailed('Storage operation returned false');
-            }
-
-            // Set visibility separately after upload
-            if ($dto->visibility) {
-                $this->disk->setVisibility($fullPath, $dto->visibility);
+            if ($optimized) {
+                // Renditions go first: the original is what the database points to,
+                // so a failure here must not leave an original without its copies
+                $this->putRenditions($fullPath, $optimized->renditions, $dto->visibility);
+                $this->putFile($fullPath, $optimized->original, $dto->visibility);
+            } else {
+                $this->putFile($fullPath, file_get_contents($file->getRealPath()), $dto->visibility);
             }
 
             return $fullPath;
         } catch (\Exception $e) {
+            $this->disk->delete(ImageRenditions::allPaths($fullPath));
+
             throw FileUploadException::uploadFailed($e->getMessage());
         }
     }
@@ -105,6 +81,16 @@ class FileService implements FileServiceInterface
     /**
      * {@inheritDoc}
      */
+    public function putRenditions(string $originalPath, array $renditions, ?string $visibility = 'public'): void
+    {
+        foreach ($renditions as $width => $contents) {
+            $this->putFile(ImageRenditions::path($originalPath, (int) $width), $contents, $visibility);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function delete(string $path): bool
     {
         if (! $this->exists($path)) {
@@ -112,7 +98,7 @@ class FileService implements FileServiceInterface
         }
 
         try {
-            return $this->disk->delete($path);
+            return $this->disk->delete(ImageRenditions::allPaths($path));
         } catch (\Exception $e) {
             throw FileUploadException::deleteFailed($path, $e->getMessage());
         }
@@ -123,8 +109,12 @@ class FileService implements FileServiceInterface
      */
     public function deleteMultiple(array $paths): bool
     {
+        $pathsWithRenditions = array_merge(
+            ...array_map(fn (string $path) => ImageRenditions::allPaths($path), $paths)
+        );
+
         try {
-            return $this->disk->delete($paths);
+            return $this->disk->delete($pathsWithRenditions);
         } catch (\Exception $e) {
             throw FileUploadException::deleteFailed(implode(', ', $paths), $e->getMessage());
         }
@@ -190,6 +180,46 @@ class FileService implements FileServiceInterface
             'mime_type' => $this->disk->mimeType($path),
             'url' => $this->getUrl($path),
         ];
+    }
+
+    /**
+     * Downscale and convert a raster image to WebP with its renditions.
+     * Returns null when the file is not an optimizable image or optimization fails
+     * (corrupt file, etc.), in which case the original is uploaded untouched.
+     */
+    protected function optimizeImage(UploadedFile $file, FileUploadDTO $dto): ?OptimizedImage
+    {
+        if ($dto->fileType !== FileType::IMAGE || ! $this->optimizer->supports($file)) {
+            return null;
+        }
+
+        try {
+            return $this->optimizer->optimize($file);
+        } catch (\Exception $e) {
+            Log::warning('[FileService.upload] image optimization failed, uploading original', [
+                'file' => $file->getClientOriginalName(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Write contents to storage and apply visibility
+     *
+     * @throws FileUploadException
+     */
+    protected function putFile(string $path, string $contents, ?string $visibility): void
+    {
+        // put() without a visibility argument for S3 compatibility; visibility is set separately
+        if (! $this->disk->put($path, $contents)) {
+            throw FileUploadException::uploadFailed("Storage operation returned false for {$path}");
+        }
+
+        if ($visibility) {
+            $this->disk->setVisibility($path, $visibility);
+        }
     }
 
     /**

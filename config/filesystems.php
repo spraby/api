@@ -59,6 +59,9 @@ return [
             'throw' => false,
             'report' => false,
             'options' => [
+                // Файлы именуются UUID и не перезаписываются: браузер и Next.js
+                // могут кешировать их год, иначе картинки пересжимаются заново.
+                'CacheControl' => 'public, max-age=31536000, immutable',
                 'http' => [
                     'verify' => env('AWS_SSL_VERIFY', true),
                 ],

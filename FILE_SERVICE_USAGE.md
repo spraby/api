@@ -72,11 +72,31 @@ foreach ($paths as $path) {
 }
 ```
 
+### 3.1. Уменьшенные копии изображений
+
+Растровые изображения (jpeg, png, webp) при загрузке приводятся к WebP не больше 2000 px,
+и рядом с оригиналом сохраняются уменьшенные копии по правилам `App\Services\ImageRenditions`:
+
+```
+brands/123/images/{uuid}.webp        оригинал — этот путь возвращает upload() и хранится в БД
+brands/123/images/{uuid}_800.webp    копия, длинная сторона 800 px
+brands/123/images/{uuid}_400.webp    копия, длинная сторона 400 px
+```
+
+В базе хранится только путь оригинала, пути копий выводятся из него (`ImageRenditions::paths($src)`).
+Витрина строит ссылки по тем же правилам (`store/lib/image-loader.ts`), поэтому набор ширин
+`ImageRenditions::WIDTHS` должен совпадать с `RENDITION_WIDTHS` там.
+
+Копии для файлов, загруженных раньше, создаёт команда `php artisan images:generate-renditions`
+(опции `--dry-run`, `--force`, `--limit=`).
+
 ### 4. Удаление файлов
 
+`delete()` и `deleteMultiple()` удаляют файл вместе с его копиями. То же делает `Image::delete()`.
+
 ```php
-// Удаление одного файла
-$this->fileService->delete('brands/123/images/avatar.jpg');
+// Удаление одного файла (и его копий _400/_800, если это webp)
+$this->fileService->delete('brands/123/images/avatar.webp');
 
 // Удаление нескольких файлов
 $this->fileService->deleteMultiple([

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageRenditions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -82,7 +83,8 @@ class Image extends Model
 
         static::deleting(function (Image $image) {
             if ($image->src) {
-                Storage::disk('s3')->delete($image->src);
+                // The original and its downscaled copies share one lifecycle
+                Storage::disk('s3')->delete(ImageRenditions::allPaths($image->src));
             }
         });
     }

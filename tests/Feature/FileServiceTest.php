@@ -225,6 +225,69 @@ class FileServiceTest extends TestCase
         $this->assertSame(1000, $height); // aspect ratio preserved
     }
 
+    public function test_stores_renditions_next_to_webp_original(): void
+    {
+        $file = UploadedFile::fake()->image('photo.jpg', 1600, 800);
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: 'test'
+        );
+
+        $path = $this->fileService->upload($file, $dto);
+        $basePath = substr($path, 0, -strlen('.webp'));
+
+        foreach ([400, 800] as $width) {
+            $renditionPath = "{$basePath}_{$width}.webp";
+
+            $this->assertTrue(Storage::disk('s3')->exists($renditionPath), "{$renditionPath} was not stored");
+
+            [$renditionWidth, $renditionHeight] = getimagesizefromstring(Storage::disk('s3')->get($renditionPath));
+
+            $this->assertSame($width, $renditionWidth);
+            $this->assertSame($width / 2, $renditionHeight); // aspect ratio preserved
+        }
+    }
+
+    public function test_small_images_get_renditions_without_upscaling(): void
+    {
+        $file = UploadedFile::fake()->image('tiny.jpg', 100, 100);
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: 'test'
+        );
+
+        $path = $this->fileService->upload($file, $dto);
+        $renditionPath = substr($path, 0, -strlen('.webp')).'_800.webp';
+
+        $this->assertTrue(Storage::disk('s3')->exists($renditionPath));
+
+        [$width] = getimagesizefromstring(Storage::disk('s3')->get($renditionPath));
+
+        $this->assertSame(100, $width);
+    }
+
+    public function test_delete_removes_renditions_with_original(): void
+    {
+        $file = UploadedFile::fake()->image('photo.jpg', 1000, 1000);
+
+        $dto = new FileUploadDTO(
+            fileType: FileType::IMAGE,
+            directory: 'test'
+        );
+
+        $path = $this->fileService->upload($file, $dto);
+        $renditionPath = substr($path, 0, -strlen('.webp')).'_400.webp';
+
+        $this->assertTrue(Storage::disk('s3')->exists($renditionPath));
+
+        $this->fileService->delete($path);
+
+        $this->assertFalse(Storage::disk('s3')->exists($path));
+        $this->assertFalse(Storage::disk('s3')->exists($renditionPath));
+    }
+
     public function test_does_not_convert_svg(): void
     {
         $svg = '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
@@ -239,6 +302,7 @@ class FileServiceTest extends TestCase
 
         $this->assertStringEndsWith('.svg', $path);
         $this->assertSame($svg, Storage::disk('s3')->get($path));
+        $this->assertFalse(Storage::disk('s3')->exists(substr($path, 0, -strlen('.svg')).'_400.svg'));
     }
 
     public function test_non_image_files_are_uploaded_untouched(): void

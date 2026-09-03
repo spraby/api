@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Image;
+use App\Services\FileService;
 use App\Services\ImageOptimizer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +22,7 @@ class MigrateImagesToWebpCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Convert existing product/media images in storage to downscaled WebP and update their src';
+    protected $description = 'Convert existing product/media images in storage to downscaled WebP (with renditions) and update their src';
 
     /**
      * Extensions the optimizer can convert. GIF (animation) and SVG (vector) are skipped.
@@ -30,7 +31,7 @@ class MigrateImagesToWebpCommand extends Command
      */
     private const CONVERTIBLE_EXTENSIONS = ['jpg', 'jpeg', 'png'];
 
-    public function handle(ImageOptimizer $optimizer): int
+    public function handle(ImageOptimizer $optimizer, FileService $files): int
     {
         // GD holds the full uncompressed bitmap in memory; the default 128M
         // limit is not enough for large photos
@@ -51,7 +52,7 @@ class MigrateImagesToWebpCommand extends Command
         $bytesAfter = 0;
 
         Image::query()->orderBy('id')->chunkById(100, function ($images) use (
-            $optimizer, $disk, $dryRun, $keepOriginal, $limit,
+            $optimizer, $files, $disk, $dryRun, $keepOriginal, $limit,
             &$converted, &$skipped, &$failed, &$bytesBefore, &$bytesAfter
         ) {
             foreach ($images as $image) {
@@ -63,6 +64,7 @@ class MigrateImagesToWebpCommand extends Command
 
                 if (! in_array($extension, self::CONVERTIBLE_EXTENSIONS, true)) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -74,12 +76,14 @@ class MigrateImagesToWebpCommand extends Command
                     if ($contents === null) {
                         $this->warn("Missing file, skipped: {$image->src} (image #{$image->id})");
                         $failed++;
+
                         continue;
                     }
 
                     if ($dryRun) {
                         $this->line("Would convert: {$image->src} -> {$newPath}");
                         $converted++;
+
                         continue;
                     }
 
@@ -90,7 +94,8 @@ class MigrateImagesToWebpCommand extends Command
                     $optimized = $optimizer->optimizeBinary($contents);
                     $oldPath = $image->src;
 
-                    $disk->put($newPath, $optimized);
+                    $files->putRenditions($newPath, $optimized->renditions);
+                    $disk->put($newPath, $optimized->original);
                     $disk->setVisibility($newPath, 'public');
 
                     // updateQuietly: src change must not trigger model events
@@ -101,14 +106,14 @@ class MigrateImagesToWebpCommand extends Command
                     }
 
                     $bytesBefore += strlen($contents);
-                    $bytesAfter += strlen($optimized);
+                    $bytesAfter += strlen($optimized->original);
                     $converted++;
 
                     $this->line(sprintf(
                         '  -> %s (%s -> %s)',
                         $newPath,
                         $this->formatBytes(strlen($contents)),
-                        $this->formatBytes(strlen($optimized)),
+                        $this->formatBytes(strlen($optimized->original)),
                     ));
 
                     unset($contents, $optimized);

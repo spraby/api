@@ -34,7 +34,19 @@ interface FileServiceInterface
     public function uploadMultiple(array $files, FileUploadDTO $dto): array;
 
     /**
-     * Delete a file from storage
+     * Store downscaled copies next to an already stored WebP original
+     * (paths follow ImageRenditions rules)
+     *
+     * @param  string  $originalPath  Path of the original the copies belong to
+     * @param  array<int, string>  $renditions  Binary WebP copies keyed by width
+     * @param  string|null  $visibility  File visibility (public or private), null to leave the disk default
+     *
+     * @throws FileUploadException
+     */
+    public function putRenditions(string $originalPath, array $renditions, ?string $visibility = 'public'): void;
+
+    /**
+     * Delete a file and its renditions from storage
      *
      * @param  string  $path  Path to file
      * @return bool Success status
@@ -44,7 +56,7 @@ interface FileServiceInterface
     public function delete(string $path): bool;
 
     /**
-     * Delete multiple files from storage
+     * Delete multiple files and their renditions from storage
      *
      * @param  array<string>  $paths  Paths to files
      * @return bool Success status
