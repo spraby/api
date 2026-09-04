@@ -231,6 +231,8 @@ export interface Variant {
   price: string;
   final_price: string;
   enabled: boolean;
+  is_made_to_order: boolean;
+  production_time_days: number | null;
   created_at: string;
   updated_at: string;
   // Accessors

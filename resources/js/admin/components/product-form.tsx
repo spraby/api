@@ -65,6 +65,8 @@ export function ProductForm({product: defaultProduct}: {
                 price: Number(v.price) || 0,
                 final_price: Number(v.final_price) || 0,
                 enabled: v.enabled ?? true,
+                is_made_to_order: v.is_made_to_order ?? false,
+                production_time_days: v.is_made_to_order ? v.production_time_days : null,
                 image_index: imageIndex,
                 values: (v.values ?? [])
                     .filter(val => val.option_id && (val.option_value_id ?? val.value?.id))
@@ -162,6 +164,7 @@ export function ProductForm({product: defaultProduct}: {
                     variants={variants}
                     images={images}
                     options={product?.category?.options ?? []}
+                    errors={errors}
                     onChange={(updatedVariants) => {
                         const variantImages = updatedVariants
                             .map(v => v.image)

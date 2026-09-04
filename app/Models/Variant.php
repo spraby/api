@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $price
  * @property string $final_price
  * @property bool $enabled
+ * @property bool $is_made_to_order
+ * @property int|null $production_time_days
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property float $discount
@@ -34,11 +36,22 @@ class Variant extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['product_id', 'image_id', 'title', 'price', 'final_price', 'enabled'];
+    protected $fillable = [
+        'product_id',
+        'image_id',
+        'title',
+        'price',
+        'final_price',
+        'enabled',
+        'is_made_to_order',
+        'production_time_days',
+    ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'final_price' => 'decimal:2',
+        'is_made_to_order' => 'boolean',
+        'production_time_days' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

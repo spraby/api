@@ -41,7 +41,7 @@ class VariantController extends Controller
 
             return Redirect::back()->with('success', 'Variant image updated successfully');
         } catch (\Exception $e) {
-            return Redirect::back()->with('error', 'Failed to update variant image: ' . $e->getMessage());
+            return Redirect::back()->with('error', 'Failed to update variant image: '.$e->getMessage());
         }
     }
 
@@ -83,6 +83,8 @@ class VariantController extends Controller
                     'price' => (string) $variant->price,
                     'final_price' => (string) $variant->final_price,
                     'enabled' => $variant->enabled,
+                    'is_made_to_order' => $variant->is_made_to_order,
+                    'production_time_days' => $variant->production_time_days,
                     'image_id' => $variant->image_id,
                     'image_url' => $variant->image?->image?->url,
                 ],

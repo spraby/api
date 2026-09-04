@@ -416,6 +416,12 @@ return [
             'locked' => 'Category cannot be changed after product creation',
         ],
         'variant' => 'Variant',
+        'availability' => [
+            'status' => 'availability status',
+            'made_to_order' => 'On order',
+            'production_time' => 'Production time',
+            'days_short' => 'days',
+        ],
         'required_fields' => 'Required fields',
         'actions' => [
             'back' => 'Back to Products',
@@ -426,6 +432,7 @@ return [
             'saving' => 'Saving...',
             'select_image' => 'Select Image',
             'change_image' => 'Change Image',
+            'delete_variant' => 'Delete variant',
         ],
         'unsaved' => [
             'message' => 'You have unsaved changes',

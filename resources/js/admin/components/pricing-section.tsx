@@ -104,13 +104,13 @@ export function PricingSection({
     };
 
     return (
-        <div className="flex items-end gap-3 flex-nowrap">
-            <div className="space-y-0">
+        <div className="grid w-full max-w-[292px] grid-cols-[minmax(72px,1fr)_52px_minmax(96px,1fr)_16px] items-end gap-2">
+            <div className="space-y-1">
                 <Label className="flex items-center gap-1 text-muted-foreground text-xs">
                     {t('admin.products_edit.fields.price')}
                 </Label>
                 <Input
-                    className="max-w-[100px] md:max-w-[120px]"
+                    className="w-full max-w-none"
                     disabled={disabled}
                     min="0"
                     placeholder={t('admin.products_edit.placeholders.price')}
@@ -121,10 +121,10 @@ export function PricingSection({
                 />
             </div>
 
-            <div className="space-y-0">
+            <div className="space-y-1">
                 <Label className="flex items-center gap-1 text-muted-foreground text-xs">%</Label>
                 <Input
-                    className="max-w-20"
+                    className="w-full max-w-none"
                     disabled={disabled}
                     min="0"
                     max="100"
@@ -136,12 +136,12 @@ export function PricingSection({
                 />
             </div>
 
-            <div className="space-y-0">
+            <div className="space-y-1">
                 <Label className="flex items-center gap-1 text-muted-foreground text-xs text-nowrap">
                     {t('admin.products_edit.fields.final_price')}
                 </Label>
                 <Input
-                    className="max-w-[100px] md:max-w-[120px]"
+                    className="w-full max-w-none"
                     disabled={disabled}
                     min="0"
                     placeholder={t('admin.products_edit.placeholders.final_price')}

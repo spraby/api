@@ -27,6 +27,8 @@ const createVariant = (combination: CombinationItem[], options: Option[]): Varia
         price: 0,
         final_price: 0,
         enabled: true,
+        is_made_to_order: false,
+        production_time_days: null,
         values: combination.map(c => ({
             uid: uuidv4(),
             option_id: c.optionId,
@@ -44,10 +46,17 @@ const createVariant = (combination: CombinationItem[], options: Option[]): Varia
 const getVariantKey = (variant: Variant, opts: Option[]) =>
     opts.map(o => variant.values?.find(v => v.option_id === o.id)?.option_value_id ?? '').join(':');
 
-export const VariantList = ({variants, images = [], options = [], onChange}: {
+export const VariantList = ({
+    variants,
+    images = [],
+    options = [],
+    errors = {},
+    onChange,
+}: {
     variants: Variant[],
     images: ProductImage[],
     options: Option[],
+    errors?: Record<string, string>,
     onChange: (variants: Variant[]) => void
 }) => {
     const {t} = useLang();
@@ -122,9 +131,18 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
             </Alert>
         )}
 
-        <div className="flex flex-col gap-2 md:grid md:grid-cols-[90px_1fr_auto_auto] md:gap-x-4 md:gap-y-2">
-            {variants.map(variant =>
-                <VariantLine key={variant.uid} variant={variant} images={images} options={options} onChange={onChangeHandle} onDelete={() => onDeleteHandle(variant.uid)} isDuplicate={duplicateUids.has(variant.uid)}/>
+        <div className="flex flex-col gap-2">
+            {variants.map((variant, index) =>
+                <VariantLine
+                    key={variant.uid}
+                    variant={variant}
+                    images={images}
+                    options={options}
+                    productionTimeError={errors[`variants.${index}.production_time_days`]}
+                    onChange={onChangeHandle}
+                    onDelete={() => onDeleteHandle(variant.uid)}
+                    isDuplicate={duplicateUids.has(variant.uid)}
+                />
             )}
         </div>
 

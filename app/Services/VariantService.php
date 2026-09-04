@@ -16,35 +16,22 @@ class VariantService
     {
         $product->load('variants.values');
 
-        $existingVariantIds = $product->variants->pluck('id')->toArray();
+        $existingVariants = $product->variants->keyBy('id');
         $submittedVariantIds = [];
 
         foreach ($variantsData as $variantData) {
-            if (isset($variantData['id']) && in_array($variantData['id'], $existingVariantIds)) {
+            $variantId = isset($variantData['id']) ? (int) $variantData['id'] : null;
+            $variant = $variantId ? $existingVariants->get($variantId) : null;
+
+            if ($variant) {
                 // Update existing variant
-                $variant = $product->variants->firstWhere('id', $variantData['id']);
+                $variant->update($this->variantAttributes($variantData));
+                $submittedVariantIds[] = $variant->id;
 
-                if ($variant) {
-                    $variant->update([
-                        'title' => $variantData['title'] ?? null,
-                        'price' => $variantData['price'],
-                        'final_price' => $variantData['final_price'],
-                        'enabled' => $variantData['enabled'],
-                        'image_id' => $variantData['image_id'] ?? null,
-                    ]);
-                    $submittedVariantIds[] = $variantData['id'];
-
-                    $this->syncVariantValues($variant, $variantData['values'] ?? []);
-                }
+                $this->syncVariantValues($variant, $variantData['values'] ?? []);
             } else {
                 // Create new variant
-                $variant = $product->variants()->create([
-                    'title' => $variantData['title'] ?? null,
-                    'price' => $variantData['price'],
-                    'final_price' => $variantData['final_price'],
-                    'enabled' => $variantData['enabled'],
-                    'image_id' => $variantData['image_id'] ?? null,
-                ]);
+                $variant = $product->variants()->create($this->variantAttributes($variantData));
                 $submittedVariantIds[] = $variant->id;
 
                 $this->createVariantValues($variant, $variantData['values'] ?? []);
@@ -52,10 +39,10 @@ class VariantService
         }
 
         // Delete variants that were removed
-        $variantsToDelete = array_diff($existingVariantIds, $submittedVariantIds);
+        $variantsToDelete = $existingVariants->keys()->diff($submittedVariantIds);
 
-        if (!empty($variantsToDelete)) {
-            Variant::whereIn('id', $variantsToDelete)->delete();
+        if ($variantsToDelete->isNotEmpty()) {
+            Variant::whereIn('id', $variantsToDelete->all())->delete();
         }
     }
 
@@ -65,19 +52,31 @@ class VariantService
     public function createVariants(Product $product, array $variantsData): void
     {
         foreach ($variantsData as $variantData) {
-            // Strip image_index (used by frontend for mapping, not a DB column)
-            unset($variantData['image_index']);
-
-            $variant = $product->variants()->create([
-                'title' => $variantData['title'] ?? null,
-                'price' => $variantData['price'],
-                'final_price' => $variantData['final_price'],
-                'enabled' => $variantData['enabled'],
-                'image_id' => $variantData['image_id'] ?? null,
-            ]);
+            $variant = $product->variants()->create($this->variantAttributes($variantData));
 
             $this->createVariantValues($variant, $variantData['values'] ?? []);
         }
+    }
+
+    /**
+     * Build the persisted variant fields and keep availability data consistent.
+     */
+    private function variantAttributes(array $variantData): array
+    {
+        $isMadeToOrder = (bool) ($variantData['is_made_to_order'] ?? false);
+        $productionTimeDays = $variantData['production_time_days'] ?? null;
+
+        return [
+            'title' => $variantData['title'] ?? null,
+            'price' => $variantData['price'],
+            'final_price' => $variantData['final_price'],
+            'enabled' => $variantData['enabled'],
+            'is_made_to_order' => $isMadeToOrder,
+            'production_time_days' => $isMadeToOrder && $productionTimeDays !== null
+                ? (int) $productionTimeDays
+                : null,
+            'image_id' => $variantData['image_id'] ?? null,
+        ];
     }
 
     /**
@@ -87,6 +86,7 @@ class VariantService
     {
         if (empty($newValues)) {
             $variant->values()->delete();
+
             return;
         }
 

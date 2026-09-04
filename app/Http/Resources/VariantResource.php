@@ -22,6 +22,8 @@ class VariantResource extends JsonResource
             'price' => $this->price,
             'final_price' => $this->final_price,
             'enabled' => $this->enabled,
+            'is_made_to_order' => $this->is_made_to_order,
+            'production_time_days' => $this->production_time_days,
             'discount' => $this->discount,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
