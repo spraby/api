@@ -1,10 +1,11 @@
 import {usePage} from '@inertiajs/react';
-import {Building2Icon, MapPinIcon, MenuIcon, PhoneIcon, TruckIcon} from 'lucide-react';
+import {Building2Icon, InfoIcon, MapPinIcon, MenuIcon, PhoneIcon, TruckIcon} from 'lucide-react';
 
 import AddressesSection from '@/components/settings/AddressesSection';
 import ContactsSection from '@/components/settings/ContactsSection';
 import DeliverySection from '@/components/settings/DeliverySection';
 import GeneralSection from '@/components/settings/GeneralSection';
+import InformationSection from '@/components/settings/InformationSection';
 import type {MenuNode, MenuOption} from '@/components/settings/menu/types';
 import MenuSection from '@/components/settings/MenuSection';
 import SettingsTabs, {SettingsTabsPanel} from '@/components/settings/SettingsTabs';
@@ -38,6 +39,8 @@ interface SettingsPageProps extends Record<string, unknown> {
     menuCollections?: MenuOption[];
     menuCategories?: MenuOption[];
     menuMaxDepth?: number;
+    information?: string;
+    informationMaxLength?: number;
 }
 
 const tabs = [
@@ -85,6 +88,7 @@ function ManagerSettings({
 const adminTabs = [
     {id: 'menu', icon: MenuIcon, labelKey: 'admin.settings_tabs.menu'},
     {id: 'delivery', icon: TruckIcon, labelKey: 'admin.settings_tabs.delivery'},
+    {id: 'information', icon: InfoIcon, labelKey: 'admin.settings_tabs.information'},
 ] as const;
 
 function AdminSettings({
@@ -95,6 +99,8 @@ function AdminSettings({
     constructors,
     merchantCatalog,
     customerCatalog,
+    information,
+    informationMaxLength,
 }: {
     menu: MenuNode[];
     collections: MenuOption[];
@@ -103,6 +109,8 @@ function AdminSettings({
     constructors: ShippingMethodConstructor[];
     merchantCatalog: ShippingFieldDef[];
     customerCatalog: ShippingFieldDef[];
+    information: string;
+    informationMaxLength: number;
 }) {
     return (
         <SettingsTabs defaultTab="menu" tabs={adminTabs}>
@@ -120,6 +128,9 @@ function AdminSettings({
                     merchantCatalog={merchantCatalog}
                     customerCatalog={customerCatalog}
                 />
+            </SettingsTabsPanel>
+            <SettingsTabsPanel value="information">
+                <InformationSection information={information} maxLength={informationMaxLength}/>
             </SettingsTabsPanel>
         </SettingsTabs>
     );
@@ -143,6 +154,8 @@ export default function Settings() {
         menuCollections,
         menuCategories,
         menuMaxDepth,
+        information,
+        informationMaxLength,
     } = usePage<PageProps<SettingsPageProps>>().props;
 
     return (
@@ -160,6 +173,8 @@ export default function Settings() {
                         constructors={allShippingConstructors ?? []}
                         merchantCatalog={merchantFieldsCatalog ?? []}
                         customerCatalog={customerFieldsCatalog ?? []}
+                        information={information ?? ''}
+                        informationMaxLength={informationMaxLength ?? 5000}
                     />
                 ) : (
                     <ManagerSettings

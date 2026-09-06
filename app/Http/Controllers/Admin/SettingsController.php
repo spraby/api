@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAddressRequest;
+use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Requests\UpdateContactsRequest;
 use App\Http\Requests\UpdateMenuRequest;
 use App\Models\Address;
@@ -133,6 +134,8 @@ class SettingsController extends Controller
                 'customerFieldsCatalog' => ShippingMethodConstructor::catalogList(ShippingMethodConstructor::CUSTOMER_FIELDS),
                 'menu' => Settings::menu()->first()?->data ?? [],
                 'menuMaxDepth' => UpdateMenuRequest::MAX_DEPTH,
+                'information' => (string) (Settings::information()->first()?->data['description'] ?? ''),
+                'informationMaxLength' => UpdateInformationRequest::MAX_LENGTH,
                 'menuCollections' => Collection::query()
                     ->orderBy('title')
                     ->get(['id', 'name', 'title', 'handle'])
@@ -188,6 +191,33 @@ class SettingsController extends Controller
         } else {
             Settings::createMenu($normalized);
         }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Update the storefront "additional information" text (admin only).
+     *
+     * Текст общий для всех карточек товара, витрина читает его из settings.information.
+     */
+    public function updateInformation(UpdateInformationRequest $request): RedirectResponse
+    {
+        $description = trim((string) ($request->validated()['description'] ?? ''));
+
+        // Редактор отдаёт пустой абзац вместо пустой строки — иначе витрина
+        // раскрывала бы аккордеон с невидимым содержимым.
+        if (UpdateInformationRequest::plainText($description) === '') {
+            $description = '';
+        }
+
+        $existing = Settings::information()->first();
+
+        // На settings.key есть unique-индекс: read-then-insert проиграл бы гонку
+        // двух одновременных сохранений на установке без строки information.
+        Settings::updateOrCreate(
+            ['key' => Settings::KEYS['INFO']],
+            ['data' => [...($existing->data ?? []), 'description' => $description]],
+        );
 
         return redirect()->back();
     }

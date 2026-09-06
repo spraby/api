@@ -1376,6 +1376,33 @@ return [
         'delivery' => 'Delivery',
         'contacts' => 'Contacts',
         'menu' => 'Menu',
+        'information' => 'Information',
+    ],
+
+    'settings_information' => [
+        'title' => 'Additional information',
+        'description' => 'This text is shown on every product page in the storefront',
+        'fields' => [
+            'description' => 'Text',
+        ],
+        'placeholders' => [
+            'description' => 'Enter the text customers will see on every product page...',
+        ],
+        'hints' => [
+            'description' => 'A single text for all products. Shown in small type inside the "Additional information" block.',
+            'limit' => ':current of :max characters used',
+        ],
+        'actions' => [
+            'save' => 'Save',
+            'saving' => 'Saving...',
+        ],
+        'messages' => [
+            'updated' => 'Additional information updated',
+        ],
+        'errors' => [
+            'too_long' => 'The text is too long (maximum :max characters)',
+            'markup_too_long' => 'Too much formatting — please simplify the text styling',
+        ],
     ],
 
     'settings_general' => [

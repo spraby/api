@@ -212,6 +212,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::delete('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'destroy'])->name('settings.shipping-constructors.destroy');
         Route::put('/settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general.update');
         Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
+        Route::put('/settings/information', [App\Http\Controllers\Admin\SettingsController::class, 'updateInformation'])->name('settings.information.update');
 
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
 

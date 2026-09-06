@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @method static Builder|static query()
  * @method static Builder|static menu()
+ * @method static Builder|static information()
  *
  * @mixin Builder
  */
@@ -66,5 +67,13 @@ class Settings extends Model
     public function scopeMenu(Builder $query)
     {
         return $query->where('key', self::KEYS['MENU']);
+    }
+
+    /**
+     * @return Builder
+     */
+    public function scopeInformation(Builder $query)
+    {
+        return $query->where('key', self::KEYS['INFO']);
     }
 }
