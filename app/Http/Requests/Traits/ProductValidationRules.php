@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Traits;
 
+use App\Models\Variant;
 use App\Rules\OptionBelongsToCategory;
 use App\Rules\UniqueVariantCombinations;
 
@@ -20,6 +21,13 @@ trait ProductValidationRules
             'variants.*.price' => ['required', 'numeric', 'min:0'],
             'variants.*.final_price' => ['required', 'numeric', 'min:0'],
             'variants.*.enabled' => ['required', 'boolean'],
+            'variants.*.is_made_to_order' => ['required', 'boolean'],
+            'variants.*.production_time_days' => [
+                'nullable',
+                'integer',
+                'min:'.Variant::PRODUCTION_TIME_MIN_DAYS,
+                'max:'.Variant::PRODUCTION_TIME_MAX_DAYS,
+            ],
             'variants.*.values' => ['nullable', 'array'],
             'variants.*.values.*.option_id' => ['required', 'exists:options,id'],
             'variants.*.values.*.option_value_id' => ['required', 'exists:option_values,id'],

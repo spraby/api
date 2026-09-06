@@ -84,6 +84,8 @@ export interface Variant {
     price?: number;
     final_price?: number;
     enabled?: boolean;
+    is_made_to_order?: boolean;
+    production_time_days?: number | null;
     discount?: number | null;
     created_at?: string | null;
     updated_at?: string | null;

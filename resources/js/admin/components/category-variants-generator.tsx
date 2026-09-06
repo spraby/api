@@ -37,6 +37,8 @@ const buildDefaultVariant = (category: Category): Variant => {
         price: 0,
         final_price: 0,
         enabled: true,
+        is_made_to_order: false,
+        production_time_days: null,
         values: pickedValues.map(({option, value}) => ({
             uid: uuidv4(),
             option_id: option.id ?? undefined,

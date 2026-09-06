@@ -25,26 +25,14 @@ class VariantService
                 $variant = $product->variants->firstWhere('id', $variantData['id']);
 
                 if ($variant) {
-                    $variant->update([
-                        'title' => $variantData['title'] ?? null,
-                        'price' => $variantData['price'],
-                        'final_price' => $variantData['final_price'],
-                        'enabled' => $variantData['enabled'],
-                        'image_id' => $variantData['image_id'] ?? null,
-                    ]);
+                    $variant->update($this->variantAttributes($variantData));
                     $submittedVariantIds[] = $variantData['id'];
 
                     $this->syncVariantValues($variant, $variantData['values'] ?? []);
                 }
             } else {
                 // Create new variant
-                $variant = $product->variants()->create([
-                    'title' => $variantData['title'] ?? null,
-                    'price' => $variantData['price'],
-                    'final_price' => $variantData['final_price'],
-                    'enabled' => $variantData['enabled'],
-                    'image_id' => $variantData['image_id'] ?? null,
-                ]);
+                $variant = $product->variants()->create($this->variantAttributes($variantData));
                 $submittedVariantIds[] = $variant->id;
 
                 $this->createVariantValues($variant, $variantData['values'] ?? []);
@@ -68,16 +56,52 @@ class VariantService
             // Strip image_index (used by frontend for mapping, not a DB column)
             unset($variantData['image_index']);
 
-            $variant = $product->variants()->create([
-                'title' => $variantData['title'] ?? null,
-                'price' => $variantData['price'],
-                'final_price' => $variantData['final_price'],
-                'enabled' => $variantData['enabled'],
-                'image_id' => $variantData['image_id'] ?? null,
-            ]);
+            $variant = $product->variants()->create($this->variantAttributes($variantData));
 
             $this->createVariantValues($variant, $variantData['values'] ?? []);
         }
+    }
+
+    /**
+     * Единая нормализация полей варианта для создания и обновления.
+     *
+     * Держим её в одном месте: раньше набор атрибутов дублировался в трёх
+     * ветках, и любое новое поле легко было забыть в одной из них.
+     */
+    private function variantAttributes(array $variantData): array
+    {
+        $isMadeToOrder = (bool) ($variantData['is_made_to_order'] ?? false);
+
+        return [
+            'title' => $variantData['title'] ?? null,
+            'price' => $variantData['price'],
+            'final_price' => $variantData['final_price'],
+            'enabled' => $variantData['enabled'],
+            'image_id' => $variantData['image_id'] ?? null,
+            'is_made_to_order' => $isMadeToOrder,
+            'production_time_days' => $this->normalizeProductionTime($variantData, $isMadeToOrder),
+        ];
+    }
+
+    /**
+     * Срок изготовления хранится только у варианта «под заказ».
+     *
+     * Выключенный переключатель гасит срок на сервере, а не только в UI:
+     * иначе в базе оставался бы висеть срок от прошлой настройки варианта.
+     */
+    private function normalizeProductionTime(array $variantData, bool $isMadeToOrder): ?int
+    {
+        if (! $isMadeToOrder) {
+            return null;
+        }
+
+        $days = $variantData['production_time_days'] ?? null;
+
+        if ($days === null || $days === '') {
+            return null;
+        }
+
+        return (int) $days;
     }
 
     /**

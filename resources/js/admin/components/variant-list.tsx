@@ -27,6 +27,8 @@ const createVariant = (combination: CombinationItem[], options: Option[]): Varia
         price: 0,
         final_price: 0,
         enabled: true,
+        is_made_to_order: false,
+        production_time_days: null,
         values: combination.map(c => ({
             uid: uuidv4(),
             option_id: c.optionId,
@@ -122,7 +124,7 @@ export const VariantList = ({variants, images = [], options = [], onChange}: {
             </Alert>
         )}
 
-        <div className="flex flex-col gap-2 md:grid md:grid-cols-[90px_1fr_auto_auto] md:gap-x-4 md:gap-y-2">
+        <div className="flex flex-col gap-2 md:grid md:grid-cols-[90px_auto_1fr_auto_auto] md:gap-x-4 md:gap-y-2">
             {variants.map(variant =>
                 <VariantLine key={variant.uid} variant={variant} images={images} options={options} onChange={onChangeHandle} onDelete={() => onDeleteHandle(variant.uid)} isDuplicate={duplicateUids.has(variant.uid)}/>
             )}

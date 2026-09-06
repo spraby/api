@@ -401,6 +401,11 @@ return [
             'variant_title' => 'Variant Title',
             'variant_enabled' => 'Variant Enabled',
             'variant_image' => 'Variant Image',
+            'made_to_order' => 'Made to order',
+            'production_time' => 'Production time, days',
+        ],
+        'units' => [
+            'days_short' => 'd.',
         ],
         'placeholders' => [
             'title' => 'Enter product title',

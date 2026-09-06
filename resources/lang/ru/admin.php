@@ -401,6 +401,11 @@ return [
             'variant_title' => 'Название варианта',
             'variant_enabled' => 'Вариант активен',
             'variant_image' => 'Изображение варианта',
+            'made_to_order' => 'Под заказ',
+            'production_time' => 'Срок изготовления, дней',
+        ],
+        'units' => [
+            'days_short' => 'дн.',
         ],
         'placeholders' => [
             'title' => 'Введите название товара',
