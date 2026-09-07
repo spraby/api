@@ -880,6 +880,7 @@ return [
             'created_brand' => 'Созданный бренд',
         ],
         'actions' => [
+            'resend_password_setup' => 'Выслать ссылку для пароля',
             'approve' => 'Одобрить',
             'reject' => 'Отклонить',
         ],

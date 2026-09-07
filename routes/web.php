@@ -138,6 +138,10 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::get('/brand-requests/{brandRequest}', [App\Http\Controllers\Admin\BrandRequestController::class, 'show'])->name('brand-requests.show');
         Route::post('/brand-requests/{brandRequest}/approve', [App\Http\Controllers\Admin\BrandRequestController::class, 'approve'])->name('brand-requests.approve');
         Route::post('/brand-requests/{brandRequest}/reject', [App\Http\Controllers\Admin\BrandRequestController::class, 'reject'])->name('brand-requests.reject');
+        // Throttled: each call emails the applicant and burns the previous link.
+        Route::post('/brand-requests/{brandRequest}/resend-password-setup', [App\Http\Controllers\Admin\BrandRequestController::class, 'resendPasswordSetup'])
+            ->middleware('throttle:5,1')
+            ->name('brand-requests.resend-password-setup');
 
         Route::prefix('media')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media');

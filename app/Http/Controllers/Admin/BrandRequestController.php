@@ -114,6 +114,11 @@ class BrandRequestController extends Controller
 
         return Inertia::render('BrandRequestShow', [
             'brandRequest' => $data,
+            // Drives the "resend setup link" button: only meaningful while the
+            // approved user still has no password of their own.
+            'canResendPasswordSetup' => $brandRequest->isApproved()
+                && $brandRequest->user !== null
+                && $brandRequest->user->password === null,
         ]);
     }
 
@@ -175,6 +180,40 @@ class BrandRequestController extends Controller
         $this->notifier->notifyApproved($brandRequest->refresh(), $setPasswordUrl);
 
         return redirect()->back()->with('success', 'Brand request approved successfully.');
+    }
+
+    /**
+     * Re-issue the one-time password-setup link for an approved request and
+     * email it again. The link is single-use and lives 48 hours, and the app
+     * has no self-service password reset — so without this an applicant who
+     * lost the email or came back too late is locked out for good. Issuing a
+     * new token invalidates any earlier unused one.
+     */
+    public function resendPasswordSetup(BrandRequest $brandRequest): RedirectResponse
+    {
+        $this->authorize('update', $brandRequest);
+
+        $user = $brandRequest->user;
+
+        if (! $brandRequest->isApproved() || ! $user) {
+            return redirect()->back()->with('error', 'Ссылку можно выслать только по одобренной заявке.');
+        }
+
+        // An account that already has a password signs in normally; re-issuing
+        // here would hand out a password-change link for a live account.
+        if ($user->password !== null) {
+            return redirect()->back()->with('error', 'У пользователя уже есть пароль — ссылка для установки не нужна.');
+        }
+
+        $this->notifier->notifyPasswordSetupLink(
+            $brandRequest,
+            $this->passwordSetup->generateUrl($user),
+        );
+
+        return redirect()->back()->with(
+            'success',
+            'Письмо со ссылкой отправлено на '.($brandRequest->email ?: $user->email).'.',
+        );
     }
 
     /**

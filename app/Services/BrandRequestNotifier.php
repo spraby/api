@@ -82,11 +82,27 @@ class BrandRequestNotifier
             return;
         }
 
+        $this->notifyPasswordSetupLink($request, $setPasswordUrl);
+    }
+
+    /**
+     * Queue the email carrying a one-time password-setup link. Called from the
+     * approval flow, and again by the admin "resend link" action when the
+     * original link expired or never reached the applicant — there is no
+     * self-service password reset, so this is their only way back in.
+     */
+    public function notifyPasswordSetupLink(BrandRequest $request, string $setPasswordUrl): void
+    {
+        $userEmail = $request->email ?: $request->user?->email;
+        if (! $userEmail) {
+            return;
+        }
+
         $this->queue->enqueue(
             templateKey: 'brand_request_set_password',
             toEmail: $userEmail,
             subject: 'Установите пароль для входа',
-            payload: array_merge($payload, [
+            payload: array_merge($this->payloadFor($request), [
                 'set_password_url' => $setPasswordUrl,
                 'expires_hours' => PasswordSetupService::TTL_HOURS,
             ]),

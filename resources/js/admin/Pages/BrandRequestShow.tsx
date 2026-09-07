@@ -11,6 +11,7 @@ import {
   Loader2Icon,
   MailIcon,
   PhoneIcon,
+  SendIcon,
   UserIcon,
   XCircleIcon,
 } from 'lucide-react';
@@ -77,6 +78,7 @@ interface BrandRequest {
 
 interface BrandRequestShowProps {
   brandRequest: BrandRequest;
+  canResendPasswordSetup: boolean;
 }
 
 // ============================================
@@ -114,12 +116,13 @@ function StatusBadge({ status, t }: { status: string; t: (key: string) => string
 // MAIN COMPONENT
 // ============================================
 
-export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps) {
+export default function BrandRequestShow({ brandRequest, canResendPasswordSetup }: BrandRequestShowProps) {
   const { t } = useLang();
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const handleApprove = () => {
     setIsApproving(true);
@@ -138,6 +141,14 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
         setRejectionReason('');
       },
       onFinish: () => setIsRejecting(false),
+    });
+  };
+
+  const handleResendPasswordSetup = () => {
+    setIsResending(true);
+    router.post(`/admin/brand-requests/${brandRequest.id}/resend-password-setup`, {}, {
+      preserveScroll: true,
+      onFinish: () => setIsResending(false),
     });
   };
 
@@ -224,6 +235,21 @@ export default function BrandRequestShow({ brandRequest }: BrandRequestShowProps
                   {t('admin.brand_request_show.actions.approve')}
                 </Button>
               </div>
+            ) : null}
+
+            {canResendPasswordSetup ? (
+              <Button
+                disabled={isResending}
+                variant="outline"
+                onClick={handleResendPasswordSetup}
+              >
+                {isResending ? (
+                  <Loader2Icon className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <SendIcon className="mr-2 size-4" />
+                )}
+                {t('admin.brand_request_show.actions.resend_password_setup')}
+              </Button>
             ) : null}
           </div>
 

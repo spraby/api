@@ -880,6 +880,7 @@ return [
             'created_brand' => 'Created Brand',
         ],
         'actions' => [
+            'resend_password_setup' => 'Resend password link',
             'approve' => 'Approve',
             'reject' => 'Reject',
         ],
