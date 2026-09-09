@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { getCsrfToken } from '@/lib/api/fetch-client';
 import { useLang } from '@/lib/lang';
 import { cn } from '@/lib/utils';
 
@@ -27,29 +28,6 @@ export interface ImageUploaderProps {
   className?: string;
   onStartLoading?: (images: PreviewImage[]) => void;
   onFinishLoading?: (images: UploadedImage[]) => void;
-}
-
-function getCsrfToken(): { token: string; header: string } | null {
-  // Prefer XSRF-TOKEN cookie (updated with every Laravel response) over meta tag
-  // which can become stale in Inertia SPA navigation
-  const xsrfCookie = document.cookie
-    .split('; ')
-    .find((c) => c.startsWith('XSRF-TOKEN='));
-
-  if (xsrfCookie) {
-    return {
-      token: decodeURIComponent(xsrfCookie.split('=')[1]),
-      header: 'X-XSRF-TOKEN',
-    };
-  }
-
-  const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-  if (metaToken) {
-    return { token: metaToken, header: 'X-CSRF-TOKEN' };
-  }
-
-  return null;
 }
 
 function formatBytes(bytes: number): string {

@@ -30,15 +30,83 @@ interface FetchRequestConfig {
   headers?: Record<string, string>;
 }
 
+export interface CsrfToken {
+  token: string;
+  header: string;
+}
+
+// ============================================
+// STATE
+// ============================================
+
+/** Delay before reloading the page after an expired session (ms) */
+const SESSION_RELOAD_DELAY = 2000;
+
+/** Ensures a single reload when several requests fail with 419 at once */
+let sessionExpiredHandled = false;
+
 // ============================================
 // HELPERS
 // ============================================
 
 /**
- * Get CSRF token from meta tag (set by Laravel)
+ * Get CSRF token for the current session.
+ *
+ * Prefers the XSRF-TOKEN cookie: Laravel refreshes it with every response, so it
+ * stays in sync while the SPA is running. The meta tag is only rendered on a full
+ * page load and goes stale as soon as the session is regenerated (re-login in
+ * another tab) or expires, which produces a 419 "CSRF token mismatch".
  */
-function getCsrfToken(): string | null {
-  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? null;
+export function getCsrfToken(): CsrfToken | null {
+  const cookiePrefix = 'XSRF-TOKEN=';
+  const xsrfCookie = document.cookie
+    .split('; ')
+    .find((c) => c.startsWith(cookiePrefix));
+
+  if (xsrfCookie) {
+    return {
+      token: decodeURIComponent(xsrfCookie.slice(cookiePrefix.length)),
+      header: 'X-XSRF-TOKEN',
+    };
+  }
+
+  const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+  if (metaToken) {
+    return { token: metaToken, header: 'X-CSRF-TOKEN' };
+  }
+
+  return null;
+}
+
+/**
+ * Message for an expired session / stale CSRF token.
+ *
+ * This module is used outside of React, so Inertia's `lang` props are not
+ * available here — fall back to the document locale.
+ */
+function sessionExpiredMessage(): string {
+  const locale = document.documentElement.lang.toLowerCase();
+
+  return locale.startsWith('ru')
+    ? 'Сессия истекла. Страница будет перезагружена, повторите действие.'
+    : 'Your session has expired. The page will reload, please try again.';
+}
+
+/**
+ * Recover from an expired session: a full page load issues a fresh CSRF token,
+ * and if the session is really gone Laravel redirects to the login page itself.
+ * Guarded so parallel requests schedule only one reload.
+ */
+function handleSessionExpired(): void {
+  if (sessionExpiredHandled) {
+    return;
+  }
+
+  sessionExpiredHandled = true;
+
+  // Delay so the toast is readable before the page goes away
+  window.setTimeout(() => { window.location.reload(); }, SESSION_RELOAD_DELAY);
 }
 
 /**
@@ -89,6 +157,9 @@ async function handleFetchError(response: Response): Promise<never> {
       case 404:
         apiError.message = 'Resource not found.';
         break;
+      case 419:
+        apiError.message = sessionExpiredMessage();
+        break;
       case 422:
         apiError.message = data?.message ?? 'Validation failed.';
         break;
@@ -98,7 +169,13 @@ async function handleFetchError(response: Response): Promise<never> {
     }
   } catch {
     // If response is not JSON, use status text
-    apiError.message = response.statusText ?? 'An error occurred';
+    apiError.message = response.status === 419
+      ? sessionExpiredMessage()
+      : (response.statusText ?? 'An error occurred');
+  }
+
+  if (response.status === 419) {
+    handleSessionExpired();
   }
 
   const error = new Error(apiError.message);
@@ -126,7 +203,7 @@ async function makeFetchRequest<T>(
 
   // Add CSRF token if available
   if (csrfToken) {
-    headers.set('X-CSRF-TOKEN', csrfToken);
+    headers.set(csrfToken.header, csrfToken.token);
   }
 
   const response = await fetch(url, {
