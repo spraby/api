@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Brand;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateBrandRequest extends FormRequest
 {
@@ -22,6 +24,7 @@ class UpdateBrandRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'employment_type' => ['nullable', Rule::in(array_keys(Brand::EMPLOYMENT_TYPES))],
             'category_ids' => ['present', 'array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
         ];

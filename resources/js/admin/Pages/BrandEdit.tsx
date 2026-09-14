@@ -1,13 +1,21 @@
 import {type FormEventHandler} from 'react';
 
 import {router, useForm, usePage} from '@inertiajs/react';
-import {ArrowLeftIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
+import {ArrowLeftIcon, BriefcaseIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
 
 import {BrandFormFields} from "@/components/brand-form.tsx";
 import {CategoryPicker} from "@/components/category-picker.tsx";
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {useLang} from '@/lib/lang';
+import type {EmploymentTypeOption} from '@/types/api';
 import type {PageProps} from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -16,6 +24,7 @@ interface BrandData {
     id: number;
     name: string;
     description: string | null;
+    employment_type: string | null;
     user_id: number | null;
     user: {
         id: number;
@@ -30,21 +39,26 @@ interface BrandData {
 
 interface BrandEditProps {
     brand: BrandData;
+    employmentTypes: EmploymentTypeOption[];
 }
 
 interface BrandEditFormData {
     name: string;
     description: string | null;
+    employment_type: string | null;
     category_ids: number[];
 }
 
-export default function BrandEdit({brand}: BrandEditProps) {
+const EMPLOYMENT_TYPE_NONE = '__none__';
+
+export default function BrandEdit({brand, employmentTypes}: BrandEditProps) {
     const {t} = useLang();
     const {auth} = usePage<PageProps>().props;
 
     const {data, setData, errors, put, processing} = useForm<BrandEditFormData>({
         name: brand.name,
         description: brand.description,
+        employment_type: brand.employment_type,
         category_ids: brand.category_ids,
     });
 
@@ -128,6 +142,46 @@ export default function BrandEdit({brand}: BrandEditProps) {
                             errors={errors}
                             onChange={(field, value) => setData(field, value)}
                         />
+
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <BriefcaseIcon className="size-4"/>
+                                    {t('admin.brands_edit.fields.employment_type')}
+                                </CardTitle>
+                                <CardDescription>
+                                    {t('admin.brands_edit.employment_type_description')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Select
+                                    value={data.employment_type ?? EMPLOYMENT_TYPE_NONE}
+                                    onValueChange={(value) => setData(
+                                        'employment_type',
+                                        value === EMPLOYMENT_TYPE_NONE ? null : value,
+                                    )}
+                                >
+                                    <SelectTrigger className="w-full sm:max-w-sm">
+                                        <SelectValue
+                                            placeholder={t('admin.brands_edit.fields.employment_type_unknown')}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={EMPLOYMENT_TYPE_NONE}>
+                                            {t('admin.brands_edit.fields.employment_type_none')}
+                                        </SelectItem>
+                                        {employmentTypes.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {!!errors.employment_type && (
+                                    <p className="mt-2 text-xs text-destructive">{errors.employment_type}</p>
+                                )}
+                            </CardContent>
+                        </Card>
 
                         <CategoryPicker
                             selectedIds={data.category_ids}

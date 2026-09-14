@@ -269,6 +269,12 @@ export interface BrandImage {
   url: string;
 }
 
+/** Форма занятости бренда: значение для БД + готовое название из Brand::EMPLOYMENT_TYPES. */
+export interface EmploymentTypeOption {
+  value: string;
+  label: string;
+}
+
 // ============================================
 // CONTACT TYPES
 // ============================================

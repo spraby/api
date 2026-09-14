@@ -869,6 +869,7 @@ return [
             'phone' => 'Телефон',
             'name' => 'Контактное имя',
             'brand_name' => 'Запрашиваемое название бренда',
+            'employment_type' => 'Форма занятости',
             'status' => 'Статус',
             'created_at' => 'Дата создания',
             'updated_at' => 'Дата обновления',
@@ -1066,7 +1067,11 @@ return [
         'fields' => [
             'name' => 'Название',
             'description' => 'Описание',
+            'employment_type' => 'Форма занятости',
+            'employment_type_none' => 'Не указана',
+            'employment_type_unknown' => 'Неизвестное значение',
         ],
+        'employment_type_description' => 'Как продавец оформлен юридически. Поле необязательное и меняется только администратором.',
         'placeholders' => [
             'name' => 'Введите название бренда',
             'description' => 'Введите описание бренда...',

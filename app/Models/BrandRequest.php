@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $phone
  * @property string|null $name
  * @property string|null $brand_name
+ * @property string|null $employment_type
  * @property string $status
  * @property int|null $brand_id
  * @property int|null $user_id
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon|null $notified_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read string|null $employment_type_label
  * @property-read Brand|null $brand
  * @property-read User|null $user
  * @property-read User|null $reviewer
@@ -56,6 +58,7 @@ class BrandRequest extends Model
         'phone',
         'name',
         'brand_name',
+        'employment_type',
         'status',
         'brand_id',
         'user_id',
@@ -87,6 +90,15 @@ class BrandRequest extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Названия форм занятости живут в Brand::EMPLOYMENT_TYPES — заявка лишь
+     * доносит выбранное значение до создаваемого бренда.
+     */
+    public function getEmploymentTypeLabelAttribute(): ?string
+    {
+        return Brand::employmentTypeLabel($this->employment_type);
     }
 
     public function isPending(): bool

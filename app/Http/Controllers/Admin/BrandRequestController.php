@@ -37,6 +37,8 @@ class BrandRequestController extends Controller
                     'phone' => $request->phone,
                     'name' => $request->name,
                     'brand_name' => $request->brand_name,
+                    'employment_type' => $request->employment_type,
+                    'employment_type_label' => $request->employment_type_label,
                     'status' => $request->status,
                     'brand_id' => $request->brand_id,
                     'user_id' => $request->user_id,
@@ -85,6 +87,8 @@ class BrandRequestController extends Controller
             'phone' => $brandRequest->phone,
             'name' => $brandRequest->name,
             'brand_name' => $brandRequest->brand_name,
+            'employment_type' => $brandRequest->employment_type,
+            'employment_type_label' => $brandRequest->employment_type_label,
             'status' => $brandRequest->status,
             'brand_id' => $brandRequest->brand_id,
             'user_id' => $brandRequest->user_id,
@@ -154,10 +158,17 @@ class BrandRequestController extends Controller
 
             // Reuse the user's existing brand if any, to avoid duplicates when
             // approving for a pre-existing account.
-            $brand = $user->brands()->first() ?? Brand::create([
-                'user_id' => $user->id,
-                'name' => $brandRequest->brand_name ?? $brandRequest->email,
-            ]);
+            $brand = $user->brands()->first();
+
+            if (! $brand) {
+                $brand = Brand::create([
+                    'user_id' => $user->id,
+                    'name' => $brandRequest->brand_name ?? $brandRequest->email,
+                    'employment_type' => $brandRequest->employment_type,
+                ]);
+            } elseif ($brandRequest->employment_type !== null) {
+                $brand->update(['employment_type' => $brandRequest->employment_type]);
+            }
 
             // Update brand request
             $brandRequest->update([

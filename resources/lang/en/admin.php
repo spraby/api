@@ -869,6 +869,7 @@ return [
             'phone' => 'Phone',
             'name' => 'Contact Name',
             'brand_name' => 'Requested Brand Name',
+            'employment_type' => 'Employment type',
             'status' => 'Status',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
@@ -1066,7 +1067,11 @@ return [
         'fields' => [
             'name' => 'Name',
             'description' => 'Description',
+            'employment_type' => 'Employment type',
+            'employment_type_none' => 'Not specified',
+            'employment_type_unknown' => 'Unknown value',
         ],
+        'employment_type_description' => 'How the seller is registered legally. Optional, and editable by admins only.',
         'placeholders' => [
             'name' => 'Enter brand name',
             'description' => 'Enter brand description...',

@@ -17,11 +17,13 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property string|null $user_id
  * @property string|null $image_id
  * @property string $name
+ * @property string|null $employment_type
  * @property string|null $description
  * @property string|null $about
  * @property string|null $refund_policy
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read string|null $employment_type_label
  * @property-read User|null $user
  * @property-read Image|null $image
  * @property-read Collection<Product> $products
@@ -40,10 +42,19 @@ class Brand extends Model
 {
     use HasFactory;
 
+    public const EMPLOYMENT_TYPES = [
+        'craftsman' => 'Ремесленник',
+        'self_employed' => 'Самозанятый',
+        'sole_proprietor' => 'ИП',
+        'private_unitary_enterprise' => 'ЧУП',
+        'llc' => 'ООО',
+    ];
+
     protected $fillable = [
         'user_id',
         'image_id',
         'name',
+        'employment_type',
         'description',
         'about',
         'refund_policy',
@@ -66,6 +77,34 @@ class Brand extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Название формы занятости, либо null — поле необязательное, а незнакомое
+     * значение (например, оставшееся от удалённого типа) названием не считаем.
+     */
+    public static function employmentTypeLabel(?string $type): ?string
+    {
+        return self::EMPLOYMENT_TYPES[$type] ?? null;
+    }
+
+    /**
+     * Список для селектов: [['value' => ..., 'label' => ...], ...].
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public static function employmentTypeOptions(): array
+    {
+        return array_map(
+            fn (string $value, string $label) => ['value' => $value, 'label' => $label],
+            array_keys(self::EMPLOYMENT_TYPES),
+            array_values(self::EMPLOYMENT_TYPES),
+        );
+    }
+
+    public function getEmploymentTypeLabelAttribute(): ?string
+    {
+        return self::employmentTypeLabel($this->employment_type);
     }
 
     public function image(): BelongsTo

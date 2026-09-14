@@ -95,6 +95,7 @@ class BrandController extends Controller
                 'id' => $brand->id,
                 'name' => $brand->name,
                 'description' => $brand->description,
+                'employment_type' => $brand->employment_type,
                 'user_id' => $brand->user_id,
                 'user' => $brand->user ? [
                     'id' => $brand->user->id,
@@ -112,6 +113,7 @@ class BrandController extends Controller
                 'created_at' => $brand->created_at->toISOString(),
                 'updated_at' => $brand->updated_at->toISOString(),
             ],
+            'employmentTypes' => Brand::employmentTypeOptions(),
         ]);
     }
 
@@ -126,6 +128,7 @@ class BrandController extends Controller
             $brand->update([
                 'name' => $request->input('name'),
                 'description' => $request->input('description'),
+                'employment_type' => $request->input('employment_type'),
             ]);
 
             $brand->categories()->sync($request->input('category_ids', []));
