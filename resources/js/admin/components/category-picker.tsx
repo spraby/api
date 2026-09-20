@@ -111,7 +111,10 @@ export function CategoryPicker({
         />
       )}
 
-      <div className="max-h-[240px] overflow-y-auto flex flex-col gap-1">
+      {/* relative обязателен: скрытые input'ы чекбоксов позиционированы
+          абсолютно и без своего контейнера вылезают из прокрутки,
+          растягивая страницу пустотой. */}
+      <div className="relative max-h-[240px] overflow-y-auto flex flex-col gap-1">
         {filtered.map((c) => {
           const checked = selectedIds.includes(c.id);
 

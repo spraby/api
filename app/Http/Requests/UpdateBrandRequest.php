@@ -42,6 +42,7 @@ class UpdateBrandRequest extends FormRequest
             'domain' => UpdateBrandDomainRequest::domainRules($this->route('brand')),
             'description' => ['nullable', 'string'],
             'employment_type' => ['nullable', Rule::in(array_keys(Brand::EMPLOYMENT_TYPES))],
+            'type' => ['nullable', Rule::in(Brand::TYPES)],
             'category_ids' => ['present', 'array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
         ];

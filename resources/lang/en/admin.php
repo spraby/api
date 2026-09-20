@@ -1015,7 +1015,13 @@ return [
     ],
 
     'brands_table' => [
+        'types' => [
+            'master' => 'Master',
+            'business' => 'Business',
+        ],
         'columns' => [
+            'type' => 'Type',
+            'logo' => 'Logo',
             'id' => 'ID',
             'name' => 'Name',
             'owner' => 'Owner',
@@ -1064,6 +1070,10 @@ return [
     ],
 
     'brands_edit' => [
+        'account_type' => [
+            'title' => 'Account type',
+            'description' => 'Master is an individual seller, business is a company. Managed by administrators only.',
+        ],
         'page' => [
             'title' => 'Brand page',
             'description' => 'Visibility of the brand page on the storefront. Managed by administrators only.',

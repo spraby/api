@@ -1,10 +1,20 @@
 import * as React from "react"
 
-import {router, usePage} from '@inertiajs/react';
-import {MoreVerticalIcon, PlusIcon, Trash2Icon, UserCheckIcon} from "lucide-react"
+import {Link, router, usePage} from '@inertiajs/react';
+import {
+    ArrowDownIcon,
+    ArrowUpDownIcon,
+    ArrowUpIcon,
+    MoreVerticalIcon,
+    PlusIcon,
+    Trash2Icon,
+    UserCheckIcon,
+} from "lucide-react"
 import {toast} from "sonner"
 
+import {MediaThumbnail} from '@/components/media-thumbnail';
 import {ResourceList} from '@/components/resource-list';
+import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
 import {Checkbox} from "@/components/ui/checkbox"
 import {
@@ -15,12 +25,13 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {useLang} from '@/lib/lang';
+import {cn} from '@/lib/utils';
 import type {PageProps} from '@/types/inertia';
 import type {BulkAction, Filter, ResourceListTranslations} from '@/types/resource-list';
 
 import AdminLayout from '../layouts/AdminLayout.tsx';
 
-import type {ColumnDef} from "@tanstack/react-table"
+import type {Column, ColumnDef} from "@tanstack/react-table"
 
 // ============================================
 // TYPES
@@ -30,10 +41,14 @@ interface Brand {
   id: number;
   name: string;
   description: string | null;
+  logo_url: string | null;
+  type: string;
+  admin_url: string;
   user: {
     id: number;
     name: string;
     email: string;
+    admin_url: string;
   } | null;
   products_count: number;
   created_at: string;
@@ -42,6 +57,47 @@ interface Brand {
 // ============================================
 // COLUMN DEFINITIONS
 // ============================================
+
+/** Тип бренда: мастер — частный продавец, бизнес — компания со своей страницей. */
+function BrandTypeBadge({type, t}: {type: string; t: (key: string) => string}) {
+  const label = t(`admin.brands_table.types.${type}`)
+  const isBusiness = type === 'business'
+
+  return (
+    <Badge
+      className={cn(
+        'shrink-0',
+        isBusiness
+          ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+          : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+      )}
+      variant="outline"
+    >
+      {label.startsWith('admin.') ? type : label}
+    </Badge>
+  )
+}
+
+/** Заголовок-кнопка: клик переключает направление сортировки колонки. */
+function SortableHeader({column, label}: {column: Column<Brand, unknown>; label: string}) {
+  const sorted = column.getIsSorted()
+  const SORT_ICONS = {asc: ArrowUpIcon, desc: ArrowDownIcon} as const
+  const Icon = sorted ? SORT_ICONS[sorted] : ArrowUpDownIcon
+
+  return (
+    <Button
+      className="-ml-2 h-8 px-2 text-xs font-medium text-muted-foreground hover:text-foreground data-[sorted=true]:text-foreground"
+      data-sorted={!!sorted}
+      size="sm"
+      type="button"
+      variant="ghost"
+      onClick={() => { column.toggleSorting(sorted === "asc") }}
+    >
+      {label}
+      <Icon className="ml-1 size-3"/>
+    </Button>
+  )
+}
 
 const createBrandColumns = (
     t: (key: string) => string,
@@ -77,13 +133,23 @@ const createBrandColumns = (
     enableHiding: false,
   },
   {
-    accessorKey: "id",
-    header: t('admin.brands_table.columns.id'),
-    cell: ({ row }) => (
-      <div className="w-16 font-medium text-muted-foreground">
-        #{row.getValue("id")}
-      </div>
-    ),
+    id: "logo",
+    header: t('admin.brands_table.columns.logo'),
+    cell: ({ row }) => {
+      const brand = row.original
+
+      return (
+        <Link className="inline-flex" href={brand.admin_url} title={brand.name}>
+          <MediaThumbnail
+            className="size-10 rounded-md"
+            name={brand.name}
+            url={brand.logo_url}
+          />
+        </Link>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "name",
@@ -93,7 +159,9 @@ const createBrandColumns = (
 
       return (
         <div className="flex flex-col">
-          <span className="font-medium">{brand.name}</span>
+          <Link className="font-medium text-primary hover:underline" href={brand.admin_url}>
+            {brand.name}
+          </Link>
           {!!brand.description && (
             <span className="text-sm text-muted-foreground line-clamp-1">
               {brand.description}
@@ -111,6 +179,18 @@ const createBrandColumns = (
     },
     enableHiding: false,
   },
+  {
+    accessorKey: "type",
+    header: t('admin.brands_table.columns.type'),
+    cell: ({ row }) => <BrandTypeBadge t={t} type={row.original.type}/>,
+    filterFn: (row, id, value) => {
+      if (value === "all" || !value) {
+        return true
+      }
+
+      return row.getValue(id) === value
+    },
+  },
     {
         accessorKey: "user",
         header: t('admin.brands_table.columns.owner'),
@@ -120,17 +200,10 @@ const createBrandColumns = (
             return (
                 <div className="text-sm">
                     {brand.user ? (
-                        <a
-                            className="flex flex-col hover:underline cursor-pointer"
-                            href={`/admin/users/${brand.user.id}/edit`}
-                            onClick={(e) => {
-                                e.preventDefault()
-                                router.visit(e.currentTarget.href)
-                            }}
-                        >
-                            <span className="font-medium text-primary">{brand.user.name}</span>
+                        <Link className="flex flex-col hover:underline" href={brand.user.admin_url}>
+                            <span className="font-medium text-primary">{brand.user.name || brand.user.email}</span>
                             <span className="text-muted-foreground">{brand.user.email}</span>
-                        </a>
+                        </Link>
                     ) : (
                         <span className="text-muted-foreground">—</span>
                     )}
@@ -140,7 +213,9 @@ const createBrandColumns = (
     },
   {
     accessorKey: "products_count",
-    header: t('admin.brands_table.columns.products'),
+    header: ({ column }) => (
+      <SortableHeader column={column} label={t('admin.brands_table.columns.products')}/>
+    ),
     cell: ({ row }) => (
       <div className="text-sm">
         {row.getValue("products_count")}
@@ -149,7 +224,9 @@ const createBrandColumns = (
   },
   {
     accessorKey: "created_at",
-    header: t('admin.brands_table.columns.created'),
+    header: ({ column }) => (
+      <SortableHeader column={column} label={t('admin.brands_table.columns.created')}/>
+    ),
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"))
 
@@ -370,6 +447,7 @@ export default function Brands() {
           filters={filters}
           getRowId={(row) => row.id.toString()}
           translations={translations}
+          onRowClick={(brand) => { router.visit(brand.admin_url) }}
         />
       </div>
     </AdminLayout>

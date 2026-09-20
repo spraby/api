@@ -1,3 +1,4 @@
+import {MediaThumbnail} from '@/components/media-thumbnail';
 import {Card} from "@/components/ui/card.tsx";
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -9,13 +10,17 @@ interface BrandFormFieldsProps {
     description: string | null;
     errors: Partial<Record<'name' | 'description', string>>;
     onChange: (field: 'name' | 'description', value: string) => void;
+    /** Логотип бренда: только просмотр, загружает его продавец в настройках. */
+    logoUrl?: string | null;
+    /** Показывать ли блок логотипа (на создании бренда его ещё нет). */
+    withLogo?: boolean;
 }
 
-export function BrandFormFields({name, description, errors, onChange}: BrandFormFieldsProps) {
+export function BrandFormFields({name, description, errors, onChange, logoUrl, withLogo = false}: BrandFormFieldsProps) {
     const {t} = useLang();
 
-    return (
-        <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
+    const fields = (
+        <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-5">
             <div className="gap-2 flex flex-col">
                 <Label className="flex items-center gap-1" htmlFor="name">
                     {t('admin.brands_edit.fields.name')}
@@ -47,6 +52,25 @@ export function BrandFormFields({name, description, errors, onChange}: BrandForm
                 />
                 {!!errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
             </div>
+        </div>
+    );
+
+    if (!withLogo) {
+        return (
+            <Card className="flex flex-col gap-4 md:gap-5 p-4 sm:p-6">
+                {fields}
+            </Card>
+        );
+    }
+
+    return (
+        <Card className="flex flex-col gap-4 p-4 sm:flex-row sm:items-stretch sm:gap-5 sm:p-6">
+            {fields}
+            <MediaThumbnail
+                className="size-28 shrink-0 self-center sm:size-40 sm:self-start"
+                name={name}
+                url={logoUrl}
+            />
         </Card>
     );
 }

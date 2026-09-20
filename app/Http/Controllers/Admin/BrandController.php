@@ -24,20 +24,27 @@ class BrandController extends Controller
     {
         $this->authorize('viewAny', Brand::class);
 
-        $brands = Brand::with('user')
+        // withCount вместо ->products()->count() в цикле: иначе запрос на каждый бренд.
+        $brands = Brand::with(['user', 'image'])
+            ->withCount('products')
             ->orderBy('created_at', 'desc')
+            ->orderByDesc('id')
             ->get()
-            ->map(function ($brand) {
+            ->map(function (Brand $brand) {
                 return [
                     'id' => $brand->id,
                     'name' => $brand->name,
                     'description' => $brand->description,
+                    'type' => $brand->type,
+                    'logo_url' => $brand->image?->url,
+                    'admin_url' => '/admin/brands/'.$brand->id.'/edit',
                     'user' => $brand->user ? [
                         'id' => $brand->user->id,
-                        'name' => $brand->user->first_name.' '.$brand->user->last_name,
+                        'name' => trim($brand->user->first_name.' '.$brand->user->last_name),
                         'email' => $brand->user->email,
+                        'admin_url' => '/admin/users/'.$brand->user->id.'/edit',
                     ] : null,
-                    'products_count' => $brand->products()->count(),
+                    'products_count' => $brand->products_count,
                     'created_at' => $brand->created_at->toISOString(),
                 ];
             });
@@ -89,7 +96,7 @@ class BrandController extends Controller
     {
         $this->authorize('view', Brand::class);
 
-        $brand->load(['user', 'shippingMethods.methodConstructor']);
+        $brand->load(['user', 'image', 'shippingMethods.methodConstructor']);
 
         return Inertia::render('BrandEdit', [
             'brand' => [
@@ -97,6 +104,8 @@ class BrandController extends Controller
                 'name' => $brand->name,
                 'description' => $brand->description,
                 'employment_type' => $brand->employment_type,
+                'type' => $brand->type,
+                'logo_url' => $brand->image?->url,
                 'domain' => $brand->domain,
                 'suggested_domain' => $brand->domain ?: $brand->suggestedDomain(),
                 'page_status' => $brand->page_status,
@@ -124,6 +133,8 @@ class BrandController extends Controller
             'employmentTypes' => Brand::employmentTypeOptions(),
             'canEditDomain' => auth()->user()?->can('updateDomain', Brand::class) ?? false,
             'canPublishPage' => auth()->user()?->can('publishPage', Brand::class) ?? false,
+            'canEditType' => auth()->user()?->can('updateType', Brand::class) ?? false,
+            'brandTypes' => Brand::TYPES,
         ]);
     }
 
@@ -145,6 +156,11 @@ class BrandController extends Controller
             // и присланное значение игнорируем.
             if ($request->user()->can('updateDomain', Brand::class)) {
                 $attributes['domain'] = $request->input('domain');
+            }
+
+            // Тип аккаунта — тоже решение площадки, не продавца.
+            if ($request->user()->can('updateType', Brand::class) && $request->filled('type')) {
+                $attributes['type'] = $request->input('type');
             }
 
             $brand->update($attributes);

@@ -1,7 +1,7 @@
 import {type FormEventHandler} from 'react';
 
 import {router, useForm, usePage} from '@inertiajs/react';
-import {ArrowLeftIcon, BriefcaseIcon, GlobeIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
+import {ArrowLeftIcon, BriefcaseIcon, GlobeIcon, StoreIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
 
 import BrandPageVisibility from '@/components/brand/BrandPageVisibility';
 import {BrandFormFields} from "@/components/brand-form.tsx";
@@ -28,6 +28,8 @@ interface BrandData {
     name: string;
     description: string | null;
     employment_type: string | null;
+    type: string;
+    logo_url: string | null;
     domain: string | null;
     suggested_domain: string;
     page_status: string;
@@ -50,19 +52,29 @@ interface BrandEditProps {
     employmentTypes: EmploymentTypeOption[];
     canEditDomain: boolean;
     canPublishPage: boolean;
+    canEditType: boolean;
+    brandTypes: string[];
 }
 
 interface BrandEditFormData {
     name: string;
     description: string | null;
     employment_type: string | null;
+    type: string;
     domain: string | null;
     category_ids: number[];
 }
 
 const EMPLOYMENT_TYPE_NONE = '__none__';
 
-export default function BrandEdit({brand, employmentTypes, canEditDomain, canPublishPage}: BrandEditProps) {
+export default function BrandEdit({
+    brand,
+    employmentTypes,
+    canEditDomain,
+    canPublishPage,
+    canEditType,
+    brandTypes,
+}: BrandEditProps) {
     const {t} = useLang();
     const {auth} = usePage<PageProps>().props;
 
@@ -70,6 +82,7 @@ export default function BrandEdit({brand, employmentTypes, canEditDomain, canPub
         name: brand.name,
         description: brand.description,
         employment_type: brand.employment_type,
+        type: brand.type,
         domain: brand.domain,
         category_ids: brand.category_ids,
     });
@@ -123,39 +136,87 @@ export default function BrandEdit({brand, employmentTypes, canEditDomain, canPub
                         ) : null}
                     </div>
 
-                    {brand.user ? (
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base flex items-center gap-2">
-                                    <UserIcon className="size-4"/>
-                                    {t('admin.brands_table.columns.owner')}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <a
-                                    className="flex flex-col hover:underline cursor-pointer"
-                                    href={`/admin/users/${brand.user.id}/edit`}
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        router.visit(e.currentTarget.href)
-                                    }}
-                                >
-                                    <span className="font-medium text-primary">{brand.user.name}</span>
-                                    <span className="text-sm text-muted-foreground">{brand.user.email}</span>
-                                </a>
-                            </CardContent>
-                        </Card>
-                    ) : null}
-
-                    <BrandPageVisibility
-                        brandId={brand.id}
-                        canPublish={canPublishPage}
-                        pagePublishedAt={brand.page_published_at}
-                        pageStatus={brand.page_status}
-                        pageUrl={brand.page_url}
-                    />
-
                     <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
+                        <BrandFormFields
+                            withLogo
+                            name={data.name}
+                            description={data.description}
+                            errors={errors}
+                            logoUrl={brand.logo_url}
+                            onChange={(field, value) => setData(field, value)}
+                        />
+
+                        <CategoryPicker
+                            selectedIds={data.category_ids}
+                            onChange={(ids) => setData('category_ids', ids)}
+                        />
+
+                        {brand.user ? (
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base flex items-center gap-2">
+                                        <UserIcon className="size-4"/>
+                                        {t('admin.brands_table.columns.owner')}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <a
+                                        className="flex flex-col hover:underline cursor-pointer"
+                                        href={`/admin/users/${brand.user.id}/edit`}
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            router.visit(e.currentTarget.href)
+                                        }}
+                                    >
+                                        <span className="font-medium text-primary">{brand.user.name}</span>
+                                        <span className="text-sm text-muted-foreground">{brand.user.email}</span>
+                                    </a>
+                                </CardContent>
+                            </Card>
+                        ) : null}
+
+                        <BrandPageVisibility
+                            brandId={brand.id}
+                            canPublish={canPublishPage}
+                            pagePublishedAt={brand.page_published_at}
+                            pageStatus={brand.page_status}
+                            pageUrl={brand.page_url}
+                        />
+
+                        {canEditType ? (
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base flex items-center gap-2">
+                                        <StoreIcon className="size-4"/>
+                                        {t('admin.brands_edit.account_type.title')}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {t('admin.brands_edit.account_type.description')}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-2">
+                                    <Select
+                                        value={data.type}
+                                        onValueChange={(value) => setData('type', value)}
+                                    >
+                                        <SelectTrigger className="w-full sm:max-w-sm">
+                                            <SelectValue/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {brandTypes.map((type) => (
+                                                <SelectItem key={type} value={type}>
+                                                    {t(`admin.brands_table.types.${type}`)}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.type ? (
+                                        <p className="text-sm text-destructive">{errors.type}</p>
+                                    ) : null}
+                                </CardContent>
+                            </Card>
+                        ) : null}
+
                         {canEditDomain ? (
                             <Card>
                                 <CardHeader className="pb-3">
@@ -189,12 +250,6 @@ export default function BrandEdit({brand, employmentTypes, canEditDomain, canPub
                             </Card>
                         ) : null}
 
-                        <BrandFormFields
-                            name={data.name}
-                            description={data.description}
-                            errors={errors}
-                            onChange={(field, value) => setData(field, value)}
-                        />
 
                         <Card>
                             <CardHeader className="pb-3">
@@ -236,10 +291,6 @@ export default function BrandEdit({brand, employmentTypes, canEditDomain, canPub
                             </CardContent>
                         </Card>
 
-                        <CategoryPicker
-                            selectedIds={data.category_ids}
-                            onChange={(ids) => setData('category_ids', ids)}
-                        />
 
                         <Card>
                             <CardHeader className="pb-3">
