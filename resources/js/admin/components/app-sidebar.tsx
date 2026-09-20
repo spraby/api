@@ -13,9 +13,9 @@ import {
     LayoutDashboardIcon,
     MailIcon,
     ListTreeIcon,
-    MailQuestionIcon,
     PackageIcon,
     SettingsIcon,
+    ShieldCheckIcon,
     ShoppingCartIcon,
     SlidersHorizontalIcon,
     StoreIcon,
@@ -23,7 +23,7 @@ import {
     UserIcon,
 } from "lucide-react"
 
-import {NavMain} from "@/components/nav-main"
+import {NavMain, type NavItem} from "@/components/nav-main"
 import {NavSecondary} from "@/components/nav-secondary"
 import {NavUser} from "@/components/nav-user"
 import type {OnboardingState} from '@/components/onboarding/types';
@@ -155,7 +155,20 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
         }
     }
 
-    const navMain = [
+    // Вложенные разделы «Модерации»: каждый под своим правом,
+    // группа не показывается, если не доступен ни один из них.
+    const moderationItems = [
+        ...(can(user, Permission.READ_CATEGORY_REQUESTS) && can(user, Permission.WRITE_CATEGORIES) ? [{
+            title: t('admin.nav.category_requests'),
+            url: "/admin/category-requests",
+        }] : []),
+        ...(can(user, Permission.READ_MODERATION_REQUESTS) ? [{
+            title: t('admin.nav.brand_page_requests'),
+            url: "/admin/moderation",
+        }] : []),
+    ]
+
+    const navMain: NavItem[] = [
         {
             title: t('admin.nav.dashboard'),
             url: "/admin/dashboard",
@@ -241,11 +254,11 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
                         : undefined,
                 ),
         }] : []),
-        // Category Requests — админ
-        ...(can(user, Permission.READ_CATEGORY_REQUESTS) && can(user, Permission.WRITE_CATEGORIES) ? [{
-            title: t('admin.nav.category_requests'),
-            url: "/admin/category-requests",
-            icon: MailQuestionIcon,
+        // Модерация — админ: группа с вложенными разделами
+        ...(moderationItems.length > 0 ? [{
+            title: t('admin.nav.moderation'),
+            icon: ShieldCheckIcon,
+            items: moderationItems,
         }] : []),
         // Emails — админ
         ...(can(user, Permission.READ_EMAILS) ? [{

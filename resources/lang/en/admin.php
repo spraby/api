@@ -17,6 +17,8 @@ return [
         'emails' => 'Emails',
         'my_categories' => 'My Categories',
         'category_requests' => 'Category Requests',
+        'moderation' => 'Moderation',
+        'brand_page_requests' => 'Brand page requests',
     ],
 
     'user' => [
@@ -1707,5 +1709,53 @@ return [
             'go_last' => 'Go to last page',
         ],
         'empty' => 'No category requests found.',
+    ],
+
+    'moderation' => [
+        'title' => 'Brand requests',
+        'description' => 'Requests from brands awaiting review: brand page publication and other changes.',
+        'columns' => [
+            'id' => 'ID',
+            'source' => 'Brand',
+            'type' => 'Type',
+            'status' => 'Status',
+            'reviewer' => 'Reviewed by',
+            'created' => 'Created',
+        ],
+        'types' => [
+            'brand_page' => 'Brand page',
+        ],
+        'statuses' => [
+            'pending' => 'Pending',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+        ],
+        'actions' => [
+            'open_source' => 'Open brand',
+            'open_menu' => 'Open menu',
+        ],
+        'source_deleted' => 'Brand deleted',
+        'filters' => [
+            'all_statuses' => 'All statuses',
+            'all_types' => 'All types',
+            'search_placeholder' => 'Search by brand...',
+            'columns' => 'Columns',
+        ],
+        'bulk' => [
+            'selected' => 'selected',
+            'clear_selection' => 'Clear selection',
+        ],
+        'pagination' => [
+            'rows_selected' => 'of',
+            'row' => 'rows',
+            'rows_per_page' => 'Rows per page',
+            'page' => 'Page',
+            'of' => 'of',
+            'go_first' => 'Go to first page',
+            'go_previous' => 'Go to previous page',
+            'go_next' => 'Go to next page',
+            'go_last' => 'Go to last page',
+        ],
+        'empty' => 'No brand requests found.',
     ],
 ];

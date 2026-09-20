@@ -16,6 +16,8 @@ return [
         'brand_requests' => 'Заявки',
         'my_categories' => 'Мои категории',
         'category_requests' => 'Запросы категорий',
+        'moderation' => 'Модерация',
+        'brand_page_requests' => 'Запросы брендов',
         'emails' => 'Письма',
     ],
 
@@ -1707,5 +1709,53 @@ return [
             'go_last' => 'На последнюю страницу',
         ],
         'empty' => 'Заявок не найдено.',
+    ],
+
+    'moderation' => [
+        'title' => 'Запросы брендов',
+        'description' => 'Заявки от брендов на проверку: публикация страницы бренда и другие изменения.',
+        'columns' => [
+            'id' => 'ID',
+            'source' => 'Бренд',
+            'type' => 'Тип',
+            'status' => 'Статус',
+            'reviewer' => 'Проверил',
+            'created' => 'Создано',
+        ],
+        'types' => [
+            'brand_page' => 'Страница бренда',
+        ],
+        'statuses' => [
+            'pending' => 'Ожидает',
+            'approved' => 'Одобрено',
+            'rejected' => 'Отклонено',
+        ],
+        'actions' => [
+            'open_source' => 'Открыть бренд',
+            'open_menu' => 'Открыть меню',
+        ],
+        'source_deleted' => 'Бренд удалён',
+        'filters' => [
+            'all_statuses' => 'Все статусы',
+            'all_types' => 'Все типы',
+            'search_placeholder' => 'Поиск по бренду...',
+            'columns' => 'Колонки',
+        ],
+        'bulk' => [
+            'selected' => 'выбрано',
+            'clear_selection' => 'Очистить выбор',
+        ],
+        'pagination' => [
+            'rows_selected' => 'из',
+            'row' => 'строк',
+            'rows_per_page' => 'Строк на странице',
+            'page' => 'Страница',
+            'of' => 'из',
+            'go_first' => 'На первую страницу',
+            'go_previous' => 'На предыдущую страницу',
+            'go_next' => 'На следующую страницу',
+            'go_last' => 'На последнюю страницу',
+        ],
+        'empty' => 'Запросов от брендов не найдено.',
     ],
 ];

@@ -99,6 +99,8 @@ class User extends Authenticatable
         'WRITE_CATEGORY_REQUESTS' => 'write_category_requests',
         'READ_EMAILS' => 'read_emails',
         'WRITE_EMAILS' => 'write_emails',
+        'READ_MODERATION_REQUESTS' => 'read_moderation_requests',
+        'WRITE_MODERATION_REQUESTS' => 'write_moderation_requests',
     ];
 
     /**
@@ -143,6 +145,8 @@ class User extends Authenticatable
         self::PERMISSIONS['WRITE_CATEGORY_REQUESTS'],
         self::PERMISSIONS['READ_EMAILS'],
         self::PERMISSIONS['WRITE_EMAILS'],
+        self::PERMISSIONS['READ_MODERATION_REQUESTS'],
+        self::PERMISSIONS['WRITE_MODERATION_REQUESTS'],
     ];
 
     public function isAdmin(): bool

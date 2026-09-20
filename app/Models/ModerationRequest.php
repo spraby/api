@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property-read User|null $reviewer
  *
  * @method static Builder|static query()
+ * @method static Builder|static fromBrands()
  *
  * @mixin Builder
  */
@@ -39,6 +40,16 @@ class ModerationRequest extends Model
 
     public const TYPES = [
         self::TYPE_BRAND_PAGE,
+    ];
+
+    /**
+     * Какие типы заявок возможны у каждого источника. Новый тип нужно
+     * прописать здесь, иначе он не попадёт в фильтры админки.
+     */
+    public const TYPES_BY_SOURCE = [
+        Brand::class => [
+            self::TYPE_BRAND_PAGE,
+        ],
     ];
 
     public const STATUS_PENDING = 'pending';
@@ -79,6 +90,22 @@ class ModerationRequest extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Типы заявок конкретного источника.
+     *
+     * @return array<int, string>
+     */
+    public static function typesForSource(string $sourceType): array
+    {
+        return self::TYPES_BY_SOURCE[$sourceType] ?? [];
+    }
+
+    /** Заявки, пришедшие от брендов (source — Brand). */
+    public function scopeFromBrands(Builder $query): void
+    {
+        $query->where('source_type', Brand::class);
     }
 
     public function scopeOfType(Builder $query, string $type): void

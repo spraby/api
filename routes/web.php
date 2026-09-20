@@ -122,6 +122,9 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
             Route::post('/{categoryRequest}/reject', [App\Http\Controllers\Admin\CategoryRequestController::class, 'reject'])->name('category-requests.reject');
         });
 
+        // Admin: «Модерация»
+        Route::get('/moderation', [App\Http\Controllers\Admin\ModerationRequestController::class, 'index'])->name('moderation');
+
         // Emails
         Route::prefix('emails')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\EmailMessageController::class, 'index'])->name('emails');
