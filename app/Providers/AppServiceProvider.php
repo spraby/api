@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Models\BrandRequest;
 use App\Models\CategoryRequest;
+use App\Models\ModerationRequest;
 use App\Models\Order;
 use App\Observers\BrandRequestObserver;
 use App\Observers\CategoryRequestObserver;
+use App\Observers\ModerationRequestObserver;
 use App\Observers\OrderObserver;
 use App\Services\Contracts\FileServiceInterface;
 use App\Services\FileService;
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
         BrandRequest::observe(BrandRequestObserver::class);
         CategoryRequest::observe(CategoryRequestObserver::class);
+        ModerationRequest::observe(ModerationRequestObserver::class);
         Order::observe(OrderObserver::class);
     }
 }

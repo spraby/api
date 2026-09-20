@@ -39,6 +39,24 @@ class BrandPolicy
     }
 
     /**
+     * Домен страницы правит только админ: менеджеру он не показывается
+     * и на его стороне не редактируется.
+     */
+    public function updateDomain(User $user): bool
+    {
+        return $user->isAdmin() && $user->can(User::PERMISSIONS['WRITE_BRANDS']);
+    }
+
+    /**
+     * Публикацией страницы бренда управляет только админ: это выключатель
+     * показа на витрине, а не настройка продавца.
+     */
+    public function publishPage(User $user): bool
+    {
+        return $user->isAdmin() && $user->can(User::PERMISSIONS['WRITE_BRANDS']);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user): bool

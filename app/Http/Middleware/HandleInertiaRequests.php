@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\CategoryRequest;
+use App\Models\ModerationRequest;
 use App\Models\User;
 use App\Services\AdminOnboardingService;
 use Illuminate\Http\Request;
@@ -58,6 +60,7 @@ class HandleInertiaRequests extends Middleware
                 'impersonator' => $impersonator,
             ],
             'onboarding' => fn () => $this->onboarding($user),
+            'navCounts' => fn () => $this->navCounts($user),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -67,6 +70,37 @@ class HandleInertiaRequests extends Middleware
             'locale' => app()->getLocale(),
             'lang' => syncLangFiles(['admin']),
         ];
+    }
+
+    /**
+     * Счётчики для бейджей в меню. Считаем только то, что пользователю
+     * реально видно, — иначе на каждой странице админки уходили бы
+     * лишние запросы ради скрытых пунктов.
+     *
+     * @return array<string, int>
+     */
+    private function navCounts(?User $user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $counts = [];
+
+        if ($user->can(User::PERMISSIONS['READ_CATEGORY_REQUESTS']) && $user->can(User::PERMISSIONS['WRITE_CATEGORIES'])) {
+            $counts['category_requests'] = CategoryRequest::query()
+                ->where('status', CategoryRequest::STATUS_PENDING)
+                ->count();
+        }
+
+        if ($user->can(User::PERMISSIONS['READ_MODERATION_REQUESTS'])) {
+            $counts['brand_page_requests'] = ModerationRequest::query()
+                ->fromBrands()
+                ->where('status', ModerationRequest::STATUS_PENDING)
+                ->count();
+        }
+
+        return $counts;
     }
 
     private function onboarding(?User $user): ?array

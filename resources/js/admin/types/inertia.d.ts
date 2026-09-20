@@ -44,8 +44,15 @@ export interface LangTranslations {
   dashboard: Record<string, unknown>;
 }
 
+/** Счётчики для бейджей в меню; ключ — пункт навигации. */
+export interface NavCounts {
+  category_requests?: number;
+  brand_page_requests?: number;
+}
+
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
   onboarding?: OnboardingState | null;
+  navCounts?: NavCounts;
   auth: {
     user: User;
     impersonator?: Impersonator | null;

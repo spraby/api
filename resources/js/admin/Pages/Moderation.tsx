@@ -53,7 +53,6 @@ interface ModerationRequestRow {
   type: string
   status: ModerationStatus
   reason: string | null
-  settings: Record<string, unknown> | null
   reviewed_at: string | null
   created_at: string | null
   source: ModerationSource | null
@@ -116,6 +115,7 @@ function StatusBadge({ status, t }: { status: ModerationStatus; t: (k: string) =
 
 const createColumns = (
   t: (key: string) => string,
+  onOpen: (row: ModerationRequestRow) => void,
   onOpenSource: (row: ModerationRequestRow) => void,
 ): ColumnDef<ModerationRequestRow>[] => [
   {
@@ -203,7 +203,14 @@ const createColumns = (
               <span className="sr-only">{t("admin.moderation.actions.open_menu")}</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem
+              onClick={() => {
+                onOpen(row.original)
+              }}
+            >
+              {t("admin.moderation.actions.view")}
+            </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!row.original.source?.admin_url}
               onClick={() => {
@@ -227,13 +234,20 @@ export default function Moderation() {
     statuses: string[]
   }>().props
 
+  const handleOpen = React.useCallback((row: ModerationRequestRow) => {
+    router.visit(`/admin/moderation/${row.id}`)
+  }, [])
+
   const handleOpenSource = React.useCallback((row: ModerationRequestRow) => {
     if (row.source?.admin_url) {
       router.visit(row.source.admin_url)
     }
   }, [])
 
-  const columns = React.useMemo(() => createColumns(t, handleOpenSource), [t, handleOpenSource])
+  const columns = React.useMemo(
+    () => createColumns(t, handleOpen, handleOpenSource),
+    [t, handleOpen, handleOpenSource],
+  )
 
   const filters: Filter[] = React.useMemo(
     () => [
@@ -337,6 +351,9 @@ export default function Moderation() {
           filters={filters}
           getRowId={(row) => row.id.toString()}
           translations={translations}
+          onRowClick={(row) => {
+            handleOpen(row)
+          }}
         />
       </div>
     </AdminLayout>

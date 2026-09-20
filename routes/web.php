@@ -99,6 +99,8 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
                 Route::put('/', [App\Http\Controllers\Admin\BrandController::class, 'update'])->name('brands.update');
                 Route::delete('/', [App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('brands.destroy');
                 Route::put('/categories', [App\Http\Controllers\Admin\BrandController::class, 'syncCategories'])->name('brands.categories.sync');
+                Route::put('/domain', [App\Http\Controllers\Admin\BrandController::class, 'updateDomain'])->name('brands.domain.update');
+                Route::put('/page-visibility', [App\Http\Controllers\Admin\BrandController::class, 'updatePageVisibility'])->name('brands.page-visibility.update');
             });
         });
 
@@ -124,6 +126,9 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
 
         // Admin: «Модерация»
         Route::get('/moderation', [App\Http\Controllers\Admin\ModerationRequestController::class, 'index'])->name('moderation');
+        Route::get('/moderation/{moderationRequest}', [App\Http\Controllers\Admin\ModerationRequestController::class, 'show'])->name('moderation.show');
+        Route::post('/moderation/{moderationRequest}/approve', [App\Http\Controllers\Admin\ModerationRequestController::class, 'approve'])->name('moderation.approve');
+        Route::post('/moderation/{moderationRequest}/reject', [App\Http\Controllers\Admin\ModerationRequestController::class, 'reject'])->name('moderation.reject');
 
         // Emails
         Route::prefix('emails')->group(function () {
@@ -218,6 +223,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'update'])->name('settings.shipping-constructors.update');
         Route::delete('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'destroy'])->name('settings.shipping-constructors.destroy');
         Route::put('/settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general.update');
+        Route::post('/settings/brand-page/request', [App\Http\Controllers\Admin\SettingsController::class, 'requestBrandPage'])->name('settings.brand-page.request');
         Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
         Route::put('/settings/information', [App\Http\Controllers\Admin\SettingsController::class, 'updateInformation'])->name('settings.information.update');
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BrandRequest;
 use App\Models\CategoryRequest;
 use App\Models\EmailMessage;
+use App\Models\ModerationRequest;
 use App\Models\Order;
 use App\Services\EmailQueue;
 use App\Services\EmailSender;
@@ -227,6 +228,7 @@ class EmailMessageController extends Controller
         $label = match ($email->source_type) {
             BrandRequest::class => 'Brand Request',
             CategoryRequest::class => 'Category Request',
+            ModerationRequest::class => 'Moderation Request',
             Order::class => 'Order',
             default => class_basename($email->source_type),
         };
@@ -234,6 +236,7 @@ class EmailMessageController extends Controller
         $adminUrl = match ($email->source_type) {
             BrandRequest::class => '/admin/brand-requests/'.$email->source_id,
             CategoryRequest::class => '/admin/category-requests/'.$email->source_id,
+            ModerationRequest::class => '/admin/moderation/'.$email->source_id,
             Order::class => '/admin/orders/'.$email->source_id,
             default => null,
         };

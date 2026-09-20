@@ -8,6 +8,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -19,6 +20,8 @@ import { cn } from "@/lib/utils"
 export interface NavSubItem {
   title: string
   url: string
+  /** Счётчик у пункта; 0 и undefined бейдж не рисуют. */
+  badge?: number
 }
 
 export interface NavItem {
@@ -28,6 +31,22 @@ export interface NavItem {
   icon?: LucideIcon
   hint?: MenuHint
   items?: NavSubItem[]
+  /** Счётчик у пункта; у группы — сумма по вложенным. */
+  badge?: number
+}
+
+const MAX_BADGE_COUNT = 99
+
+function NavBadge({count}: {count: number | undefined}) {
+  if (!count) {
+    return null
+  }
+
+  return (
+    <SidebarMenuBadge className="static ml-auto rounded-full bg-primary/10 text-primary">
+      {count > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : count}
+    </SidebarMenuBadge>
+  )
 }
 
 function isActiveUrl(currentUrl: string, url: string): boolean {
@@ -62,6 +81,7 @@ function NavGroupItem({ item, currentUrl }: { item: NavItem; currentUrl: string 
       >
         {!!item.icon && <item.icon />}
         <span>{item.title}</span>
+        {isOpen ? null : <NavBadge count={item.badge} />}
         <ChevronRightIcon
           className={cn("ml-auto transition-transform duration-200", isOpen && "rotate-90")}
         />
@@ -73,6 +93,7 @@ function NavGroupItem({ item, currentUrl }: { item: NavItem; currentUrl: string 
               <SidebarMenuSubButton asChild isActive={isActiveUrl(currentUrl, subItem.url)}>
                 <Link href={subItem.url}>
                   <span>{subItem.title}</span>
+                  <NavBadge count={subItem.badge} />
                 </Link>
               </SidebarMenuSubButton>
             </SidebarMenuSubItem>
@@ -107,6 +128,7 @@ export function NavMain({
                   <Link href={item.url ?? "#"}>
                     {!!item.icon && <item.icon />}
                     <span>{item.title}</span>
+                    <NavBadge count={item.badge} />
                   </Link>
                 </SidebarMenuButton>
                 {item.hint ? <OnboardingMenuHint hint={item.hint}/> : null}

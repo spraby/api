@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import {usePage} from "@inertiajs/react"
 import {
     CameraIcon,
     ClipboardListIcon,
@@ -23,6 +24,7 @@ import {
     UserIcon,
 } from "lucide-react"
 
+
 import {NavMain, type NavItem} from "@/components/nav-main"
 import {NavSecondary} from "@/components/nav-secondary"
 import {NavUser} from "@/components/nav-user"
@@ -39,7 +41,7 @@ import {
 import {ONBOARDING_UPDATED_EVENT} from '@/lib/api/endpoints/onboarding';
 import {useLang} from "@/lib/lang"
 import {can, Permission} from "@/lib/permissions"
-import type {User} from "@/types/inertia"
+import type {PageProps, User} from "@/types/inertia"
 
 const navClouds = [
     {
@@ -115,6 +117,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
     const {t} = useLang()
+    const {navCounts = {}} = usePage<PageProps>().props
     const [onboardingState, setOnboardingState] = React.useState(onboarding)
 
     React.useEffect(() => {
@@ -161,12 +164,17 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
         ...(can(user, Permission.READ_CATEGORY_REQUESTS) && can(user, Permission.WRITE_CATEGORIES) ? [{
             title: t('admin.nav.category_requests'),
             url: "/admin/category-requests",
+            badge: navCounts.category_requests,
         }] : []),
         ...(can(user, Permission.READ_MODERATION_REQUESTS) ? [{
             title: t('admin.nav.brand_page_requests'),
             url: "/admin/moderation",
+            badge: navCounts.brand_page_requests,
         }] : []),
     ]
+
+    // У свёрнутой группы показываем суммарный счётчик вложенных разделов.
+    const moderationBadge = moderationItems.reduce((sum, item) => sum + (item.badge ?? 0), 0)
 
     const navMain: NavItem[] = [
         {
@@ -259,6 +267,7 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
             title: t('admin.nav.moderation'),
             icon: ShieldCheckIcon,
             items: moderationItems,
+            badge: moderationBadge,
         }] : []),
         // Emails — админ
         ...(can(user, Permission.READ_EMAILS) ? [{

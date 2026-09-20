@@ -1,12 +1,15 @@
 import {type FormEventHandler} from 'react';
 
 import {router, useForm, usePage} from '@inertiajs/react';
-import {ArrowLeftIcon, BriefcaseIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
+import {ArrowLeftIcon, BriefcaseIcon, GlobeIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
 
+import BrandPageVisibility from '@/components/brand/BrandPageVisibility';
 import {BrandFormFields} from "@/components/brand-form.tsx";
 import {CategoryPicker} from "@/components/category-picker.tsx";
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -25,6 +28,11 @@ interface BrandData {
     name: string;
     description: string | null;
     employment_type: string | null;
+    domain: string | null;
+    suggested_domain: string;
+    page_status: string;
+    page_published_at: string | null;
+    page_url: string | null;
     user_id: number | null;
     user: {
         id: number;
@@ -40,18 +48,21 @@ interface BrandData {
 interface BrandEditProps {
     brand: BrandData;
     employmentTypes: EmploymentTypeOption[];
+    canEditDomain: boolean;
+    canPublishPage: boolean;
 }
 
 interface BrandEditFormData {
     name: string;
     description: string | null;
     employment_type: string | null;
+    domain: string | null;
     category_ids: number[];
 }
 
 const EMPLOYMENT_TYPE_NONE = '__none__';
 
-export default function BrandEdit({brand, employmentTypes}: BrandEditProps) {
+export default function BrandEdit({brand, employmentTypes, canEditDomain, canPublishPage}: BrandEditProps) {
     const {t} = useLang();
     const {auth} = usePage<PageProps>().props;
 
@@ -59,6 +70,7 @@ export default function BrandEdit({brand, employmentTypes}: BrandEditProps) {
         name: brand.name,
         description: brand.description,
         employment_type: brand.employment_type,
+        domain: brand.domain,
         category_ids: brand.category_ids,
     });
 
@@ -135,7 +147,48 @@ export default function BrandEdit({brand, employmentTypes}: BrandEditProps) {
                         </Card>
                     ) : null}
 
+                    <BrandPageVisibility
+                        brandId={brand.id}
+                        canPublish={canPublishPage}
+                        pagePublishedAt={brand.page_published_at}
+                        pageStatus={brand.page_status}
+                        pageUrl={brand.page_url}
+                    />
+
                     <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
+                        {canEditDomain ? (
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base flex items-center gap-2">
+                                        <GlobeIcon className="size-4"/>
+                                        {t('admin.brands_edit.domain.title')}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {t('admin.brands_edit.domain.description')}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-2">
+                                    <Label htmlFor="brand-domain">
+                                        {t('admin.brands_edit.domain.label')}
+                                    </Label>
+                                    <Input
+                                        className="sm:max-w-sm"
+                                        id="brand-domain"
+                                        placeholder={brand.suggested_domain}
+                                        value={data.domain ?? ''}
+                                        onChange={(e) => setData('domain', e.target.value || null)}
+                                    />
+                                    {errors.domain ? (
+                                        <p className="text-sm text-destructive">{errors.domain}</p>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            {t('admin.brands_edit.domain.hint_form')}
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ) : null}
+
                         <BrandFormFields
                             name={data.name}
                             description={data.description}

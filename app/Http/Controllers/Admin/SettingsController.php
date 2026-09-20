@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAddressRequest;
-use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Requests\UpdateContactsRequest;
+use App\Http\Requests\UpdateInformationRequest;
 use App\Http\Requests\UpdateMenuRequest;
 use App\Models\Address;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Collection;
 use App\Models\Contact;
+use App\Models\ModerationRequest;
 use App\Models\Settings;
 use App\Models\ShippingMethod;
 use App\Models\ShippingMethodConstructor;
@@ -31,7 +32,7 @@ class SettingsController extends Controller
     {
         $brand = auth()->user()->getBrand();
 
-        if (!$brand) {
+        if (! $brand) {
             return redirect()->back()->withErrors(['brand' => 'No brand found.']);
         }
 
@@ -166,6 +167,7 @@ class SettingsController extends Controller
             'brandShippingMethods' => $brandShippingMethods,
             'about' => $brand?->about ?? '',
             'refundPolicy' => $brand?->refund_policy ?? '',
+            'brandPage' => $isAdmin ? null : $this->brandPagePayload($brand),
             'image' => $brand?->image ? [
                 'id' => $brand->image->id,
                 'name' => $brand->image->name,
@@ -174,6 +176,92 @@ class SettingsController extends Controller
             ] : null,
             ...$adminData,
         ]);
+    }
+
+    /**
+     * Состояние персональной страницы бренда для вкладки «Основные».
+     */
+    private function brandPagePayload(?Brand $brand): ?array
+    {
+        if (! $brand) {
+            return null;
+        }
+
+        // created_at хранится с точностью до секунды — id вторым ключом,
+        // иначе «последняя заявка» при совпадении секунды неопределена.
+        $request = $brand->moderationRequests()
+            ->where('type', ModerationRequest::TYPE_BRAND_PAGE)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+
+        return [
+            'page_status' => $brand->page_status,
+            'page_published_at' => $brand->page_published_at?->toISOString(),
+            // Адрес отдаём всегда, даже у неопубликованной страницы:
+            // показывать его или нет, решает компонент по page_status.
+            'page_url' => $brand->pageUrl(),
+            'request' => $request ? [
+                'status' => $request->status,
+                'created_at' => $request->created_at?->toISOString(),
+                'reviewed_at' => $request->reviewed_at?->toISOString(),
+                'reason' => $request->reason,
+            ] : null,
+        ];
+    }
+
+    /**
+     * Заявка на публикацию персональной страницы бренда.
+     */
+    public function requestBrandPage(): RedirectResponse
+    {
+        $brand = $this->getRequiredBrand();
+
+        if ($brand instanceof RedirectResponse) {
+            return $brand;
+        }
+
+        $error = DB::transaction(function () use ($brand) {
+            // Блокировка бренда: два клика подряд не должны создать две заявки.
+            $locked = Brand::query()->whereKey($brand->id)->lockForUpdate()->first();
+
+            if (! $locked) {
+                return 'not_found';
+            }
+
+            if ($locked->page_status === Brand::PAGE_STATUS_PUBLISHED) {
+                return 'already_published';
+            }
+
+            $hasPending = $locked->moderationRequests()
+                ->where('type', ModerationRequest::TYPE_BRAND_PAGE)
+                ->where('status', ModerationRequest::STATUS_PENDING)
+                ->exists();
+
+            if ($hasPending) {
+                return 'already_requested';
+            }
+
+            $locked->moderationRequests()->create([
+                'type' => ModerationRequest::TYPE_BRAND_PAGE,
+                'status' => ModerationRequest::STATUS_PENDING,
+                // Снимок не храним: модератор смотрит данные на самом бренде.
+                // Объект (а не []) — чтобы в колонке лежал {} под будущие ключи.
+                'settings' => (object) [],
+            ]);
+
+            $locked->update(['page_status' => Brand::PAGE_STATUS_PENDING]);
+
+            return null;
+        });
+
+        if ($error !== null) {
+            // flash.error подхватывает AdminLayout и показывает тостом —
+            // отдельного места под ошибку в секции нет.
+            return redirect()->back()->with('error', __('admin.settings_brand_page.errors.'.$error));
+        }
+
+        return redirect()->back()->with('success', __('admin.settings_brand_page.messages.submitted'));
     }
 
     /**
@@ -231,7 +319,7 @@ class SettingsController extends Controller
             if (isset($node['id']) && is_int($node['id'])) {
                 $used[$node['id']] = true;
             }
-            if (!empty($node['children']) && is_array($node['children'])) {
+            if (! empty($node['children']) && is_array($node['children'])) {
                 $this->collectUsedIds($node['children'], $used);
             }
         }
@@ -264,7 +352,7 @@ class SettingsController extends Controller
                 $normalized['ref_id'] = (int) $node['ref_id'];
             }
 
-            if (!empty($node['children']) && is_array($node['children'])) {
+            if (! empty($node['children']) && is_array($node['children'])) {
                 $normalized['children'] = $this->normalizeMenuNodes($node['children'], $used);
             }
 

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Str;
 
 /**
  * @property string $id
@@ -36,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property-read Collection<Image> $images
  * @property-read Collection<Address> $addresses
  * @property-read Collection<Contact> $contacts
+ * @property-read Collection<ModerationRequest> $moderationRequests
  * @property-read Collection<ShippingMethod> $shippingMethods
  *
  * @method static Builder|static query()
@@ -102,6 +104,23 @@ class Brand extends Model
 
     protected static function booted(): void
     {
+        // Снятый хэндл = страница недоступна: адреса у неё больше нет,
+        // поэтому публикацию снимаем, откуда бы хэндл ни стирали.
+        //
+        // Внимание: событие модели не сработает на массовом обновлении
+        // (Brand::query()->update() или DB::table('brands')->update()) —
+        // домен нужно менять через сохранение модели.
+        static::updating(function (Brand $brand) {
+            if (! $brand->isDirty('domain') || $brand->domain !== null) {
+                return;
+            }
+
+            if ($brand->page_status === self::PAGE_STATUS_PUBLISHED) {
+                $brand->page_status = self::PAGE_STATUS_DRAFT;
+                $brand->page_published_at = null;
+            }
+        });
+
         // У shipping_methods нет FK на бренд (связь через пивот) — без явной
         // зачистки записи бренда остались бы сиротами после каскадного удаления пивота.
         static::deleting(function (Brand $brand) {
@@ -175,6 +194,35 @@ class Brand extends Model
     public function contacts(): MorphMany
     {
         return $this->morphMany(Contact::class, 'contactable');
+    }
+
+    public function moderationRequests(): MorphMany
+    {
+        return $this->morphMany(ModerationRequest::class, 'source');
+    }
+
+    /**
+     * Домен, предлагаемый по названию бренда: кириллица переводится
+     * в латинскую транскрипцию (Str::slug с языком ru).
+     * Нужен, когда домен у бренда ещё не назначен.
+     */
+    public function suggestedDomain(): string
+    {
+        return Str::slug($this->name, '-', 'ru') ?: 'brand-'.$this->id;
+    }
+
+    /**
+     * Внешний адрес персональной страницы бренда.
+     * domain — это хэндл в адресе витрины (/brands/<handle>), а не отдельный хост.
+     * Пока хэндл не назначен, публичного адреса у страницы нет.
+     */
+    public function pageUrl(): ?string
+    {
+        if (! $this->domain) {
+            return null;
+        }
+
+        return rtrim((string) config('app.store_url'), '/').'/brands/'.$this->domain;
     }
 
     public function shippingMethods(): BelongsToMany

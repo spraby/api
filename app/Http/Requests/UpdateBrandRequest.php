@@ -16,6 +16,22 @@ class UpdateBrandRequest extends FormRequest
         return true;
     }
 
+    /** Домен нормализуем так же, как в отдельной форме домена. */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('domain')) {
+            $this->merge(['domain' => UpdateBrandDomainRequest::normalizeDomain($this->input('domain'))]);
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return UpdateBrandDomainRequest::domainMessages();
+    }
+
     /**
      * @return array[]
      */
@@ -23,6 +39,7 @@ class UpdateBrandRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'domain' => UpdateBrandDomainRequest::domainRules($this->route('brand')),
             'description' => ['nullable', 'string'],
             'employment_type' => ['nullable', Rule::in(array_keys(Brand::EMPLOYMENT_TYPES))],
             'category_ids' => ['present', 'array'],

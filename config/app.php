@@ -55,6 +55,10 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
     'store_url' => env('APP_STORE_URL', 'http://localhost'),
 
+    // Общий секрет с витриной: подписывает ссылки на превью неопубликованных
+    // страниц брендов. Без него превью просто недоступно.
+    'brand_preview_secret' => env('BRAND_PREVIEW_SECRET'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
