@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Models;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+
+/**
+ * Универсальная заявка на модерацию: source — любой ресурс (морф-связь),
+ * type — что именно проверяем, settings — снимок данных заявки.
+ *
+ * @property int $id
+ * @property string $source_type
+ * @property int $source_id
+ * @property string $type
+ * @property array|null $settings
+ * @property string $status
+ * @property string|null $reason
+ * @property int|null $reviewed_by
+ * @property Carbon|null $reviewed_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property-read Model|null $source
+ * @property-read User|null $reviewer
+ *
+ * @method static Builder|static query()
+ *
+ * @mixin Builder
+ */
+class ModerationRequest extends Model
+{
+    use HasFactory;
+
+    public const TYPE_BRAND_PAGE = 'brand_page';
+
+    public const TYPES = [
+        self::TYPE_BRAND_PAGE,
+    ];
+
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_APPROVED = 'approved';
+
+    public const STATUS_REJECTED = 'rejected';
+
+    public const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_APPROVED,
+        self::STATUS_REJECTED,
+    ];
+
+    protected $fillable = [
+        'source_type',
+        'source_id',
+        'type',
+        'settings',
+        'status',
+        'reason',
+        'reviewed_by',
+        'reviewed_at',
+    ];
+
+    protected $casts = [
+        'settings' => 'array',
+        'reviewed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function source(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function scopeOfType(Builder $query, string $type): void
+    {
+        $query->where('type', $type);
+    }
+
+    public function scopePending(Builder $query): void
+    {
+        $query->where('status', self::STATUS_PENDING);
+    }
+}

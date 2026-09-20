@@ -18,6 +18,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property string|null $image_id
  * @property string $name
  * @property string|null $employment_type
+ * @property string $type
+ * @property string|null $domain
+ * @property string $page_status
+ * @property Carbon|null $page_published_at
  * @property string|null $description
  * @property string|null $about
  * @property string|null $refund_policy
@@ -42,6 +46,32 @@ class Brand extends Model
 {
     use HasFactory;
 
+    public const TYPE_MASTER = 'master';
+
+    public const TYPE_BUSINESS = 'business';
+
+    /** Тип бренда: мастер по умолчанию, бизнес — со своей страницей и доменом. */
+    public const TYPES = [
+        self::TYPE_MASTER,
+        self::TYPE_BUSINESS,
+    ];
+
+    public const PAGE_STATUS_NONE = 'none';
+
+    public const PAGE_STATUS_DRAFT = 'draft';
+
+    public const PAGE_STATUS_PENDING = 'pending';
+
+    public const PAGE_STATUS_PUBLISHED = 'published';
+
+    /** Жизненный цикл страницы бренда: нет → черновик → на модерации → опубликована. */
+    public const PAGE_STATUSES = [
+        self::PAGE_STATUS_NONE,
+        self::PAGE_STATUS_DRAFT,
+        self::PAGE_STATUS_PENDING,
+        self::PAGE_STATUS_PUBLISHED,
+    ];
+
     public const EMPLOYMENT_TYPES = [
         'craftsman' => 'Ремесленник',
         'self_employed' => 'Самозанятый',
@@ -55,12 +85,17 @@ class Brand extends Model
         'image_id',
         'name',
         'employment_type',
+        'type',
+        'domain',
+        'page_status',
+        'page_published_at',
         'description',
         'about',
         'refund_policy',
     ];
 
     protected $casts = [
+        'page_published_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
