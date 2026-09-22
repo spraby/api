@@ -532,9 +532,22 @@ export function ResourceList<TData>({
                       onClick={
                         onRowClick
                           ? (event) => {
+                              const target = event.target as HTMLElement
+
+                              // Меню, диалоги и поповеры рендерятся в портал: в DOM они
+                              // вне строки, но в React-дереве остаются её потомками, и
+                              // клик по пункту меню всплывает сюда. Без этой проверки
+                              // строка уводит на свою ссылку и рвёт запрос, который
+                              // пункт меню только что отправил.
+                              if (!event.currentTarget.contains(target)) {
+                                return
+                              }
+
+                              // role-селекторы — на случай, если клик всё же придёт
+                              // из закрывающегося меню или диалога поверх строки.
                               if (
-                                (event.target as HTMLElement).closest(
-                                  'button, a, input, [role="checkbox"], [data-no-row-click]',
+                                target.closest(
+                                  'button, a, input, [role="checkbox"], [role="menu"], [role="menuitem"], [role="dialog"], [data-radix-popper-content-wrapper], [data-no-row-click]',
                                 )
                               ) {
                                 return

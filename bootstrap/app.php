@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -32,5 +34,14 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // 419 — сессия истекла или потерялась (например, запрос оборвали
+        // на полпути). Возвращаем на предыдущую страницу: гостя оттуда
+        // уведёт на вход, вместо тупикового экрана «PAGE EXPIRED».
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
+            if ($response->getStatusCode() === 419 && ! $request->expectsJson()) {
+                return back()->with('error', __('admin.errors.page_expired'));
+            }
+
+            return $response;
+        });
     })->create();

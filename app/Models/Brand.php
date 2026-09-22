@@ -213,7 +213,7 @@ class Brand extends Model
 
     /**
      * Внешний адрес персональной страницы бренда.
-     * domain — это хэндл в адресе витрины (/brands/<handle>), а не отдельный хост.
+     * domain — это хэндл в адресе витрины (/brand/<handle>), а не отдельный хост.
      * Пока хэндл не назначен, публичного адреса у страницы нет.
      */
     public function pageUrl(): ?string
@@ -222,7 +222,7 @@ class Brand extends Model
             return null;
         }
 
-        return rtrim((string) config('app.store_url'), '/').'/brands/'.$this->domain;
+        return rtrim((string) config('app.store_url'), '/').'/brand/'.$this->domain;
     }
 
     public function shippingMethods(): BelongsToMany

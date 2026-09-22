@@ -9,6 +9,7 @@ import {
     FileIcon,
     FileTextIcon,
     FolderOpenIcon,
+    GlobeIcon,
     ImageIcon,
     InboxIcon,
     LayoutDashboardIcon,
@@ -261,6 +262,12 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
                         ? 'admin.dashboard.onboarding.hints.categories.description_rejected'
                         : undefined,
                 ),
+        }] : []),
+        // Моя страница — менеджер: персональная страница бренда
+        ...(user?.is_manager ? [{
+            title: t('admin.nav.my_page'),
+            url: "/admin/my-page",
+            icon: GlobeIcon,
         }] : []),
         // Модерация — админ: группа с вложенными разделами
         ...(moderationItems.length > 0 ? [{

@@ -1,10 +1,7 @@
-import {useCallback} from 'react';
-
-import {useForm, usePage} from '@inertiajs/react';
+import {usePage} from '@inertiajs/react';
 import {Building2Icon, InfoIcon, MapPinIcon, MenuIcon, PhoneIcon, TruckIcon} from 'lucide-react';
 
 import AddressesSection from '@/components/settings/AddressesSection';
-import BrandPageSection, {type BrandPageSectionProps} from '@/components/settings/BrandPageSection';
 import ContactsSection from '@/components/settings/ContactsSection';
 import DeliverySection from '@/components/settings/DeliverySection';
 import GeneralSection from '@/components/settings/GeneralSection';
@@ -27,14 +24,6 @@ import type {
 } from '@/types/api';
 import type {PageProps} from '@/types/inertia';
 
-/** Приходит с сервера в snake_case — как отдаёт SettingsController. */
-interface BrandPageData {
-    page_status: BrandPageSectionProps['pageStatus'];
-    page_published_at: string | null;
-    page_url: string | null;
-    request: BrandPageSectionProps['request'];
-}
-
 interface SettingsPageProps extends Record<string, unknown> {
     addresses: Address[];
     contacts: ContactsMap;
@@ -43,7 +32,6 @@ interface SettingsPageProps extends Record<string, unknown> {
     about: string;
     refundPolicy: string;
     image: BrandImage | null;
-    brandPage: BrandPageData | null;
     allShippingConstructors?: ShippingMethodConstructor[];
     merchantFieldsCatalog?: ShippingFieldDef[];
     customerFieldsCatalog?: ShippingFieldDef[];
@@ -70,7 +58,6 @@ function ManagerSettings({
     about,
     refundPolicy,
     image,
-    brandPage,
 }: {
     addresses: Address[];
     contacts: ContactsMap;
@@ -79,32 +66,11 @@ function ManagerSettings({
     about: string;
     refundPolicy: string;
     image: BrandImage | null;
-    brandPage: BrandPageData | null;
 }) {
-    const {post, processing} = useForm({});
-
-    // Тост показывает AdminLayout по flash-сообщению от сервера —
-    // второй раз здесь его показывать не нужно.
-    const handleBrandPageSubmit = useCallback(() => {
-        post(route('admin.settings.brand-page.request'), {preserveScroll: true});
-    }, [post]);
-
     return (
         <SettingsTabs defaultTab="general" tabs={tabs}>
             <SettingsTabsPanel value="general">
-                <div className="flex min-w-0 flex-col gap-4">
-                    <GeneralSection about={about} refundPolicy={refundPolicy} image={image}/>
-                    {brandPage ? (
-                        <BrandPageSection
-                            isSubmitting={processing}
-                            pagePublishedAt={brandPage.page_published_at}
-                            pageStatus={brandPage.page_status}
-                            pageUrl={brandPage.page_url}
-                            request={brandPage.request}
-                            onSubmit={handleBrandPageSubmit}
-                        />
-                    ) : null}
-                </div>
+                <GeneralSection about={about} refundPolicy={refundPolicy} image={image}/>
             </SettingsTabsPanel>
             <SettingsTabsPanel value="addresses">
                 <AddressesSection addresses={addresses}/>
@@ -181,8 +147,7 @@ export default function Settings() {
         about,
         refundPolicy,
         image,
-        brandPage,
-        allShippingConstructors,
+            allShippingConstructors,
         merchantFieldsCatalog,
         customerFieldsCatalog,
         menu,
@@ -220,7 +185,6 @@ export default function Settings() {
                         about={about}
                         refundPolicy={refundPolicy}
                         image={image ?? null}
-                        brandPage={brandPage ?? null}
                     />
                 )}
             </div>

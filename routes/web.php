@@ -208,6 +208,10 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::get('/categories/api', [App\Http\Controllers\Api\CategoryController::class, 'index'])->name('categories.api.index');
         Route::get('/options/api', [App\Http\Controllers\Admin\OptionController::class, 'apiIndex'])->name('options.api.index');
 
+        // Моя страница — персональная страница бренда у менеджера
+        Route::get('/my-page', [App\Http\Controllers\Admin\BrandPageController::class, 'index'])->name('my-page');
+        Route::post('/my-page/request', [App\Http\Controllers\Admin\BrandPageController::class, 'request'])->name('my-page.request');
+
         // Settings
         Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings');
         Route::post('/settings/addresses', [App\Http\Controllers\Admin\SettingsController::class, 'storeAddress'])->name('settings.addresses.store');
@@ -223,7 +227,6 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'update'])->name('settings.shipping-constructors.update');
         Route::delete('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'destroy'])->name('settings.shipping-constructors.destroy');
         Route::put('/settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general.update');
-        Route::post('/settings/brand-page/request', [App\Http\Controllers\Admin\SettingsController::class, 'requestBrandPage'])->name('settings.brand-page.request');
         Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
         Route::put('/settings/information', [App\Http\Controllers\Admin\SettingsController::class, 'updateInformation'])->name('settings.information.update');
 

@@ -19,7 +19,7 @@ class UpdateBrandDomainRequest extends FormRequest
             'nullable',
             'string',
             'max:255',
-            // Хэндл — сегмент адреса /brands/<handle>: латиница, цифры, дефис.
+            // Хэндл — сегмент адреса /brand/<handle>: латиница, цифры, дефис.
             // Точки и слэши недопустимы, иначе сломается маршрут витрины.
             'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
             Rule::unique('brands', 'domain')->ignore($ignore),
@@ -47,7 +47,7 @@ class UpdateBrandDomainRequest extends FormRequest
         $domain = mb_strtolower(trim($domain));
 
         // Из буфера часто прилетает готовый адрес — оставляем только хэндл.
-        if (preg_match('~(?:^https?://)?[^/]*/brands/([^/?#]+)~', $domain, $matches)) {
+        if (preg_match('~(?:^https?://)?[^/]*/brands?/([^/?#]+)~', $domain, $matches)) {
             $domain = $matches[1];
         }
 

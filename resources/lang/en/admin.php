@@ -19,6 +19,7 @@ return [
         'category_requests' => 'Category Requests',
         'moderation' => 'Moderation',
         'brand_page_requests' => 'Brand page requests',
+        'my_page' => 'My page',
     ],
 
     'user' => [
@@ -1088,13 +1089,13 @@ return [
         ],
         'domain' => [
             'title' => 'Page domain',
-            'description' => 'The handle in the brand page address on the storefront: /brands/<domain>. Managed by administrators only.',
+            'description' => 'The handle in the brand page address on the storefront: /brand/<domain>. Managed by administrators only.',
             'label' => 'Domain',
             'save' => 'Save domain',
             'saved' => 'Domain saved.',
-            'hint_current' => 'The brand current domain — part of the /brands/<domain> address.',
+            'hint_current' => 'The brand current domain — part of the /brand/<domain> address.',
             'hint_form' => 'Saved together with the other brand fields.',
-            'hint_suggested' => 'Suggested from the brand name. It becomes part of the address: /brands/<domain>.',
+            'hint_suggested' => 'Suggested from the brand name. It becomes part of the address: /brand/<domain>.',
             'invalid' => 'A domain may contain only latin letters, digits and hyphens.',
             'taken' => 'This domain is already taken by another brand.',
         ],
@@ -1764,6 +1765,12 @@ return [
             'approved' => 'Approved',
             'rejected' => 'Rejected',
         ],
+        'page_statuses' => [
+            'none' => 'Not created',
+            'draft' => 'Not published',
+            'pending' => 'Request under review',
+            'published' => 'Published',
+        ],
         'actions' => [
             'view' => 'Open request',
             'open_source' => 'Open brand',
@@ -1838,30 +1845,56 @@ return [
         'empty' => 'No brand requests found.',
     ],
 
-    'settings_brand_page' => [
-        'title' => 'Brand page',
-        'description' => 'A dedicated page for your brand on the storefront. Published after a moderator review.',
+    'errors' => [
+        'page_expired' => 'The page expired: your session has ended. Sign in again and retry.',
+    ],
+
+    'my_page' => [
+        'title' => 'My page',
+        'description' => 'The personal page of your brand',
         'statuses' => [
-            'none' => 'Not created',
-            'draft' => 'Not published',
-            'pending' => 'Request under review',
-            'published' => 'Published',
-            'rejected' => 'Request rejected',
+            'draft' => [
+                'title' => 'Not published',
+                'description' => 'Submit a publication request. Once approved, you can open the page and share the link.',
+            ],
+            'pending' => [
+                'title' => 'Request under review',
+                'description' => 'We will let you know as soon as a moderator reviews the request.',
+            ],
+            'published' => [
+                'title' => 'Published',
+                'description' => 'The page is live. Share the link with your audience.',
+            ],
+            'rejected' => [
+                'title' => 'Request rejected',
+                'description' => 'Fix the issues and submit the request again.',
+            ],
+        ],
+        'url' => [
+            'published' => 'Link to your page',
+            'preview' => 'Example of your page address',
+            'empty' => 'The page address is not assigned yet. Please contact support.',
         ],
         'actions' => [
-            'submit' => 'Request page publication',
+            'open_page' => 'Open page',
+            'copy_link' => 'Copy link',
+            'brand_settings' => 'Brand settings',
+            'submit' => 'Submit request',
             'resubmit' => 'Submit request again',
-            'open_page' => 'Open brand page',
+            'cancel' => 'Cancel',
         ],
-        'hints' => [
-            'submit' => 'Before submitting, fill in the logo, brand description and contacts — that is what the moderator reviews.',
-            'pending' => 'We will let you know as soon as a moderator reviews the request.',
-            'no_url' => 'The page address is not assigned yet. Please contact support.',
+        'dialog' => [
+            'title' => 'Submit a publication request?',
+            'description' => 'Once approved, the brand page, its products and the contacts you provided become available to every SPRA.BY visitor. Until then the page stays closed.',
+            'terms_link' => 'Publication terms and seller responsibility',
+            'consent' => 'I confirm that I am authorised to publish the brand page, I accept the Publication Terms and I am responsible for the accuracy of the information, the legality of the materials and products, and the fulfilment of obligations to buyers. I ask SPRA.BY to make the selected materials and contact details publicly available.',
         ],
         'published_at' => 'Published',
         'sent_at' => 'Submitted',
         'reviewed_at' => 'Reviewed',
         'reason' => 'Reason',
+        'copied' => 'Link copied',
+        'empty' => 'Brand not found. Please contact support.',
         'messages' => [
             'submitted' => 'The request has been submitted for review.',
         ],

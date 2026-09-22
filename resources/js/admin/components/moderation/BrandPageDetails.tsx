@@ -63,7 +63,7 @@ export default function BrandPageDetails({data}: {data: BrandPageDetailsData}) {
     const {t} = useLang();
     const {brand, owner, contacts, stats} = data;
 
-    const statusKey = `admin.settings_brand_page.statuses.${brand.page_status}`;
+    const statusKey = `admin.moderation.page_statuses.${brand.page_status}`;
     const statusLabel = t(statusKey);
 
     return (
