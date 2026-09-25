@@ -104,6 +104,8 @@ class BrandController extends Controller
                 'name' => $brand->name,
                 'description' => $brand->description,
                 'employment_type' => $brand->employment_type,
+                'employment_name' => $brand->employment_name,
+                'employment_number' => $brand->employment_number,
                 'type' => $brand->type,
                 'logo_url' => $brand->image?->url,
                 'domain' => $brand->domain,
@@ -130,7 +132,8 @@ class BrandController extends Controller
                 'created_at' => $brand->created_at->toISOString(),
                 'updated_at' => $brand->updated_at->toISOString(),
             ],
-            'employmentTypes' => Brand::employmentTypeOptions(),
+            // Форма занятости зависит от типа аккаунта: мастеру — одни, бизнесу — другие.
+            'employmentTypesByType' => Brand::employmentTypeOptionsByType(),
             'canEditDomain' => auth()->user()?->can('updateDomain', Brand::class) ?? false,
             'canPublishPage' => auth()->user()?->can('publishPage', Brand::class) ?? false,
             'canEditType' => auth()->user()?->can('updateType', Brand::class) ?? false,
@@ -162,6 +165,12 @@ class BrandController extends Controller
             if ($request->user()->can('updateType', Brand::class) && $request->filled('type')) {
                 $attributes['type'] = $request->input('type');
             }
+
+            // Реквизиты есть только у бизнеса: у мастера их очищаем,
+            // как и при одобрении заявки на смену типа.
+            $isBusiness = ($attributes['type'] ?? $brand->type) === Brand::TYPE_BUSINESS;
+            $attributes['employment_name'] = $isBusiness ? $request->input('employment_name') : null;
+            $attributes['employment_number'] = $isBusiness ? $request->input('employment_number') : null;
 
             $brand->update($attributes);
 

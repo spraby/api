@@ -1,7 +1,7 @@
 import {type FormEventHandler} from 'react';
 
 import {router, useForm, usePage} from '@inertiajs/react';
-import {ArrowLeftIcon, BriefcaseIcon, GlobeIcon, StoreIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
+import {ArrowLeftIcon, GlobeIcon, StoreIcon, TruckIcon, UserCheckIcon, UserIcon} from 'lucide-react';
 
 import BrandPageVisibility from '@/components/brand/BrandPageVisibility';
 import {BrandFormFields} from "@/components/brand-form.tsx";
@@ -18,7 +18,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {useLang} from '@/lib/lang';
-import type {EmploymentTypeOption} from '@/types/api';
+import type {BrandAccountType, EmploymentTypeOption} from '@/types/api';
 import type {PageProps} from '@/types/inertia';
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -28,6 +28,8 @@ interface BrandData {
     name: string;
     description: string | null;
     employment_type: string | null;
+    employment_name: string | null;
+    employment_number: string | null;
     type: string;
     logo_url: string | null;
     domain: string | null;
@@ -49,7 +51,8 @@ interface BrandData {
 
 interface BrandEditProps {
     brand: BrandData;
-    employmentTypes: EmploymentTypeOption[];
+    /** Формы занятости по типам аккаунта: у мастера и бизнеса они разные. */
+    employmentTypesByType: Record<BrandAccountType, EmploymentTypeOption[]>;
     canEditDomain: boolean;
     canPublishPage: boolean;
     canEditType: boolean;
@@ -60,6 +63,8 @@ interface BrandEditFormData {
     name: string;
     description: string | null;
     employment_type: string | null;
+    employment_name: string;
+    employment_number: string;
     type: string;
     domain: string | null;
     category_ids: number[];
@@ -69,7 +74,7 @@ const EMPLOYMENT_TYPE_NONE = '__none__';
 
 export default function BrandEdit({
     brand,
-    employmentTypes,
+    employmentTypesByType,
     canEditDomain,
     canPublishPage,
     canEditType,
@@ -82,12 +87,26 @@ export default function BrandEdit({
         name: brand.name,
         description: brand.description,
         employment_type: brand.employment_type,
+        employment_name: brand.employment_name ?? '',
+        employment_number: brand.employment_number ?? '',
         type: brand.type,
         domain: brand.domain,
         category_ids: brand.category_ids,
     });
 
     const canImpersonate = auth?.user?.is_admin && brand.user;
+    const employmentOptions = employmentTypesByType[data.type as BrandAccountType] ?? [];
+    const isBusiness = data.type === 'business';
+
+    const changeType = (type: string) => {
+        // Формы занятости у типов не пересекаются: при возврате к исходному
+        // типу подставляем исходную форму, иначе выбор сбрасываем.
+        setData((prev) => ({
+            ...prev,
+            type,
+            employment_type: type === brand.type ? brand.employment_type : null,
+        }));
+    };
 
     const handleImpersonate = () => {
         if (brand.user) {
@@ -183,39 +202,117 @@ export default function BrandEdit({
                             pageUrl={brand.page_url}
                         />
 
-                        {canEditType ? (
-                            <Card>
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-base flex items-center gap-2">
-                                        <StoreIcon className="size-4"/>
-                                        {t('admin.brands_edit.account_type.title')}
-                                    </CardTitle>
-                                    <CardDescription>
-                                        {t('admin.brands_edit.account_type.description')}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-2">
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <StoreIcon className="size-4"/>
+                                    {t('admin.brands_edit.account_type.title')}
+                                </CardTitle>
+                                <CardDescription>
+                                    {t('admin.brands_edit.account_type.description')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-col gap-4">
+                                {canEditType ? (
+                                    <div className="flex flex-col gap-2">
+                                        <Label htmlFor="brand-type">{t('admin.brands_edit.account_type.title')}</Label>
+                                        <Select value={data.type} onValueChange={changeType}>
+                                            <SelectTrigger className="w-full sm:max-w-sm" id="brand-type">
+                                                <SelectValue/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {brandTypes.map((type) => (
+                                                    <SelectItem key={type} value={type}>
+                                                        {t(`admin.brands_table.types.${type}`)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.type ? (
+                                            <p className="text-sm text-destructive">{errors.type}</p>
+                                        ) : null}
+                                    </div>
+                                ) : null}
+
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="brand-employment-type">
+                                        {t('admin.brands_edit.fields.employment_type')}
+                                    </Label>
                                     <Select
-                                        value={data.type}
-                                        onValueChange={(value) => setData('type', value)}
+                                        value={data.employment_type ?? EMPLOYMENT_TYPE_NONE}
+                                        onValueChange={(value) => setData(
+                                            'employment_type',
+                                            value === EMPLOYMENT_TYPE_NONE ? null : value,
+                                        )}
                                     >
-                                        <SelectTrigger className="w-full sm:max-w-sm">
-                                            <SelectValue/>
+                                        <SelectTrigger className="w-full sm:max-w-sm" id="brand-employment-type">
+                                            <SelectValue
+                                                placeholder={t('admin.brands_edit.fields.employment_type_unknown')}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {brandTypes.map((type) => (
-                                                <SelectItem key={type} value={type}>
-                                                    {t(`admin.brands_table.types.${type}`)}
+                                            <SelectItem value={EMPLOYMENT_TYPE_NONE}>
+                                                {t('admin.brands_edit.fields.employment_type_none')}
+                                            </SelectItem>
+                                            {employmentOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.type ? (
-                                        <p className="text-sm text-destructive">{errors.type}</p>
-                                    ) : null}
-                                </CardContent>
-                            </Card>
-                        ) : null}
+                                    {errors.employment_type ? (
+                                        <p className="text-sm text-destructive">{errors.employment_type}</p>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            {t('admin.brands_edit.employment_type_description')}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {isBusiness ? (
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="flex min-w-0 flex-col gap-2">
+                                            <Label htmlFor="brand-employment-name">
+                                                {t('admin.settings_general.fields.employment_name')}
+                                            </Label>
+                                            <Input
+                                                id="brand-employment-name"
+                                                value={data.employment_name}
+                                                maxLength={255}
+                                                placeholder={t('admin.settings_general.placeholders.employment_name')}
+                                                aria-invalid={!!errors.employment_name}
+                                                onChange={(e) => setData('employment_name', e.target.value)}
+                                            />
+                                            {errors.employment_name ? (
+                                                <p className="text-sm text-destructive">{errors.employment_name}</p>
+                                            ) : null}
+                                        </div>
+                                        <div className="flex min-w-0 flex-col gap-2">
+                                            <Label htmlFor="brand-employment-number">
+                                                {t('admin.settings_general.fields.employment_number')}
+                                            </Label>
+                                            <Input
+                                                id="brand-employment-number"
+                                                value={data.employment_number}
+                                                inputMode="numeric"
+                                                maxLength={9}
+                                                placeholder={t('admin.settings_general.placeholders.employment_number')}
+                                                aria-invalid={!!errors.employment_number}
+                                                onChange={(e) => setData('employment_number', e.target.value.replace(/\D/g, ''))}
+                                            />
+                                            {errors.employment_number ? (
+                                                <p className="text-sm text-destructive">{errors.employment_number}</p>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground">
+                                                    {t('admin.settings_general.hints.employment_number')}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </CardContent>
+                        </Card>
 
                         {canEditDomain ? (
                             <Card>
@@ -249,47 +346,6 @@ export default function BrandEdit({
                                 </CardContent>
                             </Card>
                         ) : null}
-
-
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base flex items-center gap-2">
-                                    <BriefcaseIcon className="size-4"/>
-                                    {t('admin.brands_edit.fields.employment_type')}
-                                </CardTitle>
-                                <CardDescription>
-                                    {t('admin.brands_edit.employment_type_description')}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Select
-                                    value={data.employment_type ?? EMPLOYMENT_TYPE_NONE}
-                                    onValueChange={(value) => setData(
-                                        'employment_type',
-                                        value === EMPLOYMENT_TYPE_NONE ? null : value,
-                                    )}
-                                >
-                                    <SelectTrigger className="w-full sm:max-w-sm">
-                                        <SelectValue
-                                            placeholder={t('admin.brands_edit.fields.employment_type_unknown')}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value={EMPLOYMENT_TYPE_NONE}>
-                                            {t('admin.brands_edit.fields.employment_type_none')}
-                                        </SelectItem>
-                                        {employmentTypes.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {!!errors.employment_type && (
-                                    <p className="mt-2 text-xs text-destructive">{errors.employment_type}</p>
-                                )}
-                            </CardContent>
-                        </Card>
 
 
                         <Card>

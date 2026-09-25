@@ -331,6 +331,7 @@ export default function BrandRequests() {
         </div>
 
         <ResourceList
+          onRowClick={(row) => { router.visit(`/admin/brand-requests/${row.id}`) }}
           columns={columns}
           data={brandRequests ?? []}
           filters={filters}

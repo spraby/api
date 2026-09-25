@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BrandRequest;
 use App\Models\CategoryRequest;
 use App\Models\ModerationRequest;
 use App\Models\User;
@@ -91,6 +92,12 @@ class HandleInertiaRequests extends Middleware
         if ($user->can(User::PERMISSIONS['READ_CATEGORY_REQUESTS']) && $user->can(User::PERMISSIONS['WRITE_CATEGORIES'])) {
             $counts['category_requests'] = CategoryRequest::query()
                 ->where('status', CategoryRequest::STATUS_PENDING)
+                ->count();
+        }
+
+        if ($user->can(User::PERMISSIONS['READ_BRAND_REQUESTS'])) {
+            $counts['brand_requests'] = BrandRequest::query()
+                ->where('status', BrandRequest::STATUS_PENDING)
                 ->count();
         }
 

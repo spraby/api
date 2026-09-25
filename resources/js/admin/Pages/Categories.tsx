@@ -318,6 +318,7 @@ export default function Categories() {
         </div>
 
         <ResourceList
+          onRowClick={(row) => { router.visit(`/admin/categories/${row.id}/edit`) }}
           bulkActions={bulkActions}
           columns={columns}
           data={categories ?? []}

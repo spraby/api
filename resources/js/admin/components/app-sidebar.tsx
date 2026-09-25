@@ -246,6 +246,7 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
             title: t('admin.nav.brand_requests'),
             url: "/admin/brand-requests",
             icon: InboxIcon,
+            badge: navCounts.brand_requests,
         }] : []),
         // My Categories — менеджер
         ...(can(user, Permission.READ_CATEGORY_REQUESTS) && !can(user, Permission.WRITE_CATEGORIES) ? [{

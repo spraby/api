@@ -593,6 +593,7 @@ export default function Products() {
                 </div>
 
                 <ResourceList
+                    onRowClick={(row) => { router.visit(`/admin/products/${row.id}/edit`) }}
                     bulkActions={bulkActions}
                     bulkActionsSlot={renderBulkActionsSlot}
                     columns={columns}

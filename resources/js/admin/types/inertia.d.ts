@@ -50,6 +50,7 @@ export interface LangTranslations {
 export interface NavCounts {
   category_requests?: number;
   brand_page_requests?: number;
+  brand_requests?: number;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {

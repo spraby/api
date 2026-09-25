@@ -39,6 +39,7 @@ class BrandRequestController extends Controller
                     'brand_name' => $request->brand_name,
                     'employment_type' => $request->employment_type,
                     'employment_type_label' => $request->employment_type_label,
+                    'account_type' => Brand::typeForEmploymentType($request->employment_type),
                     'status' => $request->status,
                     'brand_id' => $request->brand_id,
                     'user_id' => $request->user_id,
@@ -89,6 +90,8 @@ class BrandRequestController extends Controller
             'brand_name' => $brandRequest->brand_name,
             'employment_type' => $brandRequest->employment_type,
             'employment_type_label' => $brandRequest->employment_type_label,
+            // Тип аккаунта следует из формы занятости: отдельно в заявке его не спрашиваем
+            'account_type' => Brand::typeForEmploymentType($brandRequest->employment_type),
             'status' => $brandRequest->status,
             'brand_id' => $brandRequest->brand_id,
             'user_id' => $brandRequest->user_id,
@@ -160,14 +163,22 @@ class BrandRequestController extends Controller
             // approving for a pre-existing account.
             $brand = $user->brands()->first();
 
+            // Тип аккаунта следует из формы занятости: ИП/ЧУП/ООО — бизнес,
+            // ремесленник/самозанятый — мастер. Без формы — мастер по умолчанию.
+            $accountType = Brand::typeForEmploymentType($brandRequest->employment_type);
+
             if (! $brand) {
                 $brand = Brand::create([
                     'user_id' => $user->id,
                     'name' => $brandRequest->brand_name ?? $brandRequest->email,
                     'employment_type' => $brandRequest->employment_type,
+                    'type' => $accountType ?? Brand::TYPE_MASTER,
                 ]);
             } elseif ($brandRequest->employment_type !== null) {
-                $brand->update(['employment_type' => $brandRequest->employment_type]);
+                $brand->update([
+                    'employment_type' => $brandRequest->employment_type,
+                    'type' => $accountType,
+                ]);
             }
 
             // Update brand request

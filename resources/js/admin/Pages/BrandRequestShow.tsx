@@ -13,6 +13,7 @@ import {
   MailIcon,
   PhoneIcon,
   SendIcon,
+  StoreIcon,
   UserIcon,
   XCircleIcon,
 } from 'lucide-react';
@@ -52,6 +53,8 @@ interface BrandRequest {
   brand_name: string | null;
   employment_type: string | null;
   employment_type_label: string | null;
+  /** Тип аккаунта по форме занятости: master / business, null — форма не указана. */
+  account_type: 'master' | 'business' | null;
   status: 'pending' | 'approved' | 'rejected';
   brand_id: number | null;
   user_id: number | null;
@@ -302,6 +305,15 @@ export default function BrandRequestShow({ brandRequest, canResendPasswordSetup 
                     <div>
                       <p className="text-sm text-muted-foreground">{t('admin.brand_request_show.fields.brand_name')}</p>
                       <p className="font-medium">{brandRequest.brand_name}</p>
+                    </div>
+                  </div>
+                ) : null}
+                {brandRequest.account_type ? (
+                  <div className="flex items-center gap-3">
+                    <StoreIcon className="size-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">{t('admin.brand_request_show.fields.account_type')}</p>
+                      <p className="font-medium">{t(`admin.brands_table.types.${brandRequest.account_type}`)}</p>
                     </div>
                   </div>
                 ) : null}

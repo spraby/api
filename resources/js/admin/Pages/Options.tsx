@@ -303,6 +303,7 @@ export default function Options() {
         </div>
 
         <ResourceList
+          onRowClick={(row) => { router.visit(`/admin/options/${row.id}/edit`) }}
           bulkActions={bulkActions}
           columns={columns}
           data={options ?? []}

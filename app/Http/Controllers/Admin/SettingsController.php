@@ -574,12 +574,7 @@ class SettingsController extends Controller
             'type' => $brand->type,
             'employment_type' => $brand->employment_type,
             'employment_type_label' => $brand->employment_type_label,
-            'employment_types_by_type' => collect(Brand::EMPLOYMENT_TYPES_BY_TYPE)
-                ->map(fn (array $values) => array_map(
-                    fn (string $value) => ['value' => $value, 'label' => Brand::employmentTypeLabel($value)],
-                    $values,
-                ))
-                ->all(),
+            'employment_types_by_type' => Brand::employmentTypeOptionsByType(),
             'request' => $request ? [
                 'id' => $request->id,
                 'status' => $request->status,

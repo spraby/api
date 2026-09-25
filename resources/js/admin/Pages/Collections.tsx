@@ -318,6 +318,7 @@ export default function Collections() {
         </div>
 
         <ResourceList
+          onRowClick={(row) => { router.visit(`/admin/collections/${row.id}/edit`) }}
           bulkActions={bulkActions}
           columns={columns}
           data={collections ?? []}

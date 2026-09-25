@@ -156,20 +156,6 @@ class Brand extends Model
     }
 
     /**
-     * Список для селектов: [['value' => ..., 'label' => ...], ...].
-     *
-     * @return array<int, array{value: string, label: string}>
-     */
-    public static function employmentTypeOptions(): array
-    {
-        return array_map(
-            fn (string $value, string $label) => ['value' => $value, 'label' => $label],
-            array_keys(self::EMPLOYMENT_TYPES),
-            array_values(self::EMPLOYMENT_TYPES),
-        );
-    }
-
-    /**
      * Продаёт ли бренд через площадку (корзина, заказы, аналитика продаж).
      * Мастер принимает заказы напрямую — покупатели пишут ему в контакты.
      */
@@ -186,6 +172,38 @@ class Brand extends Model
     public static function employmentTypesFor(string $type): array
     {
         return self::EMPLOYMENT_TYPES_BY_TYPE[$type] ?? [];
+    }
+
+    /**
+     * Тип аккаунта, которому соответствует форма занятости: ИП/ЧУП/ООО —
+     * бизнес, ремесленник/самозанятый — мастер. Без формы — null.
+     */
+    public static function typeForEmploymentType(?string $employmentType): ?string
+    {
+        foreach (self::EMPLOYMENT_TYPES_BY_TYPE as $type => $employmentTypes) {
+            if (in_array($employmentType, $employmentTypes, true)) {
+                return $type;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Формы занятости по типам аккаунта для селектов:
+     * ['master' => [['value' => ..., 'label' => ...], ...], 'business' => [...]].
+     *
+     * @return array<string, array<int, array{value: string, label: string}>>
+     */
+    public static function employmentTypeOptionsByType(): array
+    {
+        return array_map(
+            fn (array $values) => array_map(
+                fn (string $value) => ['value' => $value, 'label' => self::employmentTypeLabel($value)],
+                $values,
+            ),
+            self::EMPLOYMENT_TYPES_BY_TYPE,
+        );
     }
 
     public function getEmploymentTypeLabelAttribute(): ?string

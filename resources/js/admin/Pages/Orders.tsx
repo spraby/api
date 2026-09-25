@@ -518,6 +518,7 @@ export default function Orders() {
         </div>
 
         <ResourceList
+          onRowClick={(row) => { router.visit(`/admin/orders/${row.id}`) }}
           columns={columns}
           data={orders ?? []}
           filters={filters}

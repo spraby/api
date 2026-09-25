@@ -888,6 +888,7 @@ return [
             'phone' => 'Phone',
             'name' => 'Contact Name',
             'brand_name' => 'Requested Brand Name',
+            'account_type' => 'Account type',
             'employment_type' => 'Employment type',
             'status' => 'Status',
             'created_at' => 'Created At',

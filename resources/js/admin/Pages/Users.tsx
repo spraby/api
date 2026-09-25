@@ -404,6 +404,7 @@ export default function Users() {
         </div>
 
         <ResourceList
+          onRowClick={(row) => { router.visit(`/admin/users/${row.id}/edit`) }}
           bulkActions={bulkActions}
           bulkActionsSlot={renderBulkActionsSlot}
           columns={columns}
