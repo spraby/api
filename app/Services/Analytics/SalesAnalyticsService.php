@@ -99,6 +99,7 @@ class SalesAnalyticsService
         $unitsSold = (int) ($salesTotals->units_sold ?? 0);
         $views = (int) ($interestTotals->views ?? 0);
         $addToCart = (int) ($interestTotals->add_to_cart ?? 0);
+        $clicks = (int) ($interestTotals->clicks ?? 0);
 
         return [
             'revenue' => $revenue,
@@ -106,6 +107,7 @@ class SalesAnalyticsService
             'aov' => $ordersCount > 0 ? $revenue / $ordersCount : 0,
             'units' => $unitsSold,
             'views' => $views,
+            'clicks' => $clicks,
             'add_to_cart' => $addToCart,
             'conversion_view_to_atc' => $views > 0 ? ($addToCart / $views) * 100 : 0,
             'conversion_view_to_order' => $views > 0 ? ($ordersCount / $views) * 100 : 0,
@@ -120,6 +122,7 @@ class SalesAnalyticsService
             'aov' => 0,
             'units' => 0,
             'views' => 0,
+            'clicks' => 0,
             'add_to_cart' => 0,
             'conversion_view_to_atc' => 0,
             'conversion_view_to_order' => 0,

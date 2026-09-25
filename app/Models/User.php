@@ -174,6 +174,19 @@ class User extends Authenticatable
         return $this->brands()->first();
     }
 
+    /**
+     * Доступны ли пользователю заказы и аналитика продаж.
+     * Админ видит всё; менеджер — только если его бренд продаёт через площадку.
+     */
+    public function hasSalesAccess(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return (bool) $this->getBrand()?->sellsOnline();
+    }
+
     public function scopeEmail(Builder $query, string $email): void
     {
         $query->where('users.email', $email);

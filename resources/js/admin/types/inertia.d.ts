@@ -11,6 +11,8 @@ export interface User {
   permissions: string[];
   is_admin: boolean;
   is_manager: boolean;
+  // Заказы и аналитика продаж: админ и бизнес-бренды, у мастера — нет.
+  has_sales_access: boolean;
 }
 
 export interface Impersonator {

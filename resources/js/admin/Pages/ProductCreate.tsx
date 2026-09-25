@@ -1,7 +1,8 @@
-import { router } from '@inertiajs/react';
-import { ArrowLeftIcon } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { AlertTriangleIcon, ArrowLeftIcon } from 'lucide-react';
 
 import {ProductForm} from "@/components/product-form";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/lib/lang';
 import type {Product} from "@/types/data";
@@ -10,6 +11,8 @@ import AdminLayout from '../layouts/AdminLayout';
 
 export default function ProductCreate({product}: { product: Product }) {
     const { t } = useLang();
+    // Товар создаётся только в категории бренда — без категорий форму не показываем.
+    const hasCategories = (product?.brand?.categories ?? []).length > 0;
 
     return (
         <AdminLayout title={t('admin.products_create.title')}>
@@ -37,7 +40,22 @@ export default function ProductCreate({product}: { product: Product }) {
                             </p>
                         </div>
                     </div>
-                    <ProductForm product={product}/>
+                    {hasCategories ? (
+                        <ProductForm product={product}/>
+                    ) : (
+                        <Alert variant="warning">
+                            <AlertTriangleIcon className="size-4" />
+                            <AlertTitle>{t('admin.products_create.no_categories.title')}</AlertTitle>
+                            <AlertDescription>
+                                <p>{t('admin.products_create.no_categories.description')}</p>
+                                <Button asChild className="mt-2" size="sm">
+                                    <Link href={route('admin.my-categories')}>
+                                        {t('admin.products_create.no_categories.action')}
+                                    </Link>
+                                </Button>
+                            </AlertDescription>
+                        </Alert>
+                    )}
                 </div>
             </div>
         </AdminLayout>

@@ -22,6 +22,8 @@ interface DashboardPageProps {
     range: number;
     onboarding?: OnboardingState | null;
     table_mode?: 'top' | 'gap';
+    // false — бренд-мастер: аналитика продаж, корзины и заказов скрыта.
+    sales_enabled?: boolean;
     metrics: DashboardMetrics;
     series: {
         sales: SalesPoint[];
@@ -43,6 +45,7 @@ interface DashboardPageProps {
 const DASHBOARD_ONLY = [
     "range",
     "table_mode",
+    "sales_enabled",
     "metrics",
     "series",
     "category_views",
@@ -59,6 +62,7 @@ export default function Dashboard() {
         range,
         onboarding,
         table_mode: tableModeProp,
+        sales_enabled: salesEnabled = true,
         metrics,
         series,
         category_views: categoryViews,
@@ -152,15 +156,18 @@ export default function Dashboard() {
                     categoryAddToCart={categoryAddToCart}
                     numberFormatter={numberFormatter}
                     t={t}
+                    salesEnabled={salesEnabled}
                 />
 
-                <OrdersStatusWidget
-                    data={orderStatus}
-                    numberFormatter={numberFormatter}
-                    t={t}
-                    trans={trans}
-                    ordersHref={route('admin.orders')}
-                />
+                {salesEnabled ? (
+                    <OrdersStatusWidget
+                        data={orderStatus}
+                        numberFormatter={numberFormatter}
+                        t={t}
+                        trans={trans}
+                        ordersHref={route('admin.orders')}
+                    />
+                ) : null}
 
                 <DashboardCharts
                     sales={series.sales}
@@ -170,6 +177,7 @@ export default function Dashboard() {
                     formatDate={formatDate}
                     formatCompact={(value) => compactNumberFormatter.format(value)}
                     formatNumber={(value) => numberFormatter.format(value)}
+                    salesEnabled={salesEnabled}
                     labels={{
                         toggleSales: t('admin.dashboard.charts.toggle_sales'),
                         toggleInterest: t('admin.dashboard.charts.toggle_interest'),
@@ -177,6 +185,7 @@ export default function Dashboard() {
                         salesDescription: t('admin.dashboard.charts.sales_description'),
                         interestTitle: t('admin.dashboard.charts.interest_title'),
                         interestDescription: t('admin.dashboard.charts.interest_description'),
+                        interestDescriptionNoSales: t('admin.dashboard.charts.interest_description_no_sales'),
                         revenue: t('admin.dashboard.tooltip.revenue'),
                         orders: t('admin.dashboard.tooltip.orders'),
                         views: t('admin.dashboard.tooltip.views'),
@@ -185,16 +194,19 @@ export default function Dashboard() {
                     }}
                 />
 
-                <DashboardProductsTable
-                    range={range}
-                    tableMode={tableMode}
-                    onTableModeChange={setTableMode}
-                    topProducts={topProducts}
-                    topConversion={topConversion}
-                    numberFormatter={numberFormatter}
-                    t={t}
-                    trans={trans}
-                />
+                {/* Топ и конверсии считаются по заказам и корзине — у мастера их нет. */}
+                {salesEnabled ? (
+                    <DashboardProductsTable
+                        range={range}
+                        tableMode={tableMode}
+                        onTableModeChange={setTableMode}
+                        topProducts={topProducts}
+                        topConversion={topConversion}
+                        numberFormatter={numberFormatter}
+                        t={t}
+                        trans={trans}
+                    />
+                ) : null}
 
             </div>
         </AdminLayout>

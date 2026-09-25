@@ -18,6 +18,7 @@ export interface DashboardMetrics {
   aov: number;
   units: number;
   views: number;
+  clicks: number;
   add_to_cart: number;
   conversion_view_to_atc: number;
   conversion_view_to_order: number;

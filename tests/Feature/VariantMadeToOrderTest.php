@@ -37,6 +37,8 @@ class VariantMadeToOrderTest extends TestCase
         $this->manager->assignRole('manager');
         $this->brand = Brand::create(['user_id' => $this->manager->id, 'name' => 'Test Brand']);
         $this->category = Category::factory()->create();
+        // Товар создаётся только в категории бренда.
+        $this->brand->categories()->attach($this->category);
     }
 
     /**
@@ -73,6 +75,20 @@ class VariantMadeToOrderTest extends TestCase
         $variant = Product::query()->latest('id')->firstOrFail()->variants()->firstOrFail();
 
         return $variant;
+    }
+
+    public function test_store_rejects_category_not_attached_to_brand(): void
+    {
+        $foreignCategory = Category::factory()->create();
+
+        $this->actingAs($this->manager)
+            ->post(route('admin.products.store'), [
+                ...$this->productPayload(),
+                'category_id' => $foreignCategory->id,
+            ])
+            ->assertSessionHasErrors('category_id');
+
+        $this->assertSame(0, Product::query()->count());
     }
 
     public function test_creates_made_to_order_variant_without_production_time(): void

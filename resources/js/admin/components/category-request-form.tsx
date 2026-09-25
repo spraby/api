@@ -1,12 +1,13 @@
 import * as React from 'react';
 
 import { router } from '@inertiajs/react';
-import { XIcon } from 'lucide-react';
+import { SearchIcon, XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLang } from '@/lib/lang';
 
@@ -23,6 +24,14 @@ export function CategoryRequestForm({ categories }: Props) {
   const { t } = useLang();
   const [selected, setSelected] = React.useState<Set<number>>(new Set());
   const [submitting, setSubmitting] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+  const filteredCategories = React.useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return query
+      ? categories.filter((category) => category.name.toLowerCase().includes(query))
+      : categories;
+  }, [categories, search]);
   const selectedCategories = React.useMemo(
     () => categories.filter((category) => selected.has(category.id)),
     [categories, selected],
@@ -82,9 +91,22 @@ export function CategoryRequestForm({ categories }: Props) {
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-2">
         <Label>{t('admin.my_categories.form.select_categories')}</Label>
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            aria-label={t('admin.my_categories.form.search_placeholder')}
+            className="pl-9"
+            placeholder={t('admin.my_categories.form.search_placeholder')}
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); }}
+          />
+        </div>
         <div className="max-h-64 overflow-y-auto rounded-md border p-3">
+          {filteredCategories.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('admin.my_categories.form.no_results')}</p>
+          ) : null}
           <ul className="flex flex-col gap-2">
-            {categories.map((category) => (
+            {filteredCategories.map((category) => (
               <li key={category.id} className="flex items-center gap-2">
                 <Checkbox
                   checked={selected.has(category.id)}

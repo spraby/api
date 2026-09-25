@@ -34,6 +34,7 @@ type InterestChartProps = BaseChartProps & {
   data: { date: string; views: number; clicks: number; add_to_cart: number }[];
   config: ChartConfig;
   tooltipFormatter: TooltipFormatter;
+  showAddToCart?: boolean;
 };
 
 const getMargin = (isMobile: boolean) => ({
@@ -140,6 +141,7 @@ export function InterestChart({
   formatDate,
   formatCompact,
   tooltipFormatter,
+  showAddToCart = true,
 }: InterestChartProps) {
   const margin = React.useMemo(() => getMargin(isMobile), [isMobile])
   const xAxisProps = React.useMemo(() => getXAxisProps(formatDate, isMobile), [formatDate, isMobile])
@@ -182,14 +184,16 @@ export function InterestChart({
           type="monotone"
           isAnimationActive={false}
         />
-        <Area
-          dataKey="add_to_cart"
-          stroke="var(--color-add_to_cart)"
-          fill="url(#fillATC)"
-          strokeWidth={2.5}
-          type="monotone"
-          isAnimationActive={false}
-        />
+        {showAddToCart ? (
+          <Area
+            dataKey="add_to_cart"
+            stroke="var(--color-add_to_cart)"
+            fill="url(#fillATC)"
+            strokeWidth={2.5}
+            type="monotone"
+            isAnimationActive={false}
+          />
+        ) : null}
       </AreaChart>
     </ChartContainer>
   )

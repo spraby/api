@@ -156,6 +156,15 @@ class Brand extends Model
         );
     }
 
+    /**
+     * Продаёт ли бренд через площадку (корзина, заказы, аналитика продаж).
+     * Мастер принимает заказы напрямую — покупатели пишут ему в контакты.
+     */
+    public function sellsOnline(): bool
+    {
+        return $this->type === self::TYPE_BUSINESS;
+    }
+
     public function getEmploymentTypeLabelAttribute(): ?string
     {
         return self::employmentTypeLabel($this->employment_type);

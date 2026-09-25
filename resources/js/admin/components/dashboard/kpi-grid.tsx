@@ -17,6 +17,8 @@ interface KpiGridProps {
   categoryAddToCart?: { label: string; value: number }[];
   numberFormatter: Intl.NumberFormat;
   t: (key: string) => string;
+  // false — бренд-мастер: без корзины, заказов и выручки.
+  salesEnabled?: boolean;
 }
 
 interface KpiChip {
@@ -149,6 +151,7 @@ export function DashboardKpiGrid({
   categoryAddToCart = [],
   numberFormatter,
   t,
+  salesEnabled = true,
 }: KpiGridProps) {
   const cartToOrder = React.useMemo(
     () => (metrics.add_to_cart > 0 ? (metrics.orders / metrics.add_to_cart) * 100 : 0),
@@ -167,26 +170,28 @@ export function DashboardKpiGrid({
 
   const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
-  const items = React.useMemo<KpiCardData[]>(() => [
-    {
-      label: t("admin.dashboard.kpi.views"),
-      value: numberFormatter.format(metrics.views),
-      chips: [],
-      details: [],
-      extra: (
-        <>
-          <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-            <span>{t("admin.dashboard.kpi.category_breakdown")}</span>
-          </div>
-          <CategoryBreakdown
-            items={categoryViews}
-            t={t}
-            numberFormatter={numberFormatter}
-            isPreview={!hasCategoryData}
-          />
-        </>
-      ),
-    },
+  const viewsCard = React.useMemo<KpiCardData>(() => ({
+    label: t("admin.dashboard.kpi.views"),
+    value: numberFormatter.format(metrics.views),
+    chips: [],
+    details: [],
+    extra: (
+      <>
+        <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+          <span>{t("admin.dashboard.kpi.category_breakdown")}</span>
+        </div>
+        <CategoryBreakdown
+          items={categoryViews}
+          t={t}
+          numberFormatter={numberFormatter}
+          isPreview={!hasCategoryData}
+        />
+      </>
+    ),
+  }), [categoryViews, hasCategoryData, metrics.views, numberFormatter, t]);
+
+  const items = React.useMemo<KpiCardData[]>(() => salesEnabled ? [
+    viewsCard,
     {
       label: t("admin.dashboard.kpi.add_to_cart"),
       value: numberFormatter.format(metrics.add_to_cart),
@@ -262,7 +267,24 @@ export function DashboardKpiGrid({
         },
       ],
     },
+  ] : [
+    viewsCard,
+    {
+      label: t("admin.dashboard.kpi.clicks"),
+      value: numberFormatter.format(metrics.clicks),
+      chips: [
+        {
+          label: t("admin.dashboard.kpi.conversion_view_to_click"),
+          value: formatPercent(metrics.views > 0 ? (metrics.clicks / metrics.views) * 100 : 0),
+        },
+      ],
+      details: [],
+    },
   ], [
+    salesEnabled,
+    viewsCard,
+    metrics.clicks,
+    metrics.views,
     cartToOrder,
     metrics.add_to_cart,
     metrics.aov,
@@ -270,14 +292,11 @@ export function DashboardKpiGrid({
     metrics.conversion_view_to_order,
     metrics.orders,
     metrics.units,
-    metrics.views,
     numberFormatter,
     orderStatus.paid_count,
     orderStatus.paid_total,
     orderStatus.unpaid_count,
     orderStatus.unpaid_total,
-    categoryViews,
-    hasCategoryData,
     categoryAddToCart,
     hasCartCategoryData,
     t,
@@ -286,7 +305,7 @@ export function DashboardKpiGrid({
   ]);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className={`grid gap-4 sm:grid-cols-2 ${salesEnabled ? "xl:grid-cols-4" : ""}`}>
       {items.map((item) => (
         <KpiCard key={item.label} {...item} />
       ))}

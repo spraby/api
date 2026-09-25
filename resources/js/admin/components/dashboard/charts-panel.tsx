@@ -19,6 +19,8 @@ interface DashboardChartsProps {
   formatDate: (value: string) => string;
   formatCompact: (value: number) => string;
   formatNumber: (value: number) => string;
+  // false — бренд-мастер: только график интереса, без продаж и корзины.
+  salesEnabled?: boolean;
   labels: {
     toggleSales: string;
     toggleInterest: string;
@@ -26,6 +28,7 @@ interface DashboardChartsProps {
     salesDescription: string;
     interestTitle: string;
     interestDescription: string;
+    interestDescriptionNoSales: string;
     revenue: string;
     orders: string;
     views: string;
@@ -77,9 +80,11 @@ export function DashboardCharts({
   formatDate,
   formatCompact,
   formatNumber,
+  salesEnabled = true,
   labels,
 }: DashboardChartsProps) {
-  const [mode, setMode] = React.useState<"sales" | "interest">("sales");
+  const [selectedMode, setMode] = React.useState<"sales" | "interest">("sales");
+  const mode = salesEnabled ? selectedMode : "interest";
 
   const salesConfig: ChartConfig = React.useMemo(() => ({
     revenue: {
@@ -101,11 +106,13 @@ export function DashboardCharts({
       label: labels.clicks,
       color: "#F59E0B",
     },
-    add_to_cart: {
-      label: labels.addToCart,
-      color: "#10B981",
-    },
-  }), [labels]);
+    ...(salesEnabled ? {
+      add_to_cart: {
+        label: labels.addToCart,
+        color: "#10B981",
+      },
+    } : {}),
+  }), [labels, salesEnabled]);
 
   const formatSalesTooltip: TooltipFormatter = (value, name, item) => {
     const numeric = Number(value);
@@ -137,7 +144,8 @@ export function DashboardCharts({
   };
 
   const title = mode === "sales" ? labels.salesTitle : labels.interestTitle;
-  const description = mode === "sales" ? labels.salesDescription : labels.interestDescription;
+  const interestDescription = salesEnabled ? labels.interestDescription : labels.interestDescriptionNoSales;
+  const description = mode === "sales" ? labels.salesDescription : interestDescription;
 
   return (
     <Card>
@@ -146,15 +154,17 @@ export function DashboardCharts({
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </div>
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          value={mode}
-          onValueChange={handleModeChange}
-        >
-          <ToggleGroupItem value="sales">{labels.toggleSales}</ToggleGroupItem>
-          <ToggleGroupItem value="interest">{labels.toggleInterest}</ToggleGroupItem>
-        </ToggleGroup>
+        {salesEnabled ? (
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={mode}
+            onValueChange={handleModeChange}
+          >
+            <ToggleGroupItem value="sales">{labels.toggleSales}</ToggleGroupItem>
+            <ToggleGroupItem value="interest">{labels.toggleInterest}</ToggleGroupItem>
+          </ToggleGroup>
+        ) : null}
       </CardHeader>
       <CardContent>
         {mode === "sales" ? (
@@ -176,6 +186,7 @@ export function DashboardCharts({
             formatDate={formatDate}
             formatCompact={formatCompact}
             tooltipFormatter={formatInterestTooltip}
+            showAddToCart={salesEnabled}
           />
         )}
       </CardContent>

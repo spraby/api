@@ -56,6 +56,7 @@ class HandleInertiaRequests extends Middleware
                     'permissions' => $user->getAllPermissions()->pluck('name'),
                     'is_admin' => $user->isAdmin(),
                     'is_manager' => $user->isManager(),
+                    'has_sales_access' => $user->hasSalesAccess(),
                 ] : null,
                 'impersonator' => $impersonator,
             ],

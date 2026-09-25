@@ -8,17 +8,38 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\Orders\OrderShippingService;
 use Carbon\Carbon;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class OrderController extends Controller
+class OrderController extends Controller implements HasMiddleware
 {
     private const ORDER_HISTORY_LIMIT = 10;
     private const ORDER_HISTORY_STEP = 10;
+
+    /**
+     * Мастер не продаёт через площадку — раздела заказов у него нет.
+     */
+    public static function middleware(): array
+    {
+        return [
+            function (Request $request, Closure $next) {
+                /** @var User|null $user */
+                $user = $request->user();
+
+                if (! $user?->hasSalesAccess()) {
+                    return redirect()->route('admin.dashboard');
+                }
+
+                return $next($request);
+            },
+        ];
+    }
 
     /**
      * Show the orders list page with orders data.

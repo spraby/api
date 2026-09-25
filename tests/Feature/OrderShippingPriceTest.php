@@ -36,7 +36,7 @@ class OrderShippingPriceTest extends TestCase
 
         $this->manager = User::factory()->create();
         $this->manager->assignRole('manager');
-        $this->brand = Brand::create(['user_id' => $this->manager->id, 'name' => 'Test Brand']);
+        $this->brand = Brand::create(['user_id' => $this->manager->id, 'name' => 'Test Brand', 'type' => Brand::TYPE_BUSINESS]);
     }
 
     private function makeOrder(Brand $brand, array $attributes = []): Order
@@ -157,7 +157,7 @@ class OrderShippingPriceTest extends TestCase
     {
         $otherManager = User::factory()->create();
         $otherManager->assignRole('manager');
-        $otherBrand = Brand::create(['user_id' => $otherManager->id, 'name' => 'Other Brand']);
+        $otherBrand = Brand::create(['user_id' => $otherManager->id, 'name' => 'Other Brand', 'type' => Brand::TYPE_BUSINESS]);
         $order = $this->makeOrder($otherBrand);
 
         $this->actingAs($this->manager)

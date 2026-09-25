@@ -209,6 +209,8 @@ return [
             'units' => 'Units sold',
             'views' => 'Views',
             'add_to_cart' => 'Add to cart',
+            'clicks' => 'Card clicks',
+            'conversion_view_to_click' => 'View → Click',
             'paid_orders' => 'Paid orders',
             'unpaid_orders' => 'Unpaid orders',
             'category_breakdown' => 'Categories',
@@ -230,6 +232,7 @@ return [
             'sales_description' => 'Revenue and orders',
             'interest_title' => 'Product interest',
             'interest_description' => 'Views, clicks, and add to cart',
+            'interest_description_no_sales' => 'Product views and card clicks',
         ],
         'tables' => [
             'top_title' => 'Top products by sales',
@@ -558,6 +561,12 @@ return [
             'label' => 'Category',
             'hint' => 'Select a category. The category is set only when the product is created and cannot be changed afterwards.',
             'search_placeholder' => 'Search categories...',
+        ],
+        'no_categories' => [
+            'title' => 'Your brand has no categories yet',
+            'description' => 'You cannot create a product yet: products belong to one of your brand categories. Request the categories you need — once an administrator approves them, you can add products.',
+            'action' => 'Request categories',
+            'validation' => 'A product can only be created in one of your brand categories. Request categories in “My categories”.',
         ],
         'change_category_confirm' => [
             'title' => 'Change category?',
@@ -1673,6 +1682,8 @@ return [
             'selected_categories' => 'Selected for request',
             'remove_category' => 'Remove category from request',
             'submit' => 'Send request',
+            'search_placeholder' => 'Search by name...',
+            'no_results' => 'Nothing found',
         ],
     ],
 

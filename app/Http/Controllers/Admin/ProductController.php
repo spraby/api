@@ -253,6 +253,18 @@ class ProductController extends Controller
                 return Redirect::back()->with('error', 'Brand not found');
             }
 
+            // Товар создаётся только в категории бренда: без запроса на
+            // категории (раздел «Мои категории») создать товар нельзя.
+            $categoryAllowed = $brand->categories()
+                ->whereKey($request->input('category_id'))
+                ->exists();
+
+            if (!$categoryAllowed) {
+                return Redirect::back()->withErrors([
+                    'category_id' => __('admin.products_create.no_categories.validation'),
+                ]);
+            }
+
             $product = DB::transaction(function () use ($request, $brand) {
                 // 1. Create product
                 $product = Product::create([

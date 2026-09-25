@@ -49,18 +49,43 @@ class DashboardController extends Controller
         }
 
         $brandId = $brand?->id;
+        $hasSalesAccess = $user?->hasSalesAccess() ?? false;
 
-        $salesTotals = $this->salesAnalytics->getTotals($start, $end, $brandId);
         $interestTotals = $this->productAnalytics->getInterestTotals($start, $end, $brandId);
         $categoryBreakdown = $this->productAnalytics->getCategoryBreakdown($start, $end, $brandId);
 
-        return Inertia::render('Dashboard', [
+        $props = [
             'range' => $range,
             'table_mode' => $tableMode,
-            'metrics' => $this->salesAnalytics->buildMetrics($salesTotals, $interestTotals),
+            'sales_enabled' => $hasSalesAccess,
             'meta' => $meta,
             'category_views' => $categoryBreakdown['category_views'],
             'category_add_to_cart' => $categoryBreakdown['category_add_to_cart'],
+        ];
+
+        // Мастер не продаёт через площадку: заказов, выручки и корзины у него
+        // нет, поэтому эти запросы не выполняем и отдаём пустые заглушки.
+        if (! $hasSalesAccess) {
+            return Inertia::render('Dashboard', [
+                ...$props,
+                'metrics' => $this->salesAnalytics->buildMetrics((object) [], $interestTotals),
+                'series' => [
+                    'sales' => $this->salesAnalytics->emptySeries($dates),
+                    'interest' => $this->productAnalytics->getInterestDailySeries($dates, $start, $end, $brandId),
+                ],
+                'order_status' => $this->orderHealth->emptyWidget(),
+                'top_products' => [],
+                'top_conversion' => $this->productAnalytics->emptyConversionPage(
+                    $conversionSort, $conversionDirection, $conversionPage, $conversionPerPage
+                ),
+            ]);
+        }
+
+        $salesTotals = $this->salesAnalytics->getTotals($start, $end, $brandId);
+
+        return Inertia::render('Dashboard', [
+            ...$props,
+            'metrics' => $this->salesAnalytics->buildMetrics($salesTotals, $interestTotals),
             'series' => [
                 'sales' => $this->salesAnalytics->getDailySeries($dates, $start, $end, $brandId),
                 'interest' => $this->productAnalytics->getInterestDailySeries($dates, $start, $end, $brandId),
@@ -90,6 +115,7 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'range' => $range,
             'table_mode' => $tableMode,
+            'sales_enabled' => false,
             'metrics' => $this->salesAnalytics->emptyMetrics(),
             'category_views' => [],
             'category_add_to_cart' => [],

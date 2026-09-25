@@ -235,8 +235,8 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
                         : undefined,
                 ),
         }] : []),
-        // Orders - requires read_orders permission (manager only)
-        ...(can(user, Permission.READ_ORDERS) ? [{
+        // Orders - requires read_orders permission (manager only); у мастера заказов нет
+        ...(can(user, Permission.READ_ORDERS) && user?.has_sales_access ? [{
             title: t('admin.nav.orders'),
             url: "/admin/orders",
             icon: ShoppingCartIcon,
