@@ -2,6 +2,7 @@ import {useForm, usePage} from '@inertiajs/react';
 import {CheckCircle2Icon, ClockIcon, XCircleIcon} from 'lucide-react';
 
 import BrandPageDetails, {type BrandPageDetailsData} from '@/components/moderation/BrandPageDetails';
+import BrandTypeDetails, {type BrandTypeDetailsData} from '@/components/moderation/BrandTypeDetails';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
@@ -24,7 +25,7 @@ interface ModerationRequestData {
 }
 
 /** Детали разных типов заявок различает поле kind. */
-type ModerationDetails = BrandPageDetailsData;
+type ModerationDetails = BrandPageDetailsData | BrandTypeDetailsData;
 
 const STATUS_CONFIG: Record<ModerationStatus, {cls: string; Icon: typeof ClockIcon}> = {
     pending: {
@@ -152,6 +153,10 @@ function DetailsBlock({details}: {details: ModerationDetails | null}) {
 
     if (details?.kind === 'brand_page') {
         return <BrandPageDetails data={details}/>;
+    }
+
+    if (details?.kind === 'brand_type') {
+        return <BrandTypeDetails data={details}/>;
     }
 
     return (

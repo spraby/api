@@ -61,6 +61,8 @@ class MasterBrandSalesAccessTest extends TestCase
                 ->component('Dashboard', false)
                 ->where('auth.user.has_sales_access', false)
                 ->where('sales_enabled', false)
+                ->where('brand_account.type', Brand::TYPE_MASTER)
+                ->where('brand_account.has_pending_request', false)
                 ->where('top_products', [])
                 ->has('metrics.clicks')
             );
@@ -75,6 +77,7 @@ class MasterBrandSalesAccessTest extends TestCase
                 ->component('Dashboard', false)
                 ->where('auth.user.has_sales_access', true)
                 ->where('sales_enabled', true)
+                ->where('brand_account.type', Brand::TYPE_BUSINESS)
             );
     }
 }

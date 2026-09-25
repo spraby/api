@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { router, usePage } from '@inertiajs/react';
 
+import { BrandAccountBadge, type BrandAccount } from "@/components/dashboard/brand-account-badge"
 import { DashboardCharts } from "@/components/dashboard/charts-panel"
 import { DashboardKpiGrid } from "@/components/dashboard/kpi-grid"
 import { OrdersStatusWidget ,type  OrderStatusWidget } from "@/components/dashboard/orders-status-widget"
@@ -24,6 +25,8 @@ interface DashboardPageProps {
     table_mode?: 'top' | 'gap';
     // false — бренд-мастер: аналитика продаж, корзины и заказов скрыта.
     sales_enabled?: boolean;
+    // Мастер или бизнес — плашка над аналитикой (null у админа без бренда).
+    brand_account?: BrandAccount | null;
     metrics: DashboardMetrics;
     series: {
         sales: SalesPoint[];
@@ -63,6 +66,7 @@ export default function Dashboard() {
         onboarding,
         table_mode: tableModeProp,
         sales_enabled: salesEnabled = true,
+        brand_account: brandAccount,
         metrics,
         series,
         category_views: categoryViews,
@@ -90,10 +94,10 @@ export default function Dashboard() {
 
     const chartHeightClass = isMobile ? "h-[240px]" : "h-[320px]";
 
-    const [tableMode, setTableMode] = React.useState<"top" | "gap">(tableModeProp ?? "top");
+    const [tableMode, setTableMode] = React.useState<"top" | "gap">(tableModeProp ?? "gap");
 
     React.useEffect(() => {
-        setTableMode(tableModeProp ?? "top");
+        setTableMode(tableModeProp ?? "gap");
     }, [tableModeProp]);
 
     const handleRangeChange = (value: string) => {
@@ -123,7 +127,10 @@ export default function Dashboard() {
             <div className="flex flex-1 flex-col gap-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-xl font-semibold">{t('admin.dashboard.title')}</h1>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h1 className="text-xl font-semibold">{t('admin.dashboard.title')}</h1>
+                            {brandAccount ? <BrandAccountBadge account={brandAccount} t={t}/> : null}
+                        </div>
                         <p className="text-sm text-muted-foreground">{periodLabel}</p>
                     </div>
                     <ToggleGroup

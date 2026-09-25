@@ -83,7 +83,7 @@ export function DashboardCharts({
   salesEnabled = true,
   labels,
 }: DashboardChartsProps) {
-  const [selectedMode, setMode] = React.useState<"sales" | "interest">("sales");
+  const [selectedMode, setMode] = React.useState<"sales" | "interest">("interest");
   const mode = salesEnabled ? selectedMode : "interest";
 
   const salesConfig: ChartConfig = React.useMemo(() => ({

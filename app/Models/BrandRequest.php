@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $name
  * @property string|null $brand_name
  * @property string|null $employment_type
+ * @property string|null $employment_name Наименование бизнеса (ИП, ЧУП, ООО)
+ * @property string|null $employment_number УНП
  * @property string $status
  * @property int|null $brand_id
  * @property int|null $user_id
@@ -59,6 +61,8 @@ class BrandRequest extends Model
         'name',
         'brand_name',
         'employment_type',
+        'employment_name',
+        'employment_number',
         'status',
         'brand_id',
         'user_id',

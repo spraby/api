@@ -269,6 +269,35 @@ export interface BrandImage {
   url: string;
 }
 
+export type BrandAccountType = 'master' | 'business';
+
+/** Тип аккаунта бренда и последняя заявка на его смену (SettingsController::brandTypePayload). */
+export interface BrandTypeState {
+  type: BrandAccountType;
+  employment_type: string | null;
+  employment_type_label: string | null;
+  /** Допустимые формы занятости для каждого типа аккаунта. */
+  employment_types_by_type: Record<BrandAccountType, EmploymentTypeOption[]>;
+  request: {
+    id: number;
+    status: 'pending' | 'approved' | 'rejected';
+    reason: string | null;
+    created_at: string | null;
+    reviewed_at: string | null;
+    requested_type: BrandAccountType | null;
+    requested_employment_type_label: string | null;
+  } | null;
+}
+
+/** Реквизиты бренда в «Настройки → Основные»: редактируют только бизнес-аккаунты. */
+export interface BrandRequisites {
+  isBusiness: boolean;
+  /** Форма занятости — только для просмотра, продавец её не меняет. */
+  employmentTypeLabel: string | null;
+  employmentName: string;
+  employmentNumber: string;
+}
+
 /** Форма занятости бренда: значение для БД + готовое название из Brand::EMPLOYMENT_TYPES. */
 export interface EmploymentTypeOption {
   value: string;

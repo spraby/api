@@ -1,27 +1,40 @@
 import {useCallback, useState, type FormEventHandler} from 'react';
 
 import {useForm} from '@inertiajs/react';
-import {TrashIcon} from 'lucide-react';
+import {ClockIcon, PencilIcon, TrashIcon} from 'lucide-react';
 import {toast} from 'sonner';
 
 import {ImagePickerDialog} from '@/components/image-picker-dialog';
 import type {ImageSelectorItem} from '@/components/image-selector';
 import {MediaThumbnail} from '@/components/media-thumbnail';
+import BrandTypeRequestDialog from '@/components/settings/BrandTypeRequestDialog';
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
+import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Label} from '@/components/ui/label';
 import {RichTextEditor} from '@/components/ui/rich-text-editor';
 import {useLang} from '@/lib/lang';
-import type {BrandImage} from '@/types/api';
+import type {BrandImage, BrandRequisites, BrandTypeState} from '@/types/api';
 
 interface GeneralSectionProps {
     about: string;
     refundPolicy: string;
     image: BrandImage | null;
+    requisites: BrandRequisites;
+    brandType: BrandTypeState | null;
 }
 
-export default function GeneralSection({about, refundPolicy, image}: GeneralSectionProps) {
-    const {t} = useLang();
+export default function GeneralSection({about, refundPolicy, image, requisites, brandType}: GeneralSectionProps) {
+    const {t, trans} = useLang();
+    const [isTypeDialogOpen, setTypeDialogOpen] = useState(false);
+
+    const typeRequest = brandType?.request ?? null;
+    const isTypeRequestPending = typeRequest?.status === 'pending';
+    const describeType = (type: string | null | undefined, employmentLabel: string | null | undefined) => [
+        type ? t(`admin.brand_type_request.types.${type}`) : null,
+        employmentLabel,
+    ].filter(Boolean).join(' · ');
 
     const [logo, setLogo] = useState<BrandImage | null>(image ?? null);
 
@@ -123,6 +136,77 @@ export default function GeneralSection({about, refundPolicy, image}: GeneralSect
                         </div>
                     </div>
 
+                    {brandType ? (
+                        <div className="flex min-w-0 flex-col gap-4 rounded-lg border p-4">
+                            <div className="flex flex-col gap-2">
+                                <Label>{t('admin.brand_type_request.title')}</Label>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                                    <Badge variant="secondary">
+                                        {describeType(brandType.type, brandType.employment_type_label)}
+                                    </Badge>
+                                    {isTypeRequestPending ? (
+                                        <Badge
+                                            variant="outline"
+                                            className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                        >
+                                            <ClockIcon className="mr-1 size-3"/>
+                                            {t('admin.brand_type_request.status.pending')}
+                                        </Badge>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="inline-flex items-center gap-1 rounded-sm text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                            onClick={() => setTypeDialogOpen(true)}
+                                        >
+                                            <PencilIcon className="size-3"/>
+                                            {t('admin.brand_type_request.change')}
+                                        </button>
+                                    )}
+                                </div>
+                                {isTypeRequestPending ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        {trans('admin.brand_type_request.pending_hint', {
+                                            type: describeType(
+                                                typeRequest?.requested_type,
+                                                typeRequest?.requested_employment_type_label,
+                                            ),
+                                        })}
+                                    </p>
+                                ) : null}
+                                {typeRequest?.status === 'rejected' ? (
+                                    <Alert variant="destructive">
+                                        <AlertTitle>{t('admin.brand_type_request.status.rejected')}</AlertTitle>
+                                        {typeRequest.reason ? (
+                                            <AlertDescription>
+                                                {t('admin.brand_type_request.rejected_reason')}: {typeRequest.reason}
+                                            </AlertDescription>
+                                        ) : null}
+                                    </Alert>
+                                ) : null}
+                            </div>
+
+                            {requisites.isBusiness ? (
+                                <div className="flex flex-col gap-2">
+                                    <Label>{t('admin.settings_general.requisites.title')}</Label>
+                                    <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                                        <div className="flex min-w-0 flex-col gap-1">
+                                            <dt className="text-muted-foreground">
+                                                {t('admin.settings_general.fields.employment_name')}
+                                            </dt>
+                                            <dd className="break-words font-medium">{requisites.employmentName || '—'}</dd>
+                                        </div>
+                                        <div className="flex min-w-0 flex-col gap-1">
+                                            <dt className="text-muted-foreground">
+                                                {t('admin.settings_general.fields.employment_number')}
+                                            </dt>
+                                            <dd className="font-medium tabular-nums">{requisites.employmentNumber || '—'}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : null}
+
                     <div className="flex min-w-0 flex-col gap-2">
                         <Label>{t('admin.settings_general.fields.about')}</Label>
                         <RichTextEditor
@@ -149,6 +233,15 @@ export default function GeneralSection({about, refundPolicy, image}: GeneralSect
                         </Button>
                     </div>
                 </form>
+                {brandType && isTypeDialogOpen ? (
+                    <BrandTypeRequestDialog
+                        open={isTypeDialogOpen}
+                        onOpenChange={setTypeDialogOpen}
+                        brandType={brandType}
+                        employmentName={requisites.employmentName}
+                        employmentNumber={requisites.employmentNumber}
+                    />
+                ) : null}
             </CardContent>
         </Card>
     );

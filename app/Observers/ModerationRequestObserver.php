@@ -11,11 +11,34 @@ class ModerationRequestObserver
     /** Письма ставим в очередь после коммита: до него заявки для получателя ещё нет. */
     public bool $afterCommit = true;
 
+    /**
+     * Письма по типам заявок: шаблоны и темы. Тип без записи здесь
+     * писем не шлёт.
+     */
+    private const MAIL = [
+        ModerationRequest::TYPE_BRAND_PAGE => [
+            'created_template' => 'brand_page_request_created_admin',
+            'created_subject' => 'Заявка на публикацию страницы бренда: ',
+            'reviewed_template' => 'brand_page_request_reviewed_user',
+            'approved_subject' => 'Страница вашего бренда опубликована',
+            'rejected_subject' => 'Заявка на публикацию страницы бренда отклонена',
+        ],
+        ModerationRequest::TYPE_BRAND_TYPE => [
+            'created_template' => 'brand_type_request_created_admin',
+            'created_subject' => 'Заявка на смену типа аккаунта: ',
+            'reviewed_template' => 'brand_type_request_reviewed_user',
+            'approved_subject' => 'Тип аккаунта вашего бренда изменён',
+            'rejected_subject' => 'Заявка на смену типа аккаунта отклонена',
+        ],
+    ];
+
     public function __construct(protected EmailQueue $queue) {}
 
     public function created(ModerationRequest $request): void
     {
-        if (! $this->isBrandPage($request)) {
+        $mail = self::MAIL[$request->type] ?? null;
+
+        if ($mail === null) {
             return;
         }
 
@@ -30,9 +53,9 @@ class ModerationRequestObserver
         ]);
 
         $this->queue->enqueueMany(
-            templateKey: 'brand_page_request_created_admin',
+            templateKey: $mail['created_template'],
             recipients: $admins,
-            subject: 'Заявка на публикацию страницы бренда: '.($payload['brand_name'] ?? '—'),
+            subject: $mail['created_subject'].($payload['brand_name'] ?? '—'),
             payload: $payload,
             options: ['source_model' => $request],
         );
@@ -40,7 +63,9 @@ class ModerationRequestObserver
 
     public function updated(ModerationRequest $request): void
     {
-        if (! $this->isBrandPage($request) || ! $request->wasChanged('status')) {
+        $mail = self::MAIL[$request->type] ?? null;
+
+        if ($mail === null || ! $request->wasChanged('status')) {
             return;
         }
 
@@ -65,19 +90,12 @@ class ModerationRequestObserver
         ]);
 
         $this->queue->enqueue(
-            templateKey: 'brand_page_request_reviewed_user',
+            templateKey: $mail['reviewed_template'],
             toEmail: $owner->email,
-            subject: $isApproved
-                ? 'Страница вашего бренда опубликована'
-                : 'Заявка на публикацию страницы бренда отклонена',
+            subject: $isApproved ? $mail['approved_subject'] : $mail['rejected_subject'],
             payload: $payload,
             options: ['to_name' => $owner->first_name, 'source_model' => $request],
         );
-    }
-
-    private function isBrandPage(ModerationRequest $request): bool
-    {
-        return $request->type === ModerationRequest::TYPE_BRAND_PAGE;
     }
 
     private function brand(ModerationRequest $request): ?Brand
@@ -93,6 +111,7 @@ class ModerationRequestObserver
     private function payloadFor(ModerationRequest $request): array
     {
         $brand = $this->brand($request);
+        $requested = $request->settings['requested'] ?? [];
 
         return [
             'request_id' => $request->id,
@@ -102,6 +121,15 @@ class ModerationRequestObserver
             'user_name' => $brand?->user?->first_name,
             'user_email' => $brand?->user?->email,
             'created_at' => $request->created_at?->format('d.m.Y H:i'),
+            // Для смены типа аккаунта: что запрошено (у страницы бренда пусто).
+            'requested_type_label' => match ($requested['type'] ?? null) {
+                Brand::TYPE_MASTER => 'Мастер',
+                Brand::TYPE_BUSINESS => 'Бизнес',
+                default => null,
+            },
+            'requested_employment_type_label' => Brand::employmentTypeLabel($requested['employment_type'] ?? null),
+            'requested_employment_name' => $requested['employment_name'] ?? null,
+            'requested_employment_number' => $requested['employment_number'] ?? null,
         ];
     }
 }

@@ -24,7 +24,7 @@ class DashboardRequest extends FormRequest
     {
         $this->merge([
             'range' => (int) $this->query('range', 30),
-            'table' => $this->query('table', 'top'),
+            'table' => $this->query('table', 'gap'),
             'conv_sort' => $this->query('conv_sort', 'view_to_order'),
             'conv_dir' => $this->query('conv_dir', 'desc'),
             'conv_page' => max(1, (int) $this->query('conv_page', 1)),
@@ -49,7 +49,7 @@ class DashboardRequest extends FormRequest
 
     public function tableMode(): string
     {
-        return $this->validated('table', 'top');
+        return $this->validated('table', 'gap');
     }
 
     public function conversionSort(): string

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\DashboardRequest;
 use App\Models\Brand;
+use App\Models\ModerationRequest;
 use App\Models\User;
 use App\Services\Analytics\OrderHealthService;
 use App\Services\Analytics\ProductAnalyticsService;
@@ -58,6 +59,7 @@ class DashboardController extends Controller
             'range' => $range,
             'table_mode' => $tableMode,
             'sales_enabled' => $hasSalesAccess,
+            'brand_account' => $this->brandAccount($brand),
             'meta' => $meta,
             'category_views' => $categoryBreakdown['category_views'],
             'category_add_to_cart' => $categoryBreakdown['category_add_to_cart'],
@@ -100,6 +102,26 @@ class DashboardController extends Controller
                     $conversionSort, $conversionDirection, $conversionPage, $conversionPerPage
                 ),
         ]);
+    }
+
+    /**
+     * Плашка «мастер / бизнес» над аналитикой: тип аккаунта бренда
+     * и есть ли заявка на его смену. У админа без бренда плашки нет.
+     */
+    private function brandAccount(?Brand $brand): ?array
+    {
+        if (! $brand) {
+            return null;
+        }
+
+        return [
+            'type' => $brand->type,
+            'employment_type_label' => $brand->employment_type_label,
+            'has_pending_request' => $brand->moderationRequests()
+                ->where('type', ModerationRequest::TYPE_BRAND_TYPE)
+                ->where('status', ModerationRequest::STATUS_PENDING)
+                ->exists(),
+        ];
     }
 
     private function emptyDashboard(

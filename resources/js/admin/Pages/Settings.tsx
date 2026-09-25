@@ -16,7 +16,9 @@ import {useLang} from '@/lib/lang';
 import type {
     Address,
     BrandImage,
+    BrandRequisites,
     BrandShippingMethod,
+    BrandTypeState,
     ContactsMap,
     ShippingConstructorOption,
     ShippingFieldDef,
@@ -32,6 +34,11 @@ interface SettingsPageProps extends Record<string, unknown> {
     about: string;
     refundPolicy: string;
     image: BrandImage | null;
+    isBusiness: boolean;
+    employmentTypeLabel: string | null;
+    employmentName: string;
+    employmentNumber: string;
+    brandType: BrandTypeState | null;
     allShippingConstructors?: ShippingMethodConstructor[];
     merchantFieldsCatalog?: ShippingFieldDef[];
     customerFieldsCatalog?: ShippingFieldDef[];
@@ -58,6 +65,8 @@ function ManagerSettings({
     about,
     refundPolicy,
     image,
+    requisites,
+    brandType,
 }: {
     addresses: Address[];
     contacts: ContactsMap;
@@ -66,11 +75,13 @@ function ManagerSettings({
     about: string;
     refundPolicy: string;
     image: BrandImage | null;
+    requisites: BrandRequisites;
+    brandType: BrandTypeState | null;
 }) {
     return (
         <SettingsTabs defaultTab="general" tabs={tabs}>
             <SettingsTabsPanel value="general">
-                <GeneralSection about={about} refundPolicy={refundPolicy} image={image}/>
+                <GeneralSection about={about} refundPolicy={refundPolicy} image={image} requisites={requisites} brandType={brandType}/>
             </SettingsTabsPanel>
             <SettingsTabsPanel value="addresses">
                 <AddressesSection addresses={addresses}/>
@@ -147,7 +158,12 @@ export default function Settings() {
         about,
         refundPolicy,
         image,
-            allShippingConstructors,
+        isBusiness,
+        employmentTypeLabel,
+        employmentName,
+        employmentNumber,
+        brandType,
+        allShippingConstructors,
         merchantFieldsCatalog,
         customerFieldsCatalog,
         menu,
@@ -185,6 +201,13 @@ export default function Settings() {
                         about={about}
                         refundPolicy={refundPolicy}
                         image={image ?? null}
+                        requisites={{
+                            isBusiness: !!isBusiness,
+                            employmentTypeLabel: employmentTypeLabel ?? null,
+                            employmentName: employmentName ?? '',
+                            employmentNumber: employmentNumber ?? '',
+                        }}
+                        brandType={brandType ?? null}
                     />
                 )}
             </div>

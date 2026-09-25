@@ -19,6 +19,8 @@ use Illuminate\Support\Str;
  * @property string|null $image_id
  * @property string $name
  * @property string|null $employment_type
+ * @property string|null $employment_name Наименование бизнеса (ИП, ЧУП, ООО)
+ * @property string|null $employment_number УНП
  * @property string $type
  * @property string|null $domain
  * @property string $page_status
@@ -82,11 +84,22 @@ class Brand extends Model
         'llc' => 'ООО',
     ];
 
+    /**
+     * Какие формы занятости допустимы у каждого типа аккаунта:
+     * мастер — физлицо, бизнес — ИП или юрлицо с реквизитами.
+     */
+    public const EMPLOYMENT_TYPES_BY_TYPE = [
+        self::TYPE_MASTER => ['craftsman', 'self_employed'],
+        self::TYPE_BUSINESS => ['sole_proprietor', 'private_unitary_enterprise', 'llc'],
+    ];
+
     protected $fillable = [
         'user_id',
         'image_id',
         'name',
         'employment_type',
+        'employment_name',
+        'employment_number',
         'type',
         'domain',
         'page_status',
@@ -163,6 +176,16 @@ class Brand extends Model
     public function sellsOnline(): bool
     {
         return $this->type === self::TYPE_BUSINESS;
+    }
+
+    /**
+     * Формы занятости, допустимые для типа аккаунта.
+     *
+     * @return array<int, string>
+     */
+    public static function employmentTypesFor(string $type): array
+    {
+        return self::EMPLOYMENT_TYPES_BY_TYPE[$type] ?? [];
     }
 
     public function getEmploymentTypeLabelAttribute(): ?string

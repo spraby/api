@@ -38,8 +38,12 @@ class ModerationRequest extends Model
 
     public const TYPE_BRAND_PAGE = 'brand_page';
 
+    /** Смена типа аккаунта бренда (мастер/бизнес), формы занятости и реквизитов. */
+    public const TYPE_BRAND_TYPE = 'brand_type';
+
     public const TYPES = [
         self::TYPE_BRAND_PAGE,
+        self::TYPE_BRAND_TYPE,
     ];
 
     /**
@@ -49,6 +53,7 @@ class ModerationRequest extends Model
     public const TYPES_BY_SOURCE = [
         Brand::class => [
             self::TYPE_BRAND_PAGE,
+            self::TYPE_BRAND_TYPE,
         ],
     ];
 

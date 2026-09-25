@@ -142,6 +142,13 @@ return [
         'title' => 'Dashboard',
         'period' => 'Last :days days • :start — :end',
         'range_days' => ':days days',
+        'brand_account' => [
+            'types' => [
+                'master' => 'Master',
+                'business' => 'Business',
+            ],
+            'pending' => 'Account type change request under review',
+        ],
         'onboarding' => [
             'progress' => [
                 'value' => ':completed/:total',
@@ -1462,6 +1469,44 @@ return [
         ],
     ],
 
+    'brand_type_request' => [
+        'title' => 'Account type',
+        'change' => 'Change',
+        'types' => [
+            'master' => 'Master',
+            'business' => 'Business',
+        ],
+        'type_hints' => [
+            'master' => 'Craftsman or self-employed. Buyers contact you directly.',
+            'business' => 'Sole proprietor, PUE or LLC. Cart, orders and sales analytics.',
+        ],
+        'status' => [
+            'pending' => 'Request under review',
+            'rejected' => 'Request rejected',
+        ],
+        'pending_hint' => 'Requested: :type. You can change the type after the moderator decides.',
+        'rejected_reason' => 'Reason',
+        'dialog' => [
+            'title' => 'Change account type and details',
+            'description' => 'A moderator will review the request. Brand data stays the same until then.',
+            'account_type' => 'Account type',
+            'employment_type' => 'Employment type',
+            'employment_type_placeholder' => 'Select employment type',
+            'submit' => 'Submit',
+            'submitting' => 'Submitting...',
+            'cancel' => 'Cancel',
+        ],
+        'messages' => [
+            'submitted' => 'Account type change request submitted',
+        ],
+        'errors' => [
+            'not_found' => 'Brand not found',
+            'already_requested' => 'An account type request is already under review',
+            'nothing_changed' => 'The selected values match the current ones',
+            'employment_type_mismatch' => 'This employment type does not fit the selected account type',
+        ],
+    ],
+
     'settings_general' => [
         'title' => 'General Settings',
         'description' => 'General information about your store',
@@ -1469,13 +1514,18 @@ return [
             'about' => 'About brand',
             'refund_policy' => 'Refund policy',
             'image' => 'Brand logo',
+            'employment_name' => 'Business name',
+            'employment_number' => 'UNP',
         ],
         'placeholders' => [
             'about' => 'Tell about your brand...',
             'refund_policy' => 'Describe your refund policy...',
+            'employment_name' => 'E.g. Romashka LLC',
+            'employment_number' => '123456789',
         ],
         'hints' => [
             'image' => 'Shown to customers next to the brand name. A square image works best.',
+            'employment_number' => '9 digits',
         ],
         'actions' => [
             'save' => 'Save',
@@ -1489,6 +1539,12 @@ return [
         ],
         'errors' => [
             'image_not_owned' => 'This image does not belong to your brand',
+            'employment_number_format' => 'UNP must be 9 digits',
+        ],
+        'requisites' => [
+            'title' => 'Business details',
+            'description' => 'Your business name and UNP',
+            'employment_type' => 'Employment type',
         ],
     ],
 
@@ -1770,6 +1826,7 @@ return [
         ],
         'types' => [
             'brand_page' => 'Brand page',
+            'brand_type' => 'Account type change',
         ],
         'statuses' => [
             'pending' => 'Pending',
@@ -1813,6 +1870,22 @@ return [
                 'already_processed' => 'This request has already been processed.',
                 'source_missing' => 'The request resource was deleted — no decision can be made.',
                 'domain_required' => 'Set the brand domain first: the page address is built from it.',
+                'invalid_payload' => 'Request data is corrupted — a decision cannot be made.',
+            ],
+            'brand_type' => [
+                'title' => 'Account type change',
+                'previous' => 'Before',
+                'requested' => 'Requested',
+                'current' => 'Brand now',
+                'changed_since' => 'The brand changed after the request was submitted',
+                'fields' => [
+                    'type' => 'Account type',
+                    'employment_type' => 'Employment type',
+                    'employment_name' => 'Business name',
+                    'employment_number' => 'UNP',
+                ],
+                'owner' => 'Owner',
+                'open_brand' => 'Open brand',
             ],
             'brand' => [
                 'title' => 'Brand',

@@ -227,6 +227,8 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'update'])->name('settings.shipping-constructors.update');
         Route::delete('/settings/shipping-constructors/{shippingConstructor}', [App\Http\Controllers\Admin\ShippingMethodConstructorController::class, 'destroy'])->name('settings.shipping-constructors.destroy');
         Route::put('/settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general.update');
+        // Смена типа аккаунта бренда — только заявкой, решает модератор
+        Route::post('/settings/brand-type-request', [App\Http\Controllers\Admin\BrandTypeRequestController::class, 'store'])->name('settings.brand-type-request.store');
         Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
         Route::put('/settings/information', [App\Http\Controllers\Admin\SettingsController::class, 'updateInformation'])->name('settings.information.update');
 

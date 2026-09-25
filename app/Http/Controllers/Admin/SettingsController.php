@@ -12,6 +12,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Collection;
 use App\Models\Contact;
+use App\Models\ModerationRequest;
 use App\Models\Settings;
 use App\Models\ShippingMethod;
 use App\Models\ShippingMethodConstructor;
@@ -172,6 +173,13 @@ class SettingsController extends Controller
                 'alt' => $brand->image->alt,
                 'url' => $brand->image->url,
             ] : null,
+            // Реквизиты бизнес-аккаунта — только для просмотра, меняются заявкой
+            'isBusiness' => $brand?->type === Brand::TYPE_BUSINESS,
+            // Форму занятости продавец не меняет напрямую — только заявкой
+            'employmentTypeLabel' => $brand?->employment_type_label,
+            'brandType' => $brand ? $this->brandTypePayload($brand) : null,
+            'employmentName' => $brand?->employment_name ?? '',
+            'employmentNumber' => $brand?->employment_number ?? '',
             ...$adminData,
         ]);
     }
@@ -526,6 +534,8 @@ class SettingsController extends Controller
             return $brand;
         }
 
+        // Тип аккаунта, форма занятости и реквизиты здесь не принимаются:
+        // их меняют только заявкой (BrandTypeRequestController).
         $validated = $request->validate([
             'about' => ['nullable', 'string'],
             'refund_policy' => ['nullable', 'string'],
@@ -543,6 +553,43 @@ class SettingsController extends Controller
         $brand->update($validated);
 
         return redirect()->back();
+    }
+
+    /**
+     * Тип аккаунта для бейджа и попапа смены типа: текущие значения,
+     * допустимые формы занятости по типам и последняя заявка на смену.
+     */
+    private function brandTypePayload(Brand $brand): array
+    {
+        // id вторым ключом: created_at хранится с точностью до секунды.
+        $request = $brand->moderationRequests()
+            ->where('type', ModerationRequest::TYPE_BRAND_TYPE)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+
+        $requested = $request?->settings['requested'] ?? null;
+
+        return [
+            'type' => $brand->type,
+            'employment_type' => $brand->employment_type,
+            'employment_type_label' => $brand->employment_type_label,
+            'employment_types_by_type' => collect(Brand::EMPLOYMENT_TYPES_BY_TYPE)
+                ->map(fn (array $values) => array_map(
+                    fn (string $value) => ['value' => $value, 'label' => Brand::employmentTypeLabel($value)],
+                    $values,
+                ))
+                ->all(),
+            'request' => $request ? [
+                'id' => $request->id,
+                'status' => $request->status,
+                'reason' => $request->reason,
+                'created_at' => $request->created_at?->toISOString(),
+                'reviewed_at' => $request->reviewed_at?->toISOString(),
+                'requested_type' => $requested['type'] ?? null,
+                'requested_employment_type_label' => Brand::employmentTypeLabel($requested['employment_type'] ?? null),
+            ] : null,
+        ];
     }
 
     /**

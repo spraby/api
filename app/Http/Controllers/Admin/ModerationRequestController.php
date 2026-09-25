@@ -115,6 +115,7 @@ class ModerationRequestController extends Controller
     {
         return match ($r->type) {
             ModerationRequest::TYPE_BRAND_PAGE => $this->applyBrandPageDecision($r, $status),
+            ModerationRequest::TYPE_BRAND_TYPE => $this->applyBrandTypeDecision($r, $status),
             default => null,
         };
     }
@@ -147,6 +148,38 @@ class ModerationRequestController extends Controller
         return null;
     }
 
+    private function applyBrandTypeDecision(ModerationRequest $r, string $status): ?string
+    {
+        $brand = $r->source;
+
+        if (! $brand instanceof Brand) {
+            return 'source_missing';
+        }
+
+        // Отказ бренд не меняет: остаётся прежний тип, продавец может подать заново.
+        if ($status === ModerationRequest::STATUS_REJECTED) {
+            return null;
+        }
+
+        $requested = $r->settings['requested'] ?? null;
+
+        if (! is_array($requested) || ! in_array($requested['type'] ?? null, Brand::TYPES, true)) {
+            return 'invalid_payload';
+        }
+
+        $isBusiness = $requested['type'] === Brand::TYPE_BUSINESS;
+
+        $brand->update([
+            'type' => $requested['type'],
+            'employment_type' => $requested['employment_type'] ?? null,
+            // У мастера реквизитов нет — старые бизнес-реквизиты не оставляем.
+            'employment_name' => $isBusiness ? ($requested['employment_name'] ?? null) : null,
+            'employment_number' => $isBusiness ? ($requested['employment_number'] ?? null) : null,
+        ]);
+
+        return null;
+    }
+
     /**
      * Детали заявки под её тип. Неизвестный тип — не ошибка:
      * страница покажет общую часть и скажет, что деталей нет.
@@ -155,6 +188,7 @@ class ModerationRequestController extends Controller
     {
         return match ($r->type) {
             ModerationRequest::TYPE_BRAND_PAGE => $this->brandPageDetails($r),
+            ModerationRequest::TYPE_BRAND_TYPE => $this->brandTypeDetails($r),
             default => null,
         };
     }
@@ -215,6 +249,45 @@ class ModerationRequestController extends Controller
                 'products' => $brand->products()->count(),
                 'categories' => $brand->categories()->count(),
             ],
+        ];
+    }
+
+    private function brandTypeDetails(ModerationRequest $r): ?array
+    {
+        $brand = $r->source;
+
+        if (! $brand instanceof Brand) {
+            return null;
+        }
+
+        $brand->loadMissing('user');
+
+        $values = fn (?array $v) => $v === null ? null : [
+            'type' => $v['type'] ?? null,
+            'employment_type' => $v['employment_type'] ?? null,
+            'employment_type_label' => Brand::employmentTypeLabel($v['employment_type'] ?? null),
+            'employment_name' => $v['employment_name'] ?? null,
+            'employment_number' => $v['employment_number'] ?? null,
+        ];
+
+        return [
+            'kind' => 'brand_type',
+            'brand' => [
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'admin_url' => '/admin/brands/'.$brand->id.'/edit',
+            ],
+            'owner' => $brand->user ? [
+                'id' => $brand->user->id,
+                'name' => trim(($brand->user->first_name ?? '').' '.($brand->user->last_name ?? '')) ?: null,
+                'email' => $brand->user->email,
+                'admin_url' => '/admin/users/'.$brand->user->id.'/edit',
+            ] : null,
+            // Снимок на момент подачи; текущее состояние бренда — отдельно,
+            // оно могло измениться, пока заявка ждала решения.
+            'previous' => $values($r->settings['previous'] ?? null),
+            'requested' => $values($r->settings['requested'] ?? null),
+            'current' => $values(BrandTypeRequestController::currentValues($brand)),
         ];
     }
 
