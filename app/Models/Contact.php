@@ -28,6 +28,7 @@ class Contact extends Model
     public const TYPE_EMAIL = 'email';
     public const TYPE_PHONE = 'phone';
     public const TYPE_WHATSAPP = 'whatsapp';
+    public const TYPE_VIBER = 'viber';
     public const TYPE_TELEGRAM = 'telegram';
     public const TYPE_INSTAGRAM = 'instagram';
     public const TYPE_FACEBOOK = 'facebook';
@@ -36,6 +37,7 @@ class Contact extends Model
         self::TYPE_EMAIL,
         self::TYPE_PHONE,
         self::TYPE_WHATSAPP,
+        self::TYPE_VIBER,
         self::TYPE_TELEGRAM,
         self::TYPE_INSTAGRAM,
         self::TYPE_FACEBOOK,

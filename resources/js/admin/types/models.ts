@@ -13,7 +13,7 @@ import type {ShippingFieldValue} from './api';
 
 export type UserRole = 'admin' | 'manager';
 
-export type ContactType = 'email' | 'phone' | 'whatsapp' | 'telegram' | 'instagram' | 'facebook';
+export type ContactType = 'email' | 'phone' | 'whatsapp' | 'viber' | 'telegram' | 'instagram' | 'facebook';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled' | 'archived';
 

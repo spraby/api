@@ -17,6 +17,7 @@ class UpdateContactsRequest extends FormRequest
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'whatsapp' => ['nullable', 'string', 'max:50'],
+            'viber' => ['nullable', 'string', 'max:50'],
             'telegram' => ['nullable', 'string', 'max:255'],
             'instagram' => ['nullable', 'string', 'max:255'],
             'facebook' => ['nullable', 'string', 'max:255'],

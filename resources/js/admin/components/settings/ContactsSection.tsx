@@ -1,9 +1,10 @@
-import type { FormEventHandler } from 'react';
+import type { ComponentType, FormEventHandler } from 'react';
 
 import { useForm } from '@inertiajs/react';
 import { AtSignIcon, FacebookIcon, InstagramIcon, MessageCircleIcon, PhoneIcon, SendIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { ViberIcon } from '@/components/icons/viber-icon';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -17,10 +18,11 @@ import { Label } from '@/components/ui/label';
 import { useLang } from '@/lib/lang';
 import type { ContactsMap, ContactType } from '@/types/api';
 
-const contactTypes: { type: ContactType; icon: typeof PhoneIcon }[] = [
+const contactTypes: { type: ContactType; icon: ComponentType<{ className?: string }> }[] = [
   { type: 'email', icon: AtSignIcon },
   { type: 'phone', icon: PhoneIcon },
   { type: 'whatsapp', icon: MessageCircleIcon },
+  { type: 'viber', icon: ViberIcon },
   { type: 'telegram', icon: SendIcon },
   { type: 'instagram', icon: InstagramIcon },
   { type: 'facebook', icon: FacebookIcon },
@@ -30,6 +32,7 @@ interface ContactsFormData {
   email: string;
   phone: string;
   whatsapp: string;
+  viber: string;
   telegram: string;
   instagram: string;
   facebook: string;
@@ -42,6 +45,7 @@ export default function ContactsSection({ contacts }: { contacts: ContactsMap })
     email: contacts.email ?? '',
     phone: contacts.phone ?? '',
     whatsapp: contacts.whatsapp ?? '',
+    viber: contacts.viber ?? '',
     telegram: contacts.telegram ?? '',
     instagram: contacts.instagram ?? '',
     facebook: contacts.facebook ?? '',
