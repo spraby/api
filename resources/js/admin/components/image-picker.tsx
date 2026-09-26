@@ -232,7 +232,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
         });
 
         if (!res.ok) {
-            toast.error(t('image_picker.load_failed'));
+            toast.error(t('admin.image_picker.load_failed'));
 
             return;
         }
@@ -333,7 +333,7 @@ const ResourceImageSelector = forwardRef<ResourceImageSelectorHandle, {
                     disabled={loadingMore}
                 >
                     {loadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    {t('image_picker.load_more')}
+                    {t('admin.image_picker.load_more')}
                 </Button>
             </div>
         ) : null}

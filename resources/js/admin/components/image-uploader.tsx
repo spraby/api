@@ -71,7 +71,7 @@ export function ImageUploader({
       });
 
       if (valid.length < arr.length) {
-        toast.warning(t('image_uploader.invalid_files_skipped'));
+        toast.warning(t('admin.image_uploader.invalid_files_skipped'));
       }
 
       if (valid.length === 0) {
@@ -115,10 +115,10 @@ export function ImageUploader({
 
           onFinishLoading?.(result.data);
         } else {
-          toast.error(t('image_uploader.upload_failed'));
+          toast.error(t('admin.image_uploader.upload_failed'));
         }
       } catch {
-        toast.error(t('image_uploader.upload_failed'));
+        toast.error(t('admin.image_uploader.upload_failed'));
       } finally {
         setUploading(false);
         previews.forEach((p) => URL.revokeObjectURL(p.url));
@@ -175,13 +175,13 @@ export function ImageUploader({
       )}
       <span className="text-sm font-medium">
         {uploading
-          ? t('common.uploading')
-          : t(multiple ? 'image_uploader.drop_or_click_multiple' : 'image_uploader.drop_or_click_single')}
+          ? t('admin.common.uploading')
+          : t(multiple ? 'admin.image_uploader.drop_or_click_multiple' : 'admin.image_uploader.drop_or_click_single')}
       </span>
       {!uploading ? (
         <span className="text-xs text-muted-foreground/70">
           {trans(
-            multiple ? 'image_uploader.hint_multiple' : 'image_uploader.hint_single',
+            multiple ? 'admin.image_uploader.hint_multiple' : 'admin.image_uploader.hint_single',
             {
               formats: accept.replace(/image\//g, '.').replace(/,/g, ', '),
               size: formatBytes(maxSize),

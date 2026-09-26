@@ -4,7 +4,7 @@ import { router } from '@inertiajs/react';
 import { ImageIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { ImagePicker } from '@/components/image-picker';
+import { ImageUploader } from '@/components/image-uploader';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,15 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import AdminLayout from '@/layouts/AdminLayout';
+import { openImageLightbox } from '@/lib/image-lightbox';
 import { useLang } from '@/lib/lang';
 import type { PageProps } from '@/types/inertia';
 import type { Image as ImageModel, PaginatedData } from '@/types/models';
@@ -30,48 +38,17 @@ interface MediaProps extends PageProps {
 }
 
 export default function Media({ images }: MediaProps) {
-  const { trans } = useLang();
+  const { trans, locale } = useLang();
 
-  const [imagePickerOpen, setImagePickerOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<ImageModel | null>(null);
 
-  const handleUpload = (files: File[]) => {
-    if (files.length === 0) {
-      toast.error(trans('admin.media.no_files_selected'));
-
-      return;
-    }
-
-    if (files.length > 50) {
-      toast.error(trans('admin.media.max_files_error'));
-
-      return;
-    }
-
-    setIsUploading(true);
-
-    const formData = new FormData();
-
-    files.forEach((file, index) => {
-      formData.append(`images[${index}]`, file);
-    });
-
-    router.post(route('admin.media.store'), formData, {
-      preserveScroll: true,
-      onSuccess: () => {
-        setImagePickerOpen(false);
-      },
-      onError: (errors) => {
-        const errorMessage = Object.values(errors).flat().join(', ');
-
-        toast.error(errorMessage);
-      },
-      onFinish: () => {
-        setIsUploading(false);
-      },
-    });
+  // Загрузку делает ImageUploader (через admin.media.api.store) — после неё
+  // только перечитываем сетку медиатеки и закрываем диалог.
+  const handleUploaded = () => {
+    setUploadDialogOpen(false);
+    router.reload({ only: ['images'] });
   };
 
   const confirmDelete = (image: ImageModel) => {
@@ -101,7 +78,7 @@ export default function Media({ images }: MediaProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">{trans('admin.media.title')}</h1>
-          <Button onClick={() => { setImagePickerOpen(true); }}>
+          <Button onClick={() => { setUploadDialogOpen(true); }}>
             <PlusIcon className="mr-2 h-4 w-4" />
             {trans('admin.media.upload_button')}
           </Button>
@@ -115,7 +92,7 @@ export default function Media({ images }: MediaProps) {
             <p className="mt-2 text-center text-sm text-muted-foreground">
               {trans('admin.media.empty_description')}
             </p>
-            <Button className="mt-4" onClick={() => { setImagePickerOpen(true); }}>
+            <Button className="mt-4" onClick={() => { setUploadDialogOpen(true); }}>
               <PlusIcon className="mr-2 h-4 w-4" />
               {trans('admin.media.upload_first_images')}
             </Button>
@@ -125,19 +102,30 @@ export default function Media({ images }: MediaProps) {
         {/* Image Grid */}
         {images.data.length > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {images.data.map((image) => (
+            {images.data.map((image, index) => (
               <Card
                 key={image.id}
                 className="group relative overflow-hidden transition-all hover:shadow-md"
               >
                 <CardContent className="p-0">
-                  <div className="aspect-square overflow-hidden bg-muted">
+                  <button
+                    aria-label={image.name}
+                    className="block aspect-square w-full cursor-zoom-in overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    type="button"
+                    onClick={() => {
+                      openImageLightbox(
+                        images.data.map((item) => ({ url: item.url || item.src, name: item.name })),
+                        index,
+                        locale,
+                      );
+                    }}
+                  >
                     <img
                       alt={image.alt || image.name}
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
                       src={image.url || image.src}
                     />
-                  </div>
+                  </button>
                   <div className="p-3">
                     <p className="truncate text-sm font-medium" title={image.name}>
                       {image.name}
@@ -198,14 +186,16 @@ export default function Media({ images }: MediaProps) {
         )}
       </div>
 
-      {/* Image Picker Dialog (upload only) */}
-      <ImagePicker
-        hideLibrary
-        isUploading={isUploading}
-        open={imagePickerOpen}
-        onOpenChange={setImagePickerOpen}
-        onUpload={handleUpload}
-      />
+      {/* Upload Dialog */}
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{trans('admin.media.upload_dialog_title')}</DialogTitle>
+            <DialogDescription>{trans('admin.media.upload_dialog_description')}</DialogDescription>
+          </DialogHeader>
+          <ImageUploader multiple onFinishLoading={handleUploaded} />
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
