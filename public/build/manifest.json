@@ -1,11 +1,31 @@
 {
   "resources/css/admin.css": {
-    "file": "assets/admin-cI3wjvj5.css",
+    "file": "assets/admin-C2RAooq_.css",
     "src": "resources/css/admin.css",
     "isEntry": true
   },
+  "resources/fonts/gilroy/Gilroy-Bold.ttf": {
+    "file": "assets/Gilroy-Bold-CInumVHz.ttf",
+    "src": "resources/fonts/gilroy/Gilroy-Bold.ttf"
+  },
+  "resources/fonts/gilroy/Gilroy-Heavy.ttf": {
+    "file": "assets/Gilroy-Heavy-DW6tzkNr.ttf",
+    "src": "resources/fonts/gilroy/Gilroy-Heavy.ttf"
+  },
+  "resources/fonts/gilroy/Gilroy-Light.ttf": {
+    "file": "assets/Gilroy-Light-C8UWcMrY.ttf",
+    "src": "resources/fonts/gilroy/Gilroy-Light.ttf"
+  },
+  "resources/fonts/gilroy/Gilroy-Medium.ttf": {
+    "file": "assets/Gilroy-Medium-C0ynlvWK.ttf",
+    "src": "resources/fonts/gilroy/Gilroy-Medium.ttf"
+  },
+  "resources/fonts/gilroy/Gilroy-Regular.ttf": {
+    "file": "assets/Gilroy-Regular-D5UFgeCU.ttf",
+    "src": "resources/fonts/gilroy/Gilroy-Regular.ttf"
+  },
   "resources/js/admin/app.tsx": {
-    "file": "assets/app-C-8haZNJ.js",
+    "file": "assets/app-DL0VpLzN.js",
     "name": "app",
     "src": "resources/js/admin/app.tsx",
     "isEntry": true,
