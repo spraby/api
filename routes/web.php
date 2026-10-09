@@ -27,16 +27,22 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         ->name('password.setup.store');
 
     Route::middleware('guest')->group(function () {
-        Route::get('/login', function () {
-            return Inertia::render('Auth/Login');
-        })->name('login');
+        Route::get('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'create'])
+            ->name('login');
 
-        Route::get('/register', function () {
-            return Inertia::render('Auth/Register');
-        })->name('register');
+        // Self-service password reset (emailed link, Laravel password broker).
+        Route::get('/forgot-password', [App\Http\Controllers\Auth\PasswordResetLinkController::class, 'create'])
+            ->name('password.request');
+        Route::post('/forgot-password', [App\Http\Controllers\Auth\PasswordResetLinkController::class, 'store'])
+            ->middleware('throttle:6,1')
+            ->name('password.email');
+        Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\NewPasswordController::class, 'create'])
+            ->name('password.reset');
+        Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])
+            ->middleware('throttle:6,1')
+            ->name('password.store');
 
-        Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login']);
-        Route::post('/register', [App\Http\Controllers\Api\AuthController::class, 'register']);
+        Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
     });
 
     Route::middleware('auth')->group(function () {
@@ -232,7 +238,7 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
         Route::put('/settings/menu', [App\Http\Controllers\Admin\SettingsController::class, 'updateMenu'])->name('settings.menu.update');
         Route::put('/settings/information', [App\Http\Controllers\Admin\SettingsController::class, 'updateInformation'])->name('settings.information.update');
 
-        Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('logout');
+        Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
         // Impersonation routes (stop must be before {user} to avoid matching "stop" as a user id)
         Route::post('/impersonate/stop', [App\Http\Controllers\Admin\ImpersonateController::class, 'stopImpersonating'])->name('impersonate.stop');

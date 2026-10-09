@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\EmailQueue;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -212,5 +213,31 @@ class User extends Authenticatable
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
             ->where('roles.name', self::ROLES['MANAGER']);
+    }
+
+    /**
+     * Called by the password broker. Instead of Laravel's stock notification
+     * the link goes through our email queue, so it uses the shared templates
+     * and shows up in the admin email log like every other message.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        app(EmailQueue::class)->enqueue(
+            templateKey: 'password_reset',
+            toEmail: $this->email,
+            subject: 'Восстановление пароля',
+            payload: [
+                'name' => $this->first_name,
+                // Built from APP_URL, not the request host: this runs inside an
+                // anonymous request, and a forged Host / X-Forwarded-Host would
+                // otherwise point the link (with a live token) at another domain.
+                'reset_url' => rtrim(config('app.url'), '/')
+                    .route('admin.password.reset', ['token' => $token, 'email' => $this->email], false),
+                'expires_minutes' => config('auth.passwords.users.expire'),
+            ],
+            options: ['to_name' => $this->first_name, 'source_model' => $this],
+        );
     }
 }

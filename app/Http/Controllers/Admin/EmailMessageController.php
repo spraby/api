@@ -55,7 +55,8 @@ class EmailMessageController extends Controller
     }
 
     /**
-     * Show a single email with full payload and rendered HTML preview.
+     * Show a single email with its payload and rendered HTML preview. Secret
+     * links (password reset / setup) are redacted in both.
      */
     public function show(EmailMessage $email, EmailSender $sender): Response
     {
@@ -71,7 +72,7 @@ class EmailMessageController extends Controller
                 'reply_to' => $email->reply_to,
                 'template_key' => $email->template_key,
                 'subject' => $email->subject,
-                'payload' => $email->payload ?? [],
+                'payload' => $email->redactedPayload(),
                 'locale' => $email->locale,
                 'status' => $email->status->value,
                 'attempts' => $email->attempts,
@@ -181,6 +182,8 @@ class EmailMessageController extends Controller
     /**
      * Re-enqueue the same template with the original payload, but addressed to the current user.
      * Used for previewing a real send in admin's own inbox.
+     * Secret links are redacted: the copy goes to someone other than the
+     * account owner.
      */
     public function sendCopy(EmailMessage $email, EmailQueue $queue, EmailSender $sender): RedirectResponse
     {
@@ -195,7 +198,7 @@ class EmailMessageController extends Controller
             templateKey: $email->template_key,
             toEmail: $admin->email,
             subject: '[TEST] '.$email->subject,
-            payload: $email->payload ?? [],
+            payload: $email->redactedPayload(),
             options: [
                 'to_name' => trim(($admin->first_name ?? '').' '.($admin->last_name ?? '')) ?: null,
                 'locale' => $email->locale,
@@ -256,7 +259,7 @@ class EmailMessageController extends Controller
     protected function safeRenderPreview(EmailSender $sender, EmailMessage $email): ?string
     {
         try {
-            return $sender->renderHtml($email);
+            return $sender->renderHtml($email->withRedactedPayload());
         } catch (Throwable) {
             return null;
         }

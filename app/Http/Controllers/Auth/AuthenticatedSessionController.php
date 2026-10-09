@@ -25,7 +25,8 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle an incoming authentication request. LoginRequest locks the
+     * email + IP pair out after 5 failed attempts.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
@@ -47,6 +48,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('admin.login');
     }
 }

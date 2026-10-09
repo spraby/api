@@ -38,6 +38,15 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class EmailMessage extends Model
 {
+    /**
+     * Payload keys holding a live one-time credential (a link with a token).
+     * The admin email log must never show or forward them: anyone with
+     * READ_EMAILS could otherwise take over the recipient's account.
+     */
+    public const SECRET_PAYLOAD_KEYS = ['reset_url', 'set_password_url'];
+
+    public const REDACTED = '[скрыто]';
+
     protected $guarded = [];
 
     protected $casts = [
@@ -52,6 +61,34 @@ class EmailMessage extends Model
     public function source(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Payload with secret links replaced by a placeholder — for the admin UI.
+     */
+    public function redactedPayload(): array
+    {
+        $payload = $this->payload ?? [];
+
+        foreach (self::SECRET_PAYLOAD_KEYS as $key) {
+            if (array_key_exists($key, $payload)) {
+                $payload[$key] = self::REDACTED;
+            }
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Unsaved copy of this message carrying the redacted payload, for
+     * rendering a preview without exposing secret links.
+     */
+    public function withRedactedPayload(): static
+    {
+        $copy = clone $this;
+        $copy->payload = $this->redactedPayload();
+
+        return $copy;
     }
 
     public function scopeDueNow(Builder $query): void

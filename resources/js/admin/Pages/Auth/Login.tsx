@@ -1,11 +1,21 @@
 import type { FormEventHandler } from 'react';
 
-import { useForm, Head, Link } from '@inertiajs/react';
+import { useForm, Link, usePage } from '@inertiajs/react';
 
-import { Button } from '../../components/ui/button.tsx';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.tsx';
-import { Input } from '../../components/ui/input.tsx';
-import { Label } from '../../components/ui/label.tsx';
+import {
+  StorefrontAuthLayout,
+  StorefrontButton,
+  StorefrontField,
+  StorefrontNotice,
+  storefrontLinkClass,
+} from '../../components/storefront-auth.tsx';
+
+import type { PageProps } from '../../types/inertia';
+
+interface LoginProps {
+  canResetPassword?: boolean;
+  status?: string | null;
+}
 
 interface LoginFormData {
   email: string;
@@ -13,7 +23,8 @@ interface LoginFormData {
   remember: boolean;
 }
 
-export default function Login() {
+export default function Login({ canResetPassword = false, status = null }: LoginProps) {
+  const { storeUrl } = usePage<PageProps>().props;
   const { data, setData, post, processing, errors } = useForm<LoginFormData>({
     email: '',
     password: '',
@@ -26,75 +37,64 @@ export default function Login() {
   };
 
   return (
-    <>
-      <Head title="Login" />
+    <StorefrontAuthLayout description="Войдите, чтобы управлять своим магазином." title="Вход в кабинет">
+      <form className="space-y-5" onSubmit={submit}>
+        {!!status && <StorefrontNotice variant="success">{status}</StorefrontNotice>}
 
-      <div className="flex min-h-screen items-center justify-center bg-(--background) px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="gap-y-2">
-            <CardTitle className="text-2xl">Welcome Back</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="flex flex-col gap-y-4" onSubmit={submit}>
-              <div className="flex flex-col gap-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  autoFocus
-                  required
-                  id="email"
-                  placeholder="user@example.com"
-                  type="email"
-                  value={data.email}
-                  onChange={(e) => { setData('email', e.target.value); }}
-                />
-                {!!errors.email && <span className="text-sm text-(--destructive)">{errors.email}</span>}
-              </div>
+        <StorefrontField
+          autoFocus
+          required
+          autoComplete="email"
+          error={errors.email}
+          id="email"
+          label="Email"
+          placeholder="hello@spra.by"
+          type="email"
+          value={data.email}
+          onChange={(e) => { setData('email', e.target.value); }}
+        />
 
-              <div className="flex flex-col gap-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  required
-                  id="password"
-                  type="password"
-                  value={data.password}
-                  onChange={(e) => { setData('password', e.target.value); }}
-                />
-                {!!errors.password && <span className="text-sm text-(--destructive)">{errors.password}</span>}
-              </div>
+        <StorefrontField
+          required
+          autoComplete="current-password"
+          error={errors.password}
+          id="password"
+          label="Пароль"
+          type="password"
+          value={data.password}
+          onChange={(e) => { setData('password', e.target.value); }}
+        />
 
-              <div className="flex items-center gap-x-2">
-                <input
-                  checked={data.remember}
-                  className="h-4 w-4 rounded border-(--input)"
-                  id="remember"
-                  type="checkbox"
-                  onChange={(e) => { setData('remember', e.target.checked); }}
-                />
-                <Label className="cursor-pointer" htmlFor="remember">
-                  Remember me
-                </Label>
-              </div>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <label className="flex cursor-pointer items-center gap-2 text-gray-700" htmlFor="remember">
+            <input
+              checked={data.remember}
+              className="h-4 w-4 cursor-pointer rounded border-gray-300 accent-store-600"
+              id="remember"
+              type="checkbox"
+              onChange={(e) => { setData('remember', e.target.checked); }}
+            />
+            Запомнить меня
+          </label>
 
-              <Button className="w-full" disabled={processing} type="submit">
-                {processing ? 'Logging in...' : 'Login'}
-              </Button>
+          {!!canResetPassword && (
+            <Link className={storefrontLinkClass} href="/admin/forgot-password">
+              Забыли пароль?
+            </Link>
+          )}
+        </div>
 
-              <div className="text-center text-sm text-(--muted-foreground)">
-                Don&apos;t have an account?{' '}
-                <Link
-                  className="text-(--primary) underline-offset-4 hover:underline"
-                  href="/admin/register"
-                >
-                  Register
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </>
+        <StorefrontButton disabled={processing}>
+          {processing ? 'Вход...' : 'Войти'}
+        </StorefrontButton>
+
+        <p className="text-center text-sm text-gray-500">
+          Нет аккаунта?{' '}
+          <a className={storefrontLinkClass} href={`${storeUrl}/register`}>
+            Стать продавцом
+          </a>
+        </p>
+      </form>
+    </StorefrontAuthLayout>
   );
 }

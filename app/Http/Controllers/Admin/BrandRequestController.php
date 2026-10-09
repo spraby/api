@@ -206,10 +206,11 @@ class BrandRequestController extends Controller
 
     /**
      * Re-issue the one-time password-setup link for an approved request and
-     * email it again. The link is single-use and lives 48 hours, and the app
-     * has no self-service password reset — so without this an applicant who
-     * lost the email or came back too late is locked out for good. Issuing a
-     * new token invalidates any earlier unused one.
+     * email it again. The link is single-use and lives 48 hours, and the
+     * self-service "forgot password" flow skips accounts without a password —
+     * so without this an applicant who lost the email or came back too late
+     * is locked out for good. Issuing a new token invalidates any earlier
+     * unused one.
      */
     public function resendPasswordSetup(BrandRequest $brandRequest): RedirectResponse
     {

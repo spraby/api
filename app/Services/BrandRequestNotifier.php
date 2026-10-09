@@ -88,8 +88,9 @@ class BrandRequestNotifier
     /**
      * Queue the email carrying a one-time password-setup link. Called from the
      * approval flow, and again by the admin "resend link" action when the
-     * original link expired or never reached the applicant — there is no
-     * self-service password reset, so this is their only way back in.
+     * original link expired or never reached the applicant — self-service
+     * "forgot password" skips accounts without a password, so this is their
+     * only way back in.
      */
     public function notifyPasswordSetupLink(BrandRequest $request, string $setPasswordUrl): void
     {

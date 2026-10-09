@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+
+use function Illuminate\Support\defer;
 
 class PasswordResetLinkController extends Controller
 {
@@ -23,29 +25,36 @@ class PasswordResetLinkController extends Controller
     }
 
     /**
-     * Handle an incoming password reset link request.
+     * Queue a password reset link for the given email.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * The response is the same whether or not the account exists, so the form
+     * cannot be used to probe which emails are registered. Accounts without a
+     * password yet (approved managers who have not used their setup link) are
+     * skipped: they get back in through the admin-issued setup link instead.
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'email' => 'required|email',
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
+        // Runs after the response is sent: the lookup, token hashing and
+        // queueing take measurably longer for a real account, and doing them
+        // inline would let response timing reveal which emails are registered.
+        $email = $validated['email'];
+        defer(function () use ($email) {
+            $user = User::query()->where('email', $email)->first();
+
+            if ($user && $user->password !== null) {
+                // RESET_THROTTLED is deliberately swallowed too — reporting it
+                // would reveal that the account exists.
+                Password::sendResetLink(['email' => $user->email]);
+            }
+        });
+
+        return back()->with(
+            'status',
+            'Если аккаунт с таким email существует, мы отправили на него ссылку для смены пароля.'
         );
-
-        if ($status == Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
-        }
-
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
-        ]);
     }
 }

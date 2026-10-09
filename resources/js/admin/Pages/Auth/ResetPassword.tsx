@@ -10,56 +10,55 @@ import {
   storefrontLinkClass,
 } from '../../components/storefront-auth.tsx';
 
-interface SetPasswordProps {
+interface ResetPasswordProps {
   token: string;
   email: string | null;
-  valid: boolean;
 }
 
-interface SetPasswordFormData {
+interface ResetPasswordFormData {
+  token: string;
+  email: string;
   password: string;
   password_confirmation: string;
 }
 
-export default function SetPassword({ token, email, valid }: SetPasswordProps) {
-  const { data, setData, post, processing, errors } = useForm<SetPasswordFormData>({
+export default function ResetPassword({ token, email }: ResetPasswordProps) {
+  const { data, setData, post, processing, errors } = useForm<ResetPasswordFormData>({
+    token,
+    email: email ?? '',
     password: '',
     password_confirmation: '',
   });
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    post(`/admin/set-password/${token}`);
+    post('/admin/reset-password');
   };
 
-  if (!valid) {
-    return (
-      <StorefrontAuthLayout title="Ссылка недействительна">
-        <div className="space-y-5">
-          <StorefrontNotice variant="error">
-            Ссылка для установки пароля устарела или уже была использована.
-            Срок её действия — 48 часов. Обратитесь к администратору, чтобы
-            получить новую.
-          </StorefrontNotice>
-
-          <p className="text-center text-sm">
-            <Link className={storefrontLinkClass} href="/admin/login">
-              Перейти ко входу
-            </Link>
-          </p>
-        </div>
-      </StorefrontAuthLayout>
-    );
-  }
-
   return (
-    <StorefrontAuthLayout
-      description={email
-        ? `Создайте пароль для входа в аккаунт ${email}`
-        : 'Создайте пароль для входа в аккаунт'}
-      title="Установите пароль"
-    >
+    <StorefrontAuthLayout description="Придумайте новый пароль для входа в кабинет." title="Новый пароль">
       <form className="space-y-5" onSubmit={submit}>
+        {/* Bad or expired token is reported on the email field. */}
+        {!!errors.email && (
+          <StorefrontNotice title="Не получилось сменить пароль" variant="error">
+            {errors.email}{' '}
+            <Link className={storefrontLinkClass} href="/admin/forgot-password">
+              Запросить новую ссылку
+            </Link>
+          </StorefrontNotice>
+        )}
+
+        <StorefrontField
+          required
+          autoComplete="email"
+          id="email"
+          label="Email"
+          readOnly={!!email}
+          type="email"
+          value={data.email}
+          onChange={(e) => { setData('email', e.target.value); }}
+        />
+
         <StorefrontField
           autoFocus
           required

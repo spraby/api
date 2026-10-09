@@ -71,6 +71,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'locale' => app()->getLocale(),
             'lang' => syncLangFiles(['admin']),
+            // Public auth pages link back to the storefront and borrow its look.
+            'storeUrl' => rtrim((string) config('app.store_url'), '/'),
         ];
     }
 

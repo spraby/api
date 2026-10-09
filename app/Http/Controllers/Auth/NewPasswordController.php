@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,48 +22,53 @@ class NewPasswordController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('Auth/ResetPassword', [
-            'email' => $request->email,
+            'email' => $request->query('email'),
             'token' => $request->route('token'),
         ]);
     }
 
     /**
-     * Handle an incoming new password request.
+     * Set a new password from a valid reset token and send the user to login.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
+                // A new remember token voids "remember me" cookies on other devices.
                 $user->forceFill([
                     'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),
                 ])->save();
 
+                // A reset is often a reaction to a compromised account: end
+                // every open session, not just future logins.
+                if (config('session.driver') === 'database') {
+                    DB::table(config('session.table', 'sessions'))
+                        ->where('user_id', $user->getKey())
+                        ->delete();
+                }
+
                 event(new PasswordReset($user));
             }
         );
 
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        if ($status == Password::PASSWORD_RESET) {
-            return redirect()->route('admin.login')->with('status', __($status));
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('admin.login')
+                ->with('status', 'Пароль изменён. Войдите с новым паролем.');
         }
 
+        // Unknown email and bad/expired token get the same message on purpose.
         throw ValidationException::withMessages([
-            'email' => [trans($status)],
+            'email' => ['Ссылка для смены пароля недействительна или устарела. Запросите новую.'],
         ]);
     }
 }
