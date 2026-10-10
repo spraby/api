@@ -18,6 +18,7 @@ import type { LucideIcon } from "lucide-react"
 
 export function NavSecondary({
   items,
+  children,
   ...props
 }: {
   items: {
@@ -26,6 +27,8 @@ export function NavSecondary({
     icon: LucideIcon
     hint?: MenuHint
   }[]
+  /** Extra menu items rendered after `items` (e.g. external links). */
+  children?: React.ReactNode
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   return (
     <SidebarGroup {...props}>
@@ -42,6 +45,7 @@ export function NavSecondary({
               {item.hint ? <OnboardingMenuHint hint={item.hint}/> : null}
             </SidebarMenuItem>
           ))}
+          {children}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

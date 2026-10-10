@@ -20,6 +20,8 @@ return [
         'brand_page_requests' => 'Запросы брендов',
         'emails' => 'Письма',
         'my_page' => 'Моя страница',
+        'news' => 'Новости',
+        'support' => 'Поддержка',
     ],
 
     'user' => [

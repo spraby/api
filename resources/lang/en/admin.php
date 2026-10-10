@@ -20,6 +20,8 @@ return [
         'moderation' => 'Moderation',
         'brand_page_requests' => 'Brand page requests',
         'my_page' => 'My page',
+        'news' => 'News',
+        'support' => 'Support',
     ],
 
     'user' => [

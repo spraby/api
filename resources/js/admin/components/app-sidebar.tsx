@@ -27,6 +27,7 @@ import {
 
 
 import {NavMain, type NavItem} from "@/components/nav-main"
+import {NavManagerLinks} from "@/components/nav-manager-links"
 import {NavSecondary} from "@/components/nav-secondary"
 import {NavUser} from "@/components/nav-user"
 import type {OnboardingState} from '@/components/onboarding/types';
@@ -335,7 +336,10 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
             <SidebarContent>
                 <NavMain items={data.navMain}/>
                 {/*<NavDocuments items={data.documents} />*/}
-                <NavSecondary className="mt-auto" items={data.navSecondary}/>
+                <NavSecondary className="mt-auto" items={data.navSecondary}>
+                    {/* Новости и поддержка — только менеджерам */}
+                    {user?.is_manager ? <NavManagerLinks/> : null}
+                </NavSecondary>
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={navUserData}/>
