@@ -97,6 +97,9 @@ class SeedUsers extends Command
             }
             $user = User::factory()->create($data);
             $user->assignRole($role);
+            if ($role === User::ROLES['MANAGER']) {
+                $user->markPasswordSetIfMissing();
+            }
             $this->info("{$role} created: {$userEmail}");
         } else {
             $this->info("User already exists: {$userEmail}");
@@ -112,6 +115,7 @@ class SeedUsers extends Command
             if (! $user) {
                 $user = User::factory()->create(['email' => $email]);
                 $user->assignRole(User::ROLES['MANAGER']);
+                $user->markPasswordSetIfMissing();
             }
             $count--;
         }

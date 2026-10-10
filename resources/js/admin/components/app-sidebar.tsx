@@ -2,6 +2,7 @@ import * as React from "react"
 
 import {usePage} from "@inertiajs/react"
 import {
+    BellIcon,
     CameraIcon,
     ClipboardListIcon,
     DatabaseIcon,
@@ -283,6 +284,12 @@ export function AppSidebar({onboarding, user, ...props}: AppSidebarProps) {
             title: t('admin.nav.emails'),
             url: "/admin/emails",
             icon: MailIcon,
+        }] : []),
+        // Оповещения менеджеров — админ
+        ...(can(user, Permission.READ_MANAGER_NOTIFICATIONS) ? [{
+            title: t('admin.nav.notifications'),
+            url: "/admin/manager-notifications",
+            icon: BellIcon,
         }] : []),
     ]
 

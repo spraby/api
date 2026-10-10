@@ -7,6 +7,10 @@
     <title>{{ $subject ?? config('app.name') }}</title>
 </head>
 <body style="margin:0;padding:0;background:#f6f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Ubuntu,Arial,sans-serif;color:#1f2937;">
+    @if(!empty($preheader))
+        {{-- Прехедер: строка-превью в списке писем почтового клиента, в самом письме скрыта. --}}
+        <div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:#f6f6f9;">{{ $preheader }}</div>
+    @endif
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f9;padding:24px 0;">
         <tr>
             <td align="center">

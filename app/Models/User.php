@@ -20,6 +20,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property array|null $onboarding_skipped_steps
  * @property array|null $onboarding_hidden_hints
  * @property Carbon|null $onboarding_dismissed_at
+ * @property Carbon|null $password_set_at
  * @property string $password
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -28,6 +29,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static Builder|static email(string $email)
  * @method static Builder|static admin()
  * @method static Builder|static manager()
+ * @method static Builder|static notifiableManagers()
  * @method static Builder|static query()
  * @method void assignRole(string|array $roles)
  * @method bool hasRole(string $role)
@@ -62,6 +64,7 @@ class User extends Authenticatable
         'onboarding_skipped_steps' => 'array',
         'onboarding_hidden_hints' => 'array',
         'onboarding_dismissed_at' => 'datetime',
+        'password_set_at' => 'datetime',
         'role' => 'string',
     ];
 
@@ -102,6 +105,8 @@ class User extends Authenticatable
         'WRITE_EMAILS' => 'write_emails',
         'READ_MODERATION_REQUESTS' => 'read_moderation_requests',
         'WRITE_MODERATION_REQUESTS' => 'write_moderation_requests',
+        'READ_MANAGER_NOTIFICATIONS' => 'read_manager_notifications',
+        'WRITE_MANAGER_NOTIFICATIONS' => 'write_manager_notifications',
     ];
 
     /**
@@ -148,6 +153,8 @@ class User extends Authenticatable
         self::PERMISSIONS['WRITE_EMAILS'],
         self::PERMISSIONS['READ_MODERATION_REQUESTS'],
         self::PERMISSIONS['WRITE_MODERATION_REQUESTS'],
+        self::PERMISSIONS['READ_MANAGER_NOTIFICATIONS'],
+        self::PERMISSIONS['WRITE_MANAGER_NOTIFICATIONS'],
     ];
 
     public function isAdmin(): bool
@@ -202,6 +209,29 @@ class User extends Authenticatable
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
             ->where('roles.name', self::ROLES['ADMIN']);
+    }
+
+    /**
+     * Отметить, что пароль уже задан, если дата ещё пустая. Для путей, где
+     * пароль появляется не по ссылке установки: одобрение заявки от аккаунта
+     * с паролем, создание менеджера командой. Без даты менеджер не попадёт
+     * в оповещения.
+     */
+    public function markPasswordSetIfMissing(): void
+    {
+        if ($this->password !== null && $this->password_set_at === null) {
+            $this->forceFill(['password_set_at' => now()])->save();
+        }
+    }
+
+    /**
+     * Менеджеры, которым шлём оповещения: роль manager и уже заданный пароль.
+     * Появится блокировка — исключать заблокированных здесь, и это сразу
+     * подхватят все виды оповещений и ручная отправка.
+     */
+    public function scopeNotifiableManagers(Builder $query): void
+    {
+        $query->role(self::ROLES['MANAGER'])->whereNotNull('password_set_at');
     }
 
     /**

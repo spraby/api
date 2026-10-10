@@ -17,3 +17,10 @@ Schedule::command('brand-requests:notify')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Оповещения менеджеров: каждый вид срабатывает в свой час (send_hour, Минск).
+// Блокировка короче часа: если процесс убьют посреди запуска, она не
+// пропустит следующие запуски (по умолчанию висела бы сутки).
+Schedule::command('manager-notifications:dispatch')
+    ->hourly()
+    ->withoutOverlapping(55);

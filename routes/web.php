@@ -147,6 +147,16 @@ Route::prefix('admin')->name('admin.')->middleware('inertia')->group(function ()
             Route::post('/{email}/send-copy', [App\Http\Controllers\Admin\EmailMessageController::class, 'sendCopy'])->name('emails.send-copy');
         });
 
+        // Оповещения менеджеров (только админ)
+        Route::prefix('manager-notifications')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\ManagerNotificationController::class, 'index'])->name('manager-notifications');
+            Route::get('/{managerNotification}', [App\Http\Controllers\Admin\ManagerNotificationController::class, 'show'])->name('manager-notifications.show');
+            Route::put('/{managerNotification}', [App\Http\Controllers\Admin\ManagerNotificationController::class, 'update'])->name('manager-notifications.update');
+            Route::get('/{managerNotification}/deliveries', [App\Http\Controllers\Admin\ManagerNotificationController::class, 'deliveries'])->name('manager-notifications.deliveries');
+            Route::get('/{managerNotification}/recipients', [App\Http\Controllers\Admin\ManagerNotificationController::class, 'recipients'])->name('manager-notifications.recipients');
+            Route::post('/{managerNotification}/send', [App\Http\Controllers\Admin\ManagerNotificationController::class, 'send'])->name('manager-notifications.send');
+        });
+
         // Brand Requests
         Route::get('/brand-requests', [App\Http\Controllers\Admin\BrandRequestController::class, 'index'])->name('brand-requests');
         Route::get('/brand-requests/{brandRequest}', [App\Http\Controllers\Admin\BrandRequestController::class, 'show'])->name('brand-requests.show');

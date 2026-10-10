@@ -159,6 +159,10 @@ class BrandRequestController extends Controller
                 $user->assignRole(User::ROLES['MANAGER']);
             }
 
+            // Аккаунт с уже заданным паролем ссылку не получит, так что дату
+            // для оповещений ставим здесь.
+            $user->markPasswordSetIfMissing();
+
             // Reuse the user's existing brand if any, to avoid duplicates when
             // approving for a pre-existing account.
             $brand = $user->brands()->first();

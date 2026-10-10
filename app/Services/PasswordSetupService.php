@@ -68,7 +68,11 @@ class PasswordSetupService
             }
 
             $user = $record->user;
-            $user->forceFill(['password' => Hash::make($plainPassword)])->save();
+            $user->forceFill([
+                'password' => Hash::make($plainPassword),
+                // От этого момента считаются сроки оповещений менеджеру.
+                'password_set_at' => now(),
+            ])->save();
             $record->forceFill(['used_at' => now()])->save();
 
             return $user;
