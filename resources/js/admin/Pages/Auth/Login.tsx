@@ -38,11 +38,10 @@ export default function Login({ canResetPassword = false, status = null }: Login
 
   return (
     <StorefrontAuthLayout description="Войдите, чтобы управлять своим магазином." title="Вход в кабинет">
-      <form className="space-y-5" onSubmit={submit}>
+      <form className="space-y-4" onSubmit={submit}>
         {!!status && <StorefrontNotice variant="success">{status}</StorefrontNotice>}
 
         <StorefrontField
-          autoFocus
           required
           autoComplete="email"
           error={errors.email}
@@ -65,8 +64,8 @@ export default function Login({ canResetPassword = false, status = null }: Login
           onChange={(e) => { setData('password', e.target.value); }}
         />
 
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <label className="flex cursor-pointer items-center gap-2 text-gray-700" htmlFor="remember">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-gray-700" htmlFor="remember">
             <input
               checked={data.remember}
               className="h-4 w-4 cursor-pointer rounded border-gray-300 accent-store-600"
