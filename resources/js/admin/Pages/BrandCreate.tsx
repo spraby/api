@@ -1,11 +1,12 @@
 import {type FormEventHandler} from 'react';
 
-import {router, useForm} from '@inertiajs/react';
+import {useForm} from '@inertiajs/react';
 import {ArrowLeftIcon} from 'lucide-react';
 
 import {BrandFormFields} from "@/components/brand-form.tsx";
 import {Button} from '@/components/ui/button';
 import {useLang} from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -40,7 +41,7 @@ export default function BrandCreate({brand}: BrandCreateProps) {
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => {
-                                        router.visit('/admin/brands');
+                                        visitList('/admin/brands');
                                     }}
                                 >
                                     <ArrowLeftIcon className="size-4"/>
@@ -74,7 +75,7 @@ export default function BrandCreate({brand}: BrandCreateProps) {
                                     disabled={processing}
                                     className="w-full sm:w-auto"
                                     onClick={() => {
-                                        router.visit(route('admin.brands'));
+                                        visitList('/admin/brands');
                                     }}
                                 >
                                     {t('admin.brands_edit.actions.cancel')}

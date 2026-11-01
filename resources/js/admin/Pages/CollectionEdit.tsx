@@ -1,9 +1,9 @@
-import { router } from '@inertiajs/react';
 import { ArrowLeftIcon } from 'lucide-react';
 
 import { CollectionForm } from "@/components/collection-form.tsx";
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -38,7 +38,7 @@ export default function CollectionEdit({ collection }: CollectionEditProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/admin/collections');
+                    visitList('/admin/collections');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

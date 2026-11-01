@@ -1,6 +1,6 @@
 import { type FormEventHandler , useMemo } from "react";
 
-import { useForm, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 
 import { CategoryPicker } from "@/components/category-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 interface CollectionFormData {
   id?: number;
@@ -157,7 +158,7 @@ export function CollectionForm({ collection: defaultCollection }: CollectionForm
             disabled={processing}
             className="w-full sm:w-auto"
             onClick={() => {
-              router.visit(route('admin.collections'));
+              visitList('/admin/collections');
             }}
           >
             {t('admin.collections_edit.actions.cancel')}

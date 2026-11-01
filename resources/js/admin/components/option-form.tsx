@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useForm, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { GripVerticalIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 import { Button } from "@/components/ui/button.tsx";
@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 interface OptionValue {
   id?: number;
@@ -327,7 +328,7 @@ export function OptionForm({ option: defaultOption }: OptionFormProps) {
             disabled={processing}
             className="w-full sm:w-auto"
             onClick={() => {
-              router.visit(route('admin.options'));
+              visitList('/admin/options');
             }}
           >
             {t('admin.options_edit.actions.cancel')}

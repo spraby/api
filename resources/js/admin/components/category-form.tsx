@@ -1,6 +1,6 @@
 import { type FormEventHandler , useMemo } from "react";
 
-import { useForm, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 
 import { OptionPicker } from "@/components/option-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 interface CategoryFormData {
   id?: number;
@@ -163,7 +164,7 @@ export function CategoryForm({ category: defaultCategory }: CategoryFormProps) {
             disabled={processing}
             className="w-full sm:w-auto"
             onClick={() => {
-              router.visit(route('admin.categories'));
+              visitList('/admin/categories');
             }}
           >
             {t('admin.categories_edit.actions.cancel')}

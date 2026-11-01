@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -82,7 +83,7 @@ export default function OrderShow({
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/admin/orders');
+                    visitList('/admin/orders');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

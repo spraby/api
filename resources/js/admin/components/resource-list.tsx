@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { router, usePage } from "@inertiajs/react"
 import {
   flexRender,
   getCoreRowModel,
@@ -51,6 +52,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { buildListUrl, readListUrlState, rememberListUrl } from "@/lib/list-url"
 import { cn } from "@/lib/utils"
 import type {
   BulkAction,
@@ -126,13 +128,24 @@ export function ResourceList<TData>({
       .map(([id, value]) => ({ id, value }));
   }, []);
 
+  // Client-side lists keep page/filters/sorting in the URL; server-side ones manage it themselves
+  const syncWithUrl = !manualPagination && !paginationState && !onFiltersChange
+  const filterIds = React.useMemo(() => filters.map((filter) => filter.columnId), [filters])
+  const [initialUrlState] = React.useState(() =>
+    syncWithUrl && typeof window !== "undefined"
+      ? readListUrlState(filterIds, defaultPageSize, pageSizeOptions)
+      : null
+  )
+
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(() => buildColumnFilters(initialFilters))
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(() =>
+    buildColumnFilters(initialUrlState?.filters ?? initialFilters)
+  )
+  const [sorting, setSorting] = React.useState<SortingState>(() => initialUrlState?.sorting ?? [])
   const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: defaultPageSize,
+    pageIndex: initialUrlState?.pageIndex ?? 0,
+    pageSize: initialUrlState?.pageSize ?? defaultPageSize,
   })
   const [bulkActionState, setBulkActionState] = React.useState<BulkActionState>({
     executingActionId: null,
@@ -211,6 +224,50 @@ export function ResourceList<TData>({
       setColumnFilters(nextFilters);
     }
   }, [initialFilters, buildColumnFilters, columnFilters]);
+
+  const pageCountValue = table.getPageCount()
+
+  // Page from the URL may no longer exist (rows deleted) — jump to the last one
+  React.useEffect(() => {
+    if (!syncWithUrl || !enablePagination) {
+      return;
+    }
+
+    if (pagination.pageIndex > 0 && pagination.pageIndex >= pageCountValue) {
+      setPagination((prev) => ({ ...prev, pageIndex: Math.max(0, pageCountValue - 1) }));
+    }
+  }, [syncWithUrl, enablePagination, pagination.pageIndex, pageCountValue]);
+
+  React.useEffect(() => {
+    if (!syncWithUrl) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const { current, next } = buildListUrl(
+        {
+          pageIndex: pagination.pageIndex,
+          pageSize: pagination.pageSize,
+          sorting,
+          filters: Object.fromEntries(columnFilters.map((filter) => [filter.id, String(filter.value ?? "")])),
+        },
+        filterIds,
+        defaultPageSize,
+      );
+
+      if (next !== current) {
+        router.replace({ url: next, preserveState: true, preserveScroll: true });
+      }
+    }, 300);
+
+    return () => { window.clearTimeout(timeoutId); };
+  }, [syncWithUrl, pagination, sorting, columnFilters, filterIds, defaultPageSize]);
+
+  const { url: pageUrl } = usePage();
+
+  React.useEffect(() => {
+    rememberListUrl(pageUrl);
+  }, [pageUrl]);
 
   const filtersChangeRef = React.useRef<Record<string, string>>({});
   const skipFiltersChangeRef = React.useRef(true);

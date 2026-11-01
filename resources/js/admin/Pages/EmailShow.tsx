@@ -26,6 +26,7 @@ import {
   type EmailStatus,
 } from "@/lib/email-helpers"
 import { useLang } from "@/lib/lang"
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from "../layouts/AdminLayout"
 
@@ -80,7 +81,7 @@ export default function EmailShow({ email }: EmailShowProps) {
   const canCancel = email.status === "pending"
 
   const handleBack = () => {
-    router.visit("/admin/emails")
+    visitList('/admin/emails')
   }
 
   const handleRetry = () => {

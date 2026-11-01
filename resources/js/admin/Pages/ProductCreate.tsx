@@ -1,10 +1,11 @@
-import { Link, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { AlertTriangleIcon, ArrowLeftIcon } from 'lucide-react';
 
 import {ProductForm} from "@/components/product-form";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 import type {Product} from "@/types/data";
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -26,7 +27,7 @@ export default function ProductCreate({product}: { product: Product }) {
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => {
-                                        router.visit('/admin/products');
+                                        visitList('/admin/products');
                                     }}
                                 >
                                     <ArrowLeftIcon className="size-4" />

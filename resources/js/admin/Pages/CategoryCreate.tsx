@@ -1,9 +1,9 @@
-import { router } from '@inertiajs/react';
 import { ArrowLeftIcon } from 'lucide-react';
 
 import { CategoryForm } from "@/components/category-form.tsx";
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -34,7 +34,7 @@ export default function CategoryCreate({ category }: CategoryCreateProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/admin/categories');
+                    visitList('/admin/categories');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

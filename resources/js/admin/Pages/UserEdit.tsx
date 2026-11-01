@@ -1,6 +1,6 @@
 import { type FormEventHandler, useEffect, useState } from 'react';
 
-import { Link, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { ArrowLeftIcon, BuildingIcon, ExternalLinkIcon } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@/lib/hooks/api/useUsers';
 import { useUpdateUser } from '@/lib/hooks/mutations/useUserMutations';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -56,7 +57,7 @@ export default function UserEdit({ userId }: UserEditProps) {
       {
         onSuccess: () => {
           // Redirect to users list on success
-          router.visit('/admin/users');
+          visitList('/admin/users');
         },
       }
     );
@@ -87,7 +88,7 @@ export default function UserEdit({ userId }: UserEditProps) {
           <Alert variant="destructive">
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
-          <Button variant="outline" onClick={() => { router.visit('/admin/users'); }}>
+          <Button variant="outline" onClick={() => { visitList('/admin/users'); }}>
             <ArrowLeftIcon className="mr-2 size-4" />
             {t('admin.users_edit.actions.back')}
           </Button>
@@ -106,7 +107,7 @@ export default function UserEdit({ userId }: UserEditProps) {
                 className="size-8"
                 size="icon"
                 variant="ghost"
-                onClick={() => { router.visit('/admin/users'); }}
+                onClick={() => { visitList('/admin/users'); }}
               >
                 <ArrowLeftIcon className="size-4" />
               </Button>
@@ -188,7 +189,7 @@ export default function UserEdit({ userId }: UserEditProps) {
                   disabled={updateUser.isPending}
                   type="button"
                   variant="outline"
-                  onClick={() => { router.visit('/admin/users'); }}
+                  onClick={() => { visitList('/admin/users'); }}
                 >
                   {t('admin.users_edit.actions.cancel')}
                 </Button>

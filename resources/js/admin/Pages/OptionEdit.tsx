@@ -1,9 +1,9 @@
-import { router } from '@inertiajs/react';
 import { ArrowLeftIcon } from 'lucide-react';
 
 import { OptionForm } from "@/components/option-form.tsx";
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -41,7 +41,7 @@ export default function OptionEdit({ option }: OptionEditProps) {
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/admin/options');
+                    visitList('/admin/options');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

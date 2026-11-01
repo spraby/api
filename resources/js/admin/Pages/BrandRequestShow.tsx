@@ -38,6 +38,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -201,7 +202,7 @@ export default function BrandRequestShow({ brandRequest, canResendPasswordSetup 
                   size="icon"
                   variant="ghost"
                   onClick={() => {
-                    router.visit('/admin/brand-requests');
+                    visitList('/admin/brand-requests');
                   }}
                 >
                   <ArrowLeftIcon className="size-4" />

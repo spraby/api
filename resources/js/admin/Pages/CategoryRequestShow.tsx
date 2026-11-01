@@ -26,6 +26,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 
 import AdminLayout from '../layouts/AdminLayout';
 
@@ -153,7 +154,7 @@ export default function CategoryRequestShow() {
                   className="size-8"
                   size="icon"
                   variant="ghost"
-                  onClick={() => { router.visit('/admin/category-requests'); }}
+                  onClick={() => { visitList('/admin/category-requests'); }}
                 >
                   <ArrowLeftIcon className="size-4" />
                 </Button>

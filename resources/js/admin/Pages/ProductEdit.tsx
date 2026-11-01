@@ -1,9 +1,9 @@
-import { router } from '@inertiajs/react';
 import { ArrowLeftIcon } from 'lucide-react';
 
 import {ProductForm} from "@/components/product-form";
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/lib/lang';
+import { visitList } from '@/lib/list-url';
 import type {Product} from "@/types/data";
 
 import AdminLayout from '../layouts/AdminLayout';
@@ -24,7 +24,7 @@ export default function ProductEdit({product}: { product: Product }) {
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => {
-                                        router.visit('/admin/products');
+                                        visitList('/admin/products');
                                     }}
                                 >
                                     <ArrowLeftIcon className="size-4" />
