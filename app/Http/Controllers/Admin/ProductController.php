@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -454,6 +455,18 @@ class ProductController extends Controller
             'product_ids.*' => 'required|integer|exists:products,id',
             'enabled' => 'required|boolean',
         ]);
+
+        if ($request->boolean('enabled')) {
+            $zeroPricedTitles = Product::whereIn('id', $request->input('product_ids'))
+                ->withZeroPricedActiveVariant()
+                ->pluck('title');
+
+            if ($zeroPricedTitles->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'enabled' => __('admin.products_table.errors.zero_price_publish', ['titles' => $zeroPricedTitles->implode(', ')]),
+                ]);
+            }
+        }
 
         try {
             /**

@@ -377,6 +377,7 @@ return [
             'delete_failed' => 'Не удалось удалить товар',
             'bulk_delete_failed' => 'Не удалось удалить товары',
             'status_update_failed' => 'Не удалось обновить статус товаров',
+            'zero_price_publish' => 'Нельзя опубликовать товар с ценой 0 {currency}. Укажите цену у активных вариантов: :titles',
         ],
     ],
 
@@ -519,6 +520,9 @@ return [
         'main_badge' => 'ГЛАВНОЕ',
         'show_more' => 'Показать ещё',
         'show_less' => 'Скрыть',
+        'status_label' => 'Публикация',
+        'status_published' => 'Товар виден покупателям',
+        'status_hidden' => 'Товар скрыт с витрины',
         'summary_header' => 'СВОДКА',
         'summary_name' => 'Название',
         'summary_category' => 'Категория',
@@ -537,6 +541,7 @@ return [
             'all_variants_need_price' => 'У всех активных вариантов должна быть цена',
             'compare_price_must_be_higher' => 'Цена до скидки должна быть выше текущей',
             'duplicate_combination' => 'Такая комбинация уже существует',
+            'zero_price_publish' => 'Нельзя опубликовать товар с ценой 0 {currency}. Укажите цену у всех активных вариантов или снимите товар с публикации',
         ],
     ],
 

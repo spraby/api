@@ -4,7 +4,7 @@ import {router, usePage} from '@inertiajs/react';
 import {ExternalLinkIcon, ImageIcon, MoreVerticalIcon, PackageIcon, PlusIcon, Trash2Icon} from "lucide-react"
 import {toast} from "sonner"
 
-import {CurrencyIcon, formatMoney, Money} from '@/components/money';
+import {CurrencyIcon, formatMoney, Money, withCurrencyIcon} from '@/components/money';
 import {ResourceList} from '@/components/resource-list';
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
@@ -364,8 +364,8 @@ export default function Products() {
             onSuccess: () => {
                 toast.success(t('admin.products_table.success.status_updated'));
             },
-            onError: () => {
-                toast.error(t('admin.products_table.errors.status_update_failed'));
+            onError: (errors) => {
+                toast.error(withCurrencyIcon(errors['enabled'] ?? t('admin.products_table.errors.status_update_failed')));
             },
         });
     }, [t]);
@@ -412,8 +412,8 @@ export default function Products() {
                         toast.success(t('admin.products_table.success.status_updated'));
                         setSelectedStatus("");
                     },
-                    onError: () => {
-                        toast.error(t('admin.products_table.errors.status_update_failed'));
+                    onError: (errors) => {
+                        toast.error(withCurrencyIcon(errors['enabled'] ?? t('admin.products_table.errors.status_update_failed')));
                     },
                 });
             },

@@ -88,6 +88,16 @@ class Product extends Model
         return $this->hasMany(Variant::class);
     }
 
+    /**
+     * Товары, у которых есть активный вариант с нулевой ценой — такие нельзя публиковать.
+     */
+    public function scopeWithZeroPricedActiveVariant(Builder $query): Builder
+    {
+        return $query->whereHas('variants', fn (Builder $variants) => $variants
+            ->where('enabled', true)
+            ->where(fn (Builder $price) => $price->where('price', '<=', 0)->orWhere('final_price', '<=', 0)));
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);

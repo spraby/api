@@ -1,3 +1,5 @@
+import {Fragment, type ReactNode} from 'react';
+
 import {BynCurrencyIcon} from '@/components/byn-currency-icon';
 import {cn} from '@/lib/utils';
 
@@ -28,6 +30,28 @@ export function CurrencyIcon({currency = 'BYN', className}: {currency?: Currency
     const Icon = CURRENCY_ICONS[currency];
 
     return <Icon className={cn('h-[1em] w-[1em]', className)}/>;
+}
+
+const CURRENCY_TOKEN = '{currency}';
+
+/**
+ * Подставляет иконку валюты вместо {currency} в тексте (например, в сообщениях сервера).
+ */
+export function withCurrencyIcon(text: string): ReactNode {
+    if (!text.includes(CURRENCY_TOKEN)) {
+        return text;
+    }
+
+    return (
+        <span>
+            {text.split(CURRENCY_TOKEN).map((part, index) => (
+                <Fragment key={index}>
+                    {index > 0 && <CurrencyIcon className="inline align-[-0.125em]"/>}
+                    {part}
+                </Fragment>
+            ))}
+        </span>
+    );
 }
 
 interface MoneyProps {

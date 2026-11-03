@@ -2,11 +2,14 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {router} from '@inertiajs/react';
 import {isEqual} from 'lodash-es';
+import {toast} from 'sonner';
 import {v4 as uuidv4} from 'uuid';
 
 import {CategoryVariantsGenerator} from "@/components/category-variants-generator.tsx";
+import {withCurrencyIcon} from '@/components/money';
 import {ProductBasicFieldsCard} from '@/components/product-basic-fields-card';
 import {ProductImagesCard} from '@/components/product-images-card';
+import {ProductStatusCard} from '@/components/product-status-card';
 import {ProductSummaryCard} from '@/components/product-summary-card';
 import {VariantList} from "@/components/variant-list.tsx";
 import {useSaveBar} from '@/stores/save-bar';
@@ -109,6 +112,11 @@ export function ProductForm({product: defaultProduct}: {
             const callbacks = {
                 onError: (err: Record<string, string>) => {
                     setErrors(err);
+
+                    // Ошибки по вариантам (например, цена 0 у опубликованного товара) в форме не выводятся
+                    if (err['variants']) {
+                        toast.error(withCurrencyIcon(err['variants']));
+                    }
                     resolve(false);
                 },
                 onSuccess: () => resolve(true),
@@ -176,6 +184,13 @@ export function ProductForm({product: defaultProduct}: {
             </div>
 
             <div className="lg:sticky lg:top-5 lg:self-start flex flex-col gap-4">
+                <ProductStatusCard
+                    enabled={!!product.enabled}
+                    onChange={(enabled) => {
+                        onChange({enabled});
+                    }}
+                />
+
                 <ProductImagesCard
                     product={product}
                     isEdit={isEdit}

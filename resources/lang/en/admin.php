@@ -377,6 +377,7 @@ return [
             'delete_failed' => 'Failed to delete product',
             'bulk_delete_failed' => 'Failed to delete products',
             'status_update_failed' => 'Failed to update product status',
+            'zero_price_publish' => 'A product priced at 0 {currency} cannot be published. Set a price for the active variants of: :titles',
         ],
     ],
 
@@ -519,6 +520,9 @@ return [
         'main_badge' => 'MAIN',
         'show_more' => 'Show more',
         'show_less' => 'Show less',
+        'status_label' => 'Published',
+        'status_published' => 'Product is visible to customers',
+        'status_hidden' => 'Product is hidden from the storefront',
         'summary_header' => 'SUMMARY',
         'summary_name' => 'Name',
         'summary_category' => 'Category',
@@ -537,6 +541,7 @@ return [
             'all_variants_need_price' => 'All active variants must have a price',
             'compare_price_must_be_higher' => 'Compare price must be higher than sale price',
             'duplicate_combination' => 'This combination already exists',
+            'zero_price_publish' => 'A product priced at 0 {currency} cannot be published. Set a price for all active variants or unpublish the product',
         ],
     ],
 
